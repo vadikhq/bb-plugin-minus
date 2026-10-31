@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { definePluginApp, experimental_usePluginId, useSdk, useSettings } from "@get-bb/plugin-sdk/app";
+import { definePluginApp, experimental_usePluginId, experimental_useRpcQuery, experimental_useRpcMutation, useSdk, useSettings } from "@get-bb/plugin-sdk/app";
 import { mountQueueCollapse } from "./collapse-queue";
 import { mountToolGrouping } from "./group-tools";
 import { AREAS, buildCss } from "./rules";
+import { dictionaryContract } from "./dictionary-contract.ts";
+import { pickDictionaryQuote } from "./dictionary-builtins.ts";
 
 // Mounted once per window; re-renders when settings change, so toggles apply live.
 function HideStyles() {
@@ -11,11 +13,15 @@ function HideStyles() {
   const css = buildCss(pluginId, (key) => values?.[key] === true);
   const collapseToolCalls = values?.collapseToolCalls === true;
   const sdk = useSdk();
+  const active = experimental_useRpcQuery({ contract: dictionaryContract, method: "dictionaryActive", input: null, enabled: collapseToolCalls });
+  const dictionary = active.data;
   useEffect(() => {
-    if (!collapseToolCalls) return;
+    // Failed/unfinished first reads leave BB's native calls visible. Successful
+    // refreshes retain the selection; only an explicit dictionary/revision change remounts.
+    if (!collapseToolCalls || !dictionary) return;
     return mountToolGrouping(
       async (threadId) => (await sdk.threads.timeline({ threadId, deferContent: "true", includeNestedRows: "true" })).rows,
-      undefined,
+      () => pickDictionaryQuote(dictionary.quotes),
       undefined,
       (notify) => {
         const unsubscribeThread = sdk.subscribe({
@@ -37,10 +43,44 @@ function HideStyles() {
         return () => { unsubscribeThread(); unsubscribeConnection(); };
       },
     );
-  }, [collapseToolCalls, sdk]);
+  }, [collapseToolCalls, sdk, dictionary?.id, dictionary?.revision]);
   const collapseQueue = values?.collapseQueue === true;
   useEffect(() => (collapseQueue ? mountQueueCollapse() : undefined), [collapseQueue]);
   return <style data-bb-minus="">{css}</style>;
+}
+
+function DictionarySettings() {
+  const state = experimental_useRpcQuery({ contract: dictionaryContract, method: "dictionaryList", input: null });
+  const activate = experimental_useRpcMutation({ contract: dictionaryContract, method: "dictionaryActivate" });
+  const current = state.data;
+  const error = activate.error ?? state.error;
+  return (
+    <section className="space-y-3" aria-label="Словари цитат">
+      <h2 className="flex min-h-6 items-center text-sm font-medium text-foreground">Словари цитат</h2>
+      <div className="space-y-3 overflow-hidden rounded-md border border-border bg-surface-recessed/70 px-3 py-3">
+        <label className="block space-y-2 text-sm text-foreground">
+          <span>Активный словарь</span>
+          <select
+            aria-label="Активный словарь"
+            value={current?.activeId ?? ""}
+            disabled={!current || activate.isPending}
+            onChange={(event) => { void activate.mutate({ id: event.target.value }).then(() => state.refetch()).catch(() => {}); }}
+            className="h-9 max-md:pointer-coarse:h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 py-1 text-sm font-normal shadow-xs outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+          >
+            {!current ? <option value="">Загрузка словарей…</option> : null}
+            {current && !current.dictionaries.some(d => d.id === current.activeId) ? <option value={current.activeId} disabled>Словарь недоступен</option> : null}
+            {current?.dictionaries.map(d => <option key={d.id} value={d.id}>{d.title} · {d.count}</option>)}
+          </select>
+        </label>
+        <p className="text-xs text-muted-foreground">Новый словарь можно добавить через агента. Прежние подборки сохраняются.</p>
+        {activate.isPending ? <p role="status" className="text-xs text-muted-foreground">Сохраняется выбор…</p> : null}
+        {error ? <div role="alert" className="space-y-2 text-sm text-destructive">
+          <p>{error.message}</p>
+          <button type="button" className="text-sm underline underline-offset-2 outline-none focus-visible:ring-1 focus-visible:ring-ring" onClick={() => { activate.reset(); void state.refetch(); }}>Повторить загрузку</button>
+        </div> : null}
+      </div>
+    </section>
+  );
 }
 
 // Classes copied from bb's declarative settings form so the grouped cards match it.
@@ -92,6 +132,7 @@ function GroupedSettings() {
   };
   return (
     <div className="space-y-6">
+      <DictionarySettings />
       {error === null ? null : (
         <p role="alert" className="text-sm text-destructive">
           {error}

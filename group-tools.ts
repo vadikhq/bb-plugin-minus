@@ -2,7 +2,7 @@
 // behind one quote toggle styled like bb's "Worked for" row. bb owns the rows (React),
 // so this only sets an attribute on them and inserts its own sibling markers.
 // The timeline is virtualized, so counts come from the timeline API, not mounted rows.
-import { pickRandomQuote, QUOTE_SOURCES, type QuoteEntry } from "./quotes.ts";
+import { defaultQuote, quoteAttribution, type GroupQuote } from "./dictionary-builtins.ts";
 
 type TimelineRow = {
   id: string;
@@ -67,7 +67,7 @@ const REFETCH_MS = 2000;
 
 const TOGGLE_HTML = `<div class="rounded-md text-subtle-foreground w-full">
   <div data-row class="group/timeline-row min-w-0 px-2 text-sm leading-5">
-    <button data-toggle="quote" type="button" aria-expanded="false" class="inline px-0 py-0 align-baseline text-sm leading-5 text-subtle-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 inline-block size-3.5 align-text-bottom text-subtle-foreground" aria-hidden="true" data-minus-icon="activity"></svg><span data-activity-label class="sr-only"></span></button><label data-quote-control class="group/toggle inline whitespace-normal break-words cursor-pointer"><span data-quote class="whitespace-normal break-words text-sm italic leading-5 text-subtle-foreground"></span> — <span data-source class="mr-1.5 break-words text-xs not-italic leading-5 text-subtle-foreground"></span></label>
+    <button data-toggle="quote" type="button" aria-expanded="false" class="inline px-0 py-0 align-baseline text-sm leading-5 text-subtle-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 inline-block size-3.5 align-text-bottom text-subtle-foreground" aria-hidden="true" data-minus-icon="activity"></svg><span data-activity-label class="sr-only"></span></button><label data-quote-control class="group/toggle inline whitespace-normal break-words cursor-pointer"><span data-quote class="whitespace-normal break-words text-sm not-italic leading-5 text-subtle-foreground"></span> → <span data-source class="mr-1.5 break-words text-xs not-italic leading-5 text-subtle-foreground"></span></label>
     <button data-metrics data-toggle="metrics" type="button" aria-expanded="false" class="inline max-w-full whitespace-normal break-words px-0 py-0 text-left align-baseline text-xs leading-5 text-subtle-foreground underline underline-offset-2 hover:decoration-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"><span data-count class="whitespace-nowrap"></span><span data-time-separator> · </span><span data-time class="whitespace-nowrap"></span><svg data-minus-chevron viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="bb-icon-stroke pointer-events-none ml-1.5 inline-block size-3 align-text-bottom origin-center text-subtle-foreground transition-[rotate] duration-200 ease-out" aria-hidden="true"><path d="M6 4l4 4-4 4"></path></svg></button>
   </div>
 </div>`;
@@ -275,7 +275,7 @@ function formatToolTime(durationMs: number | null): string {
 
 export function mountToolGrouping(
   fetchTimeline: FetchTimeline,
-  chooseQuote: () => QuoteEntry = pickRandomQuote,
+  chooseQuote: () => GroupQuote = defaultQuote,
   clock: Clock = systemClock,
   subscribeTimeline?: SubscribeTimeline,
 ): () => void {
@@ -286,8 +286,8 @@ export function mountToolGrouping(
   const rowDisclosureChoices = new Map<string, DisclosureChoice>();
   const renderedMembers = new WeakMap<HTMLElement, readonly string[]>();
   let disclosureRevision = 0;
-  const quoteByGroup = new Map<string, QuoteEntry>();
-  const quoteByRow = new Map<string, QuoteEntry>();
+  const quoteByGroup = new Map<string, GroupQuote>();
+  const quoteByRow = new Map<string, GroupQuote>();
   const threads = new Map<string, ThreadRuns>();
   const visibleRows = new Set<string>();
   const lastFetch = new Map<string, number>();
@@ -869,20 +869,16 @@ export function mountToolGrouping(
         const activityLabel = el.querySelector<HTMLElement>("[data-activity-label]")!;
         activityLabel.id = quoteId + "-activity";
         if (activityLabel.textContent !== ACTIVITY_LABELS[activity]) activityLabel.textContent = ACTIVITY_LABELS[activity];
-        const source = QUOTE_SOURCES[quote.source];
-        const sourceLocator = quote.locator.replace(
-          /^Project Gutenberg plain-text line (\d+)$/,
-          "Строка $1 в тексте Project Gutenberg",
-        );
+        const source = quoteAttribution(quote);
         const sourceLink = el.querySelector<HTMLElement>("[data-source]")!;
         sourceLink.id = quoteId + "-source";
         quoteButton.setAttribute("aria-labelledby", quoteId + " " + sourceLink.id);
         if (sourceLink.textContent !== source.byline) sourceLink.textContent = source.byline;
         sourceLink.setAttribute(
           "aria-label",
-          source.credit + ". «" + source.title + "». " + sourceLocator + ". Русский перевод Minus.",
+          source.detail,
         );
-        sourceLink.title = source.credit + ". «" + source.title + "». " + sourceLocator + ". Русский перевод Minus.";
+        sourceLink.title = source.detail;
         const duration = api?.pending ? null : formatToolTime(api?.durationMs ?? null);
         const metrics = el.querySelector<HTMLElement>("[data-metrics]")!;
         const visibleCount = calls + " tool" + (calls === 1 ? "" : "s");

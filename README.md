@@ -56,6 +56,14 @@ are respected; offscreen and background animations pause.
 
 MIT
 
+## Quote dictionaries
+
+Settings → Plugins → Minus → **Словари цитат** selects the active dictionary. This release starts with **Рэй Далио — Принципы** (452 accepted quotes); **Философская подборка** keeps all 73 previous entries unchanged. The selection persists. Each summary reads quote → author → section in ordinary muted text. Dalio summaries show the exact chapter name, without the book title or principle number.
+
+Agents can use `minus_dictionaries` to list, import and explicitly activate dictionaries. Import validates the whole set atomically, stores it in the plugin database and leaves the active selection unchanged. An identical repeated import is safe; replacing different data requires the current `expectedRevision` from `list`. Built-in dictionaries cannot be replaced. See the [agent skill](skills/minus/SKILL.md) for the input format.
+
+Imports require checked attribution and source locators; structural validation alone does not verify a quotation. Research candidates are not imported automatically. Back up custom dictionaries and settings before removing the plugin. The accepted UI amendment and verification are recorded in the [quote dictionaries journal](docs/product-journal/2026-10-31-quote-dictionaries.md), extending the current visual reference below. The [installation journal](docs/product-journal/2026-10-31-quote-dictionaries-installation.md) records the exact installed source and direct live UI checks.
+
 Collapsing tools keeps reasoning, unknown streaming rows, nested agent timelines and delegation/workflow streams visible. When a completed stage is open, its commentary uses the normal chat inset without an enclosing Worked for disclosure; quote and metrics controls reveal only the tool rows. Turning grouping off restores the native presentation. Approval, question and form rows remain available for the user to respond. The summary reads quote → Russian author/source → tool count and total time, with a shared native horizontal inset.
 
 The current accepted UI reference is [one summary per continuous tool block, 2026-10-31](docs/product-journal/2026-10-31-quote-flood.md), accepted by the owner in the Minus thread: “Теперь без флуда, оставляем”. It extends the accepted [ring, dot, disclosure arrow and final time](docs/product-journal/2026-10-30-ring-arrow.md) and the earlier divider/spacing decisions. Agent streams remain outside the dividers; quote and Russian attribution flow together without a link or forced line break. The [motion check and fork integration decision](docs/product-journal/2026-10-31-motion-pr.md) preserve this visual reference.
