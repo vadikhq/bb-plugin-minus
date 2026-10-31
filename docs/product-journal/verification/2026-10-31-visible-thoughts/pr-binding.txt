@@ -1,0 +1,1 @@
+BOUND: bb/minus-visible-thoughts -> PR #2 (https://github.com/vadikhq/bb-plugin-minus/pull/2) @ 45b54c77c1c69a5fd48a035e15cc8c120f1368cc

@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-10-31T11:13:53.498Z",
+  "url": "https://github.com/vadikhq/bb-plugin-minus/pull/2",
+  "repo": "vadikhq/bb-plugin-minus",
+  "number": 2,
+  "state": "open",
+  "head": "bb/minus-visible-thoughts",
+  "headSha": "45b54c77c1c69a5fd48a035e15cc8c120f1368cc",
+  "base": "main",
+  "baseSha": "9bf014f9c594f79d6d95734152f755fd03bfb666",
+  "title": "Объединить служебные Thought с инструментами и убрать курсив сводок",
+  "body": "Пользователь Minus увидит одну сводку для непрерывного блока инструментов и служебных Thought. Сводка оформлена обычным серым текстом между разделителями; полезные сообщения агентов и дочерние потоки остаются видимыми.\n\nПодтверждённые API служебные Thought раскрываются вместе с инструментами и не добавляют вызовы или время. Пока цикл работает, кольцо вращается, итоговое время скрыто. Состояние сохраняется при виртуализации; отдельные, неизвестные и ошибочные Thought остаются нативными.\n\nПроверка: 106 тестов, TypeScript и сборка прошли. В isolated headless Chromium проверены обе темы, ширины 320/390/1280 px, текст 100/200%, клавиатура и переход в завершённое состояние. В настоящем frontend с кандидатскими JS/CSS на 1280/390 px проверены раскрытие, видимость сообщения и сумма 4 вызовов: 52816 ms → 52.8s. Независимое ревью точной редакции завершено без замечаний.\n\nЖурнал и evidence: `docs/product-journal/2026-10-31-visible-thoughts.md`. Новая редакция ещё не установлена. Merge и установка согласуются отдельно.",
+  "textMatchesApproval": true,
+  "localRemotePrHeadEqual": true,
+  "listedAsCurrentBranch": true,
+  "mergeable": true,
+  "mergeableState": "clean",
+  "checkRuns": [],
+  "commitStatuses": [],
+  "reviews": [
+    {
+      "state": "COMMENTED",
+      "commitId": "45b54c77c1c69a5fd48a035e15cc8c120f1368cc"
+    }
+  ],
+  "autoMerge": null,
+  "merged": false,
+  "installed": false,
+  "trackerLink": "https://github.com/vadikhq/bb-plugin-minus/pull/2"
+}

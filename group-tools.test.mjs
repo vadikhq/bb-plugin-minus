@@ -1943,6 +1943,112 @@ for (const bothSides of [false, true]) {
   });
 }
 
+for (const ownerSide of ['left', 'right']) {
+  test('a known pending Thought stays with its own group across a spacer and virtualization: ' + ownerSide, async () => {
+    let finished = false, notify;
+    const source = [['tool-1'], ['op:reasoning:owned', 'system', 'reasoning', 0, null], ['tool-2']];
+    const dom = mountDom({ rowIds: source.map(row => row[0]),
+      fetchTimeline: async () => completedReasoningTimeline(source).map(row => row.operationKind === 'reasoning' && finished ?
+        { ...row, status: 'completed', completedAt: 9000 } : row),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      await dom.flush();
+      assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
+      const thought = dom.rows[1];
+      const spacer = dom.window.document.createElement('div');
+      spacer.setAttribute('data-timeline-window-spacer', '');
+      dom.container.insertBefore(spacer, ownerSide === 'left' ? dom.rows[2] : thought);
+      const inspect = async () => {
+        await dom.flush();
+        const markers = [...dom.container.querySelectorAll('[data-bb-minus-group]')];
+        assert.deepEqual(markers.map(row => row.getAttribute('data-tool-state')),
+          ownerSide === 'left' ? ['pending', 'completed'] : ['completed', 'pending']);
+        assert.deepEqual(markers.map(row => row.querySelector('[data-metrics]').textContent),
+          ownerSide === 'left' ? ['1 tool', '1 tool · 300ms'] : ['1 tool · 300ms', '1 tool']);
+        assert.equal(spacer.hasAttribute(HIDDEN), false);
+        return markers;
+      };
+      const markers = await inspect();
+      const metrics = markers[ownerSide === 'left' ? 0 : 1].querySelector('[data-metrics]');
+      metrics.focus(); metrics.click();
+      thought.remove(); await inspect();
+      dom.container.insertBefore(thought, ownerSide === 'left' ? spacer : dom.rows[2]);
+      await inspect();
+      thought.remove(); await inspect();
+      finished = true; notify('thr_test', true); await dom.flush();
+      assert.deepEqual([...dom.container.querySelectorAll('[data-metrics]')].map(row => row.textContent),
+        ['1 tool · 300ms', '1 tool · 300ms']);
+      assert.equal(metrics.getAttribute('aria-expanded'), 'true');
+      assert.equal(dom.window.document.activeElement, metrics);
+    } finally { dom.cleanup(); }
+  });
+}
+
+for (const ownerSide of ['left', 'right']) for (const resolution of ['mount', 'terminal', 'join']) {
+  test('simultaneous spacer and Thought virtualization waits for ' + resolution + ': ' + ownerSide, async () => {
+    let finished = false, notify;
+    const source = [['tool-1'], ['op:reasoning:ambiguous', 'system', 'reasoning', 0, null], ['tool-2']];
+    const dom = mountDom({ rowIds: source.map(row => row[0]),
+      fetchTimeline: async () => completedReasoningTimeline(source).map(row => row.operationKind === 'reasoning' && finished ?
+        { ...row, status: 'completed', completedAt: 9000 } : row),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      await dom.flush();
+      const thought = dom.rows[1], spacer = dom.window.document.createElement('div');
+      spacer.setAttribute('data-timeline-window-spacer', '');
+      dom.container.insertBefore(spacer, ownerSide === 'left' ? dom.rows[2] : thought);
+      thought.remove(); await dom.flush();
+      const markers = () => [...dom.container.querySelectorAll('[data-bb-minus-group]')];
+      assert.deepEqual(markers().map(row => row.getAttribute('data-tool-state')), ['unknown', 'unknown']);
+      assert.deepEqual(markers().map(row => row.querySelector('[data-metrics]').textContent),
+        ['1 tool · time unavailable', '1 tool · time unavailable']);
+      if (resolution === 'mount') {
+        dom.container.insertBefore(thought, ownerSide === 'left' ? spacer : dom.rows[2]);
+        await dom.flush();
+        assert.deepEqual(markers().map(row => row.getAttribute('data-tool-state')),
+          ownerSide === 'left' ? ['pending', 'completed'] : ['completed', 'pending']);
+        thought.remove(); await dom.flush();
+      } else if (resolution === 'join') {
+        spacer.remove(); await dom.flush();
+        assert.deepEqual(markers().map(row => row.getAttribute('data-tool-state')), ['pending']);
+        assert.equal(markers()[0].querySelector('[data-metrics]').textContent, '2 tools');
+      }
+      finished = true; notify('thr_test', true); await dom.flush();
+      assert(markers().every(row => row.getAttribute('data-tool-state') === 'completed'));
+      assert.deepEqual(markers().map(row => row.querySelector('[data-metrics]').textContent),
+        resolution === 'join' ? ['2 tools · 600ms'] : ['1 tool · 300ms', '1 tool · 300ms']);
+    } finally { dom.cleanup(); }
+  });
+}
+
+for (const boundary of ['conversation', 'nested-source']) {
+  test('virtualized Thought ownership follows a new API boundary: ' + boundary, async () => {
+    let separated = false, notify;
+    const source = [['tool-1'], ['op:reasoning:moved', 'system', 'reasoning', 0, null], ['tool-2']];
+    const dom = mountDom({ rowIds: source.map(row => row[0]),
+      fetchTimeline: async () => {
+        const rows = completedReasoningTimeline(source);
+        if (!separated) return rows;
+        return boundary === 'conversation' ? [rows[0], { id: fullId('assistant:boundary'), kind: 'conversation' }, ...rows.slice(1)] :
+          [rows[0], { id: fullId('nested:turn'), kind: 'turn', children: rows.slice(1) }];
+      }, subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      await dom.flush();
+      const spacer = dom.window.document.createElement('div');
+      spacer.setAttribute('data-timeline-window-spacer', '');
+      dom.container.insertBefore(spacer, dom.rows[1]);
+      dom.rows[1].remove(); separated = true; notify('thr_test', true); await dom.flush();
+      const markers = [...dom.container.querySelectorAll('[data-bb-minus-group]')];
+      assert.deepEqual(markers.map(row => row.getAttribute('data-tool-state')), ['completed', 'pending']);
+      assert.deepEqual(markers.map(row => row.querySelector('[data-metrics]').textContent),
+        ['1 tool · 300ms', '1 tool']);
+    } finally { dom.cleanup(); }
+  });
+}
+
 for (const status of ['error', 'cancelled', 'unknown-state']) {
   test('mounted reasoning with ' + status + ' status remains an independent visible boundary', async () => {
     const dom = mountDom({ rowIds: ['tool-1', 'op:reasoning:boundary', 'tool-2'], fetchTimeline: async () =>

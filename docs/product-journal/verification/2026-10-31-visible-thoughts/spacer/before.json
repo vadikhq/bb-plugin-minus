@@ -1,0 +1,43 @@
+{
+  "method": "isolated headless Chromium; source module in disposable fixture; no installed runtime changes",
+  "sourceHash": "e170b1ad5dbd6d142e46c15682f809b4a69a48dab89fce042e2c462a4e72a41d",
+  "before": [
+    {
+      "state": "pending",
+      "metrics": "2 tools"
+    }
+  ],
+  "expectedSplit": [
+    {
+      "state": "completed",
+      "metrics": "1 tool · 300ms"
+    },
+    {
+      "state": "pending",
+      "metrics": "1 tool"
+    }
+  ],
+  "split": [
+    {
+      "state": "pending",
+      "metrics": "1 tool"
+    },
+    {
+      "state": "pending",
+      "metrics": "1 tool"
+    }
+  ],
+  "after": [
+    {
+      "state": "completed",
+      "metrics": "1 tool · 300ms"
+    },
+    {
+      "state": "completed",
+      "metrics": "1 tool · 300ms"
+    }
+  ],
+  "bugReproduced": true,
+  "sourceUnchanged": true,
+  "errors": []
+}

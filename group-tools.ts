@@ -318,6 +318,7 @@ export function mountToolGrouping(
   // Identity survives virtualization; state is always read from the current
   // API snapshot. A returning Thought must not restart or finish its cycle.
   const knownThoughtIds = new Set<string>();
+  const thoughtToolOwners = new Map<string, ReadonlySet<string>>();
   const lastFetch = new Map<string, number>();
   const inFlight = new Set<string>();
   const queuedRefreshes = new Map<string, boolean>();
@@ -506,7 +507,7 @@ export function mountToolGrouping(
         (row.status === "completed" || (row.status === "pending" && details?.has(row.id)))));
   }
 
-  function apiRun(rows: HTMLElement[]): {
+  function apiRun(rows: HTMLElement[], recoverableThoughts: ReadonlySet<string>): {
     key: string;
     count: number;
     durationMs: number | null;
@@ -547,7 +548,7 @@ export function mountToolGrouping(
       for (const direction of [-1, 1]) {
         let index = location.index + direction;
         let entry = location.source[index];
-        while (isServiceReasoning(entry) && knownThoughtIds.has(entry.id) && !visibleRows.has(entry.id)) {
+        while (isServiceReasoning(entry) && recoverableThoughts.has(entry.id) && !visibleRows.has(entry.id)) {
           detailsById.set(entry.id, entry);
           index += direction;
           entry = location.source[index];
@@ -853,7 +854,67 @@ export function mountToolGrouping(
       if (run.length > 0) runs.push(run);
       for (const el of spacers) el.removeAttribute(HIDDEN);
 
-      const parts = runs.flatMap(splitAtApiBoundaries).map(rows => ({ rows, api: apiRun(rows) }));
+      const rowParts = runs.flatMap(splitAtApiBoundaries);
+      const partTools = rowParts.map(rows => {
+        const threadId = rows[0].dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0];
+        const api = threads.get(threadId ?? "");
+        return new Set(rows.flatMap(row => {
+          if (reasoningDetail(row, api, visibleRows) !== undefined) return [];
+          const summary = summaryMembers(row, api);
+          const run = api?.runOf.get(apiId(row));
+          return summary?.map(member => member.id) ?? (run === undefined ? [] : api!.memberIds[run]);
+        }));
+      });
+      // A mounted Thought proves which part owns its activity. Keep those
+      // tool anchors when it is virtualized; an identity alone cannot prove
+      // ownership across spacers or another mounted group's boundary.
+      for (const [index, rows] of rowParts.entries()) {
+        for (const row of rows) {
+          const threadId = row.dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0];
+          const thought = reasoningDetail(row, threads.get(threadId ?? ""), visibleRows);
+          if (thought !== undefined) thoughtToolOwners.set(thought.id, partTools[index]);
+        }
+      }
+      const recovered = rowParts.map(() => new Set<string>());
+      const uncertain = rowParts.map(() => new Set<string>());
+      for (const [id, owners] of thoughtToolOwners) {
+        const matches = partTools.flatMap((tools, index) => {
+          const threadId = rowParts[index][0].dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0];
+          const api = threads.get(threadId ?? "");
+          const detail = api?.sourceOf.get(id);
+          if (detail === undefined) return [];
+          const connected = [...owners].some(owner => {
+            const anchor = api?.sourceOf.get(owner);
+            if (!tools.has(owner) || anchor?.source !== detail.source) return false;
+            const from = Math.min(anchor.index, detail.index) + 1;
+            const to = Math.max(anchor.index, detail.index);
+            return detail.source.slice(from, to).every(entry => isServiceReasoning(entry) && !visibleRows.has(entry.id));
+          });
+          return connected ? [index] : [];
+        });
+        if (matches.length === 1) recovered[matches[0]].add(id);
+        else for (const index of matches) uncertain[index].add(id);
+      }
+      const parts = rowParts.map((rows, index) => {
+        const api = apiRun(rows, recovered[index]);
+        const threadId = rows[0].dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0];
+        const timeline = threads.get(threadId ?? "");
+        const pendingOwnership = [...uncertain[index]].some(id => {
+          const location = timeline?.sourceOf.get(id);
+          const entry = location?.source[location.index];
+          return isServiceReasoning(entry) && entry.status === "pending" && !visibleRows.has(id);
+        });
+        // If a spacer appears as its Thought is virtualized, neither side
+        // proves ownership. Keep the existing unknown state and withhold the
+        // final duration until mount or terminal resolves it; do not invent
+        // a pending owner or announce completion for both parts.
+        if (api !== null && pendingOwnership) {
+          api.durationMs = null;
+          api.activity = combinedActivity([api.activity, "unknown"]);
+          if (threadId !== undefined) refresh(threadId);
+        }
+        return { rows, api };
+      });
       const apiParts = new Map<string, number>();
       for (const { api } of parts) {
         if (api !== null) apiParts.set(api.key, (apiParts.get(api.key) ?? 0) + 1);
@@ -1075,6 +1136,8 @@ export function mountToolGrouping(
     disclosureChoices.clear();
     rowDisclosureChoices.clear();
     visibleRows.clear();
+    knownThoughtIds.clear();
+    thoughtToolOwners.clear();
     mountedThreads.clear();
     turnChoices.clear();
     autoOpenedTurns.clear();

@@ -1,0 +1,527 @@
+{
+  "verdict": "P0/P1/P2 not found in bounded final ownership/virtualization/source-boundary review; reported P2 findings fixed",
+  "reviewedAt": "2026-10-31T11:41:57.096377+00:00",
+  "role": "independent read-only reviewer",
+  "sourceHashes": {
+    "group-tools.ts": "390bfc434714ff9f09e80bc381a7ae90d529bea6ad5f9952c1f477c6f430f375",
+    "group-tools.test.mjs": "eea2cfec2afadb4c5b5f6acf5e506384cf1c2506691813a2fae801577f8cfea1",
+    "app.tsx": "cc064c58a98d29dd42b602aba55fa63d685845d143569389f9088669637486ec",
+    "quotes.ts": "f0602bcffd488c315c68af1a0ab4adce84dccd4cfa35bbfae68f67744bd8806a"
+  },
+  "artifactHashes": {
+    "browser.json": "3a0bd5e1b1febd1b1e1d58cc0135a26ce8a2bbf8bc7dbd1be3435001afecd437",
+    "ownership-browser.json": "8340704de8d84f7aeac41f512a43331554fd47c8ea993d67883d7629cc631018",
+    "native-candidate.json": "948d7024957a414dd423cfa08c34b00360483acdf8f1c8d043159cd12acea944",
+    "tests.xml": "d85648b88e756e1d1438fca7d147d9a28d31e40e0f5272e4109bfd2ba73a2ff9",
+    "style-unchanged.json": "43818807b656be75e02ede46521977f42a24352c92b1890b065a5f9e4d7e6744",
+    "source-hashes.json": "f5e1b6d67272a23b50eabce95e670f54c3f5879c6d97af1c3eae42302d4f8088",
+    "light-pending-760x420.png": "379993fa4917d78ed67fc14d543db3bdea09f29ac1ebff88f80e53a15a209ba1",
+    "light-pending-390x840.png": "63fd9848eefcf666f2ada142bd17f8fbfcd0a4db87a6ac2b06b7778c6cd69c62",
+    "light-closed-760x420.png": "b6e3ad5114279f9742f4eb7b3019e94879e60545c796ba990748ecc04a8ecedb",
+    "light-closed-390x840.png": "4fd0c6f70decdbe13d751568059943b17161b7722d3d70996f8ad42dd1df9273",
+    "light-open-760x420.png": "3bb7acc0aeca6dc4226d9bfa401418124be6d295def5777a87f3ac9724ccf793",
+    "light-open-390x840.png": "da7a4b00388116b1f23833e87e9ce5dc5c5b8f036384f33c822d12faad1bfd34",
+    "dark-pending-760x420.png": "675a15cc4e717eeb4d1b125b71c07d3a275bd7d1dcc6cd541020e54a0dd8ba43",
+    "dark-pending-390x840.png": "7766ac5d7a3a64e19238a1a7b97477d70cad193b72d1c8fd9fe2d27b54001626",
+    "dark-closed-760x420.png": "66f27fba2cceeaeefc9ac5c47561bf2270d104cf27abece3d202d505f5d89f15",
+    "dark-closed-390x840.png": "594ac0b1e882a079c4061ea0669647e12f57b95c0ffbae7bac6527ba34610eb9",
+    "dark-open-760x420.png": "3e252ec44407a756ed5efecd8e712b7b1f2482486ec5340140ebeecd78fc59da",
+    "dark-open-390x840.png": "35f8fe7cbccb3726902565f64f453f723215b059583c3d7d8520a46cd525e095"
+  },
+  "scope": "Thought-to-tool ownership after spacers and virtualization; simultaneous mutations; API boundaries; no dictionary, SDK, core or runtime edits",
+  "findingsResolved": [
+    {
+      "source": "e170b1ad5dbd6d142e46c15682f809b4a69a48dab89fce042e2c462a4e72a41d",
+      "issue": "known Thought pending state was recovered into both sides of a spacer",
+      "status": "fixed"
+    },
+    {
+      "source": "7500f81489fbcee580af5d26f32881faabcac730e092ceef3c9471e41b0c225f",
+      "issue": "simultaneous spacer plus Thought unmount falsely completed both groups",
+      "status": "fixed with existing unknown state and no numeric final duration"
+    },
+    {
+      "source": "9c5e69d30e92e27d46035ef613fb71ddecdfa747d304ec005f17689cd8ba20c8",
+      "issue": "uncertain ownership ignored a newly inserted conversation boundary or changed sibling source",
+      "status": "fixed; left unrelated completed call remains completed, valid neighbouring owner stays pending"
+    }
+  ],
+  "independentDomProbes": [
+    {
+      "owner": "left",
+      "simultaneous": false,
+      "split": [
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "unmounted": [
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "afterProof": [
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "rejoined": [
+        {
+          "activity": "pending",
+          "metrics": "2 tools"
+        }
+      ],
+      "terminal": [
+        {
+          "activity": "completed",
+          "metrics": "2 tools · 600ms"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "owner": "left",
+      "simultaneous": true,
+      "split": [
+        {
+          "activity": "unknown",
+          "metrics": "1 tool · time unavailable"
+        },
+        {
+          "activity": "unknown",
+          "metrics": "1 tool · time unavailable"
+        }
+      ],
+      "unmounted": [
+        {
+          "activity": "unknown",
+          "metrics": "1 tool · time unavailable"
+        },
+        {
+          "activity": "unknown",
+          "metrics": "1 tool · time unavailable"
+        }
+      ],
+      "afterProof": [
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "rejoined": [
+        {
+          "activity": "pending",
+          "metrics": "2 tools"
+        }
+      ],
+      "terminal": [
+        {
+          "activity": "completed",
+          "metrics": "2 tools · 600ms"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "owner": "right",
+      "simultaneous": false,
+      "split": [
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "unmounted": [
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "afterProof": [
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "rejoined": [
+        {
+          "activity": "pending",
+          "metrics": "2 tools"
+        }
+      ],
+      "terminal": [
+        {
+          "activity": "completed",
+          "metrics": "2 tools · 600ms"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "owner": "right",
+      "simultaneous": true,
+      "split": [
+        {
+          "activity": "unknown",
+          "metrics": "1 tool · time unavailable"
+        },
+        {
+          "activity": "unknown",
+          "metrics": "1 tool · time unavailable"
+        }
+      ],
+      "unmounted": [
+        {
+          "activity": "unknown",
+          "metrics": "1 tool · time unavailable"
+        },
+        {
+          "activity": "unknown",
+          "metrics": "1 tool · time unavailable"
+        }
+      ],
+      "afterProof": [
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "rejoined": [
+        {
+          "activity": "pending",
+          "metrics": "2 tools"
+        }
+      ],
+      "terminal": [
+        {
+          "activity": "completed",
+          "metrics": "2 tools · 600ms"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "placement": "leading",
+      "before": [
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "after": [
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "placement": "trailing",
+      "before": [
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "after": [
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "placement": "between",
+      "before": [
+        {
+          "activity": "pending",
+          "metrics": "2 tools"
+        }
+      ],
+      "after": [
+        {
+          "activity": "pending",
+          "metrics": "2 tools"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "boundary": "conversation",
+      "after": [
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "boundary": "nested-source",
+      "after": [
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "boundary": "message-content",
+      "after": [
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "boundary": "question",
+      "after": [
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "boundary": "unknown-system",
+      "after": [
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "boundary": "next-work",
+      "after": [
+        {
+          "activity": "pending",
+          "metrics": "3 tools"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "owner": "left",
+      "resolution": "terminal-direct",
+      "resolved": [
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "focusAndDisclosurePreserved": true,
+      "passed": true
+    },
+    {
+      "owner": "left",
+      "resolution": "join-direct",
+      "resolved": [
+        {
+          "activity": "pending",
+          "metrics": "2 tools"
+        }
+      ],
+      "focusAndDisclosurePreserved": true,
+      "passed": true
+    },
+    {
+      "owner": "right",
+      "resolution": "terminal-direct",
+      "resolved": [
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "activity": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "focusAndDisclosurePreserved": true,
+      "passed": true
+    },
+    {
+      "owner": "right",
+      "resolution": "join-direct",
+      "resolved": [
+        {
+          "activity": "pending",
+          "metrics": "2 tools"
+        }
+      ],
+      "focusAndDisclosurePreserved": true,
+      "passed": true
+    },
+    {
+      "ownState": "pending",
+      "split": [
+        {
+          "activity": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "activity": "unknown",
+          "metrics": "1 tool · time unavailable"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "ownState": "error",
+      "split": [
+        {
+          "activity": "error",
+          "metrics": "1 tool · time unavailable"
+        },
+        {
+          "activity": "unknown",
+          "metrics": "1 tool · time unavailable"
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "probeHarness": "import assert from \"node:assert/strict\";\nimport test from \"node:test\";\nimport { JSDOM } from '/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-source/node_modules/jsdom/lib/api.js';\nimport { mountToolGrouping } from '/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-source/group-tools.ts';\nimport { QUOTE_SOURCES, QUOTES, pickRandomQuote } from '/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-source/quotes.ts';\n\nconst HIDDEN = \"data-bb-minus-hidden\";\n\nfunction fullId(id) {\n  return id.startsWith(\"thr_\") ? id : \"thr_test:\" + (id.startsWith(\"tool-\") ? \"tool:\" : \"\") + id;\n}\n\nfunction makeRow(window, id) {\n  const row = window.document.createElement(\"div\");\n  row.setAttribute(\"data-timeline-row-id\", fullId(id));\n  return row;\n}\n\nfunction mountDom({ rowIds, fetchTimeline, chooseQuote = () => QUOTES[0], clock, subscribeTimeline }) {\n  const dom = new JSDOM(\"<!doctype html><html><head></head><body></body></html>\", {\n    pretendToBeVisual: true,\n    url: \"https://bb.local/\",\n  });\n  const { window } = dom;\n  const globals = {\n    document: window.document,\n    Element: window.Element,\n    HTMLElement: window.HTMLElement,\n    MutationObserver: window.MutationObserver,\n    requestAnimationFrame: window.requestAnimationFrame.bind(window),\n    cancelAnimationFrame: window.cancelAnimationFrame.bind(window),\n  };\n  const previousGlobals = new Map();\n  for (const [name, value] of Object.entries(globals)) {\n    previousGlobals.set(name, Object.getOwnPropertyDescriptor(globalThis, name));\n    Object.defineProperty(globalThis, name, { configurable: true, writable: true, value });\n  }\n\n  const list = window.document.createElement(\"div\");\n  list.setAttribute(\"data-timeline-row-list\", \"top-level\");\n  const container = window.document.createElement(\"div\");\n  container.setAttribute(\"data-timeline-items\", \"\");\n  const rows = rowIds.map((id) => makeRow(window, id));\n  container.append(...rows);\n  list.append(container);\n  window.document.body.append(list);\n  const dispose = mountToolGrouping(fetchTimeline, chooseQuote, clock, subscribeTimeline);\n\n  return {\n    window,\n    container,\n    rows,\n    dispose,\n    makeRow: (id) => makeRow(window, id),\n    async flush() {\n      for (let index = 0; index < 2; index++) {\n        await Promise.resolve();\n        await new Promise((resolve) => window.setTimeout(resolve, 0));\n        await new Promise((resolve) => window.requestAnimationFrame(resolve));\n      }\n    },\n    cleanup() {\n      dispose();\n      for (const [name, descriptor] of previousGlobals) {\n        if (descriptor) Object.defineProperty(globalThis, name, descriptor);\n        else delete globalThis[name];\n      }\n      window.close();\n    },\n  };\n}\n\nfunction timeline(rows) {\n  return rows.map(([id, kind = \"work\", operationKind, startedAt = 1000, completedAt = 1300, workKind]) => ({\n    id: fullId(id),\n    kind,\n    startedAt,\n    ...(kind === \"work\" ? {\n      completedAt,\n      status: completedAt === null ? \"pending\" : \"completed\",\n    } : {}),\n    ...(operationKind === undefined ? {} : { operationKind }),\n    ...(workKind === undefined ? {} : { workKind }),\n  }));\n}\n\nfunction makeClock(startAt) {\n  let now = startAt;\n  let nextId = 0;\n  const timers = new Map();\n  return {\n    now: () => now,\n    setTimeout(callback, delayMs) {\n      const id = ++nextId;\n      timers.set(id, { callback, at: now + delayMs });\n      return id;\n    },\n    clearTimeout(id) {\n      timers.delete(id);\n    },\n    advance(milliseconds) {\n      now += milliseconds;\n      for (const [id, timer] of timers) {\n        if (timer.at <= now) {\n          timers.delete(id);\n          timer.callback();\n        }\n      }\n    },\n  };\n}\n\n\nconst observations=[];\nconst describe=dom=>[...dom.container.querySelectorAll('[data-bb-minus-group]')].map(m=>({activity:m.getAttribute('data-tool-state'),metrics:m.querySelector('[data-metrics]').textContent}));\nconst completed={activity:'completed',metrics:'1 tool · 300ms'},pending={activity:'pending',metrics:'1 tool'};\nfor(const owner of ['left','right'])for(const simultaneous of [false,true]){\n let notify,finished=false;\n const w1=timeline([['tool-1']])[0],w2=timeline([['tool-2']])[0];\n const thought=()=>({id:fullId('op:reasoning:owned'),kind:'system',operationKind:'reasoning',status:finished?'completed':'pending',startedAt:0,completedAt:finished?9000:null});\n const dom=mountDom({rowIds:['tool-1','op:reasoning:owned','tool-2'],fetchTimeline:async()=>[w1,thought(),w2],subscribeTimeline:cb=>{notify=cb;return()=>{}}});\n try{\n await dom.flush();assert.deepEqual(describe(dom),[{activity:'pending',metrics:'2 tools'}]);\n const spacer=dom.window.document.createElement('div');spacer.setAttribute('data-timeline-window-spacer','');\n const r=dom.rows[1];dom.container.insertBefore(spacer,owner==='left'?dom.rows[2]:r);\n if(simultaneous)r.remove();await dom.flush();const split=describe(dom);\n if(!simultaneous)assert.deepEqual(split,owner==='left'?[pending,completed]:[completed,pending]);else assert.deepEqual(split,[{activity:'unknown',metrics:'1 tool · time unavailable'},{activity:'unknown',metrics:'1 tool · time unavailable'}]);\n const splitAndUnmount=simultaneous?split:null;\n if(!simultaneous){r.remove();await dom.flush();assert.deepEqual(describe(dom),split)}\n const unmounted=describe(dom);\n dom.container.insertBefore(r,owner==='left'?spacer:dom.rows[2]);await dom.flush();assert.deepEqual(describe(dom),owner==='left'?[pending,completed]:[completed,pending]);\n r.remove();await dom.flush();const afterProof=describe(dom);assert.deepEqual(afterProof,owner==='left'?[pending,completed]:[completed,pending]);\n spacer.remove();await dom.flush();const rejoined=describe(dom);assert.deepEqual(rejoined,[{activity:'pending',metrics:'2 tools'}]);\n finished=true;notify('thr_test',true);await dom.flush();const terminal=describe(dom);assert.deepEqual(terminal,[{activity:'completed',metrics:'2 tools · 600ms'}]);\n observations.push({owner,simultaneous,split,unmounted,afterProof,rejoined,terminal,passed:true});\n }finally{dom.cleanup()}\n}\nfor(const placement of ['leading','trailing','between']){\n const w1=timeline([['tool-1']])[0],w2=timeline([['tool-2']])[0];const r={id:fullId('op:reasoning:owned'),kind:'system',operationKind:'reasoning',status:'pending',startedAt:0,completedAt:null};const source=placement==='leading'?[r,w1]:placement==='trailing'?[w1,r]:[w1,r,w2];\n const dom=mountDom({rowIds:source.map(x=>x.id),fetchTimeline:async()=>source});try{await dom.flush();const before=describe(dom);dom.rows[source.indexOf(r)].remove();await dom.flush();const after=describe(dom);assert.deepEqual(after,before);assert.equal(after[0].activity,'pending');observations.push({placement,before,after,passed:true})}finally{dom.cleanup()}\n}\nfor(const boundary of ['conversation','nested-source','message-content','question','unknown-system','next-work']){\n let notify,changed=false;\n const w1=timeline([['tool-1']])[0],w2=timeline([['tool-2']])[0];const r={id:fullId('op:reasoning:owned'),kind:'system',operationKind:'reasoning',status:'pending',startedAt:0,completedAt:null};\n const barrier=boundary==='question'?{id:fullId('question:boundary'),kind:'work',workKind:'question'}:boundary==='unknown-system'?{id:fullId('system:boundary'),kind:'system',operationKind:'unknown'}:boundary==='next-work'?timeline([['tool-new']])[0]:{id:fullId('assistant:boundary'),kind:'conversation'};\n const snapshot=()=>!changed?[w1,r,w2]:['conversation','question','unknown-system','next-work'].includes(boundary)?[w1,barrier,r,w2]:boundary==='nested-source'?[w1,{id:fullId('child:turn'),kind:'turn',children:[r,w2]}]:[w1,r,w2];\n const dom=mountDom({rowIds:['tool-1','op:reasoning:owned','tool-2'],fetchTimeline:async()=>snapshot(),subscribeTimeline:cb=>{notify=cb;return()=>{}}});\n try{await dom.flush();if(boundary==='message-content'){const m=dom.window.document.createElement('div');m.className='group/message';m.textContent='Useful stream';dom.rows[1].append(m);await dom.flush();assert.equal(m.closest('[data-bb-minus-hidden]'),null)}\n dom.rows[1].remove();changed=true;notify('thr_test',true);await dom.flush();const after=describe(dom);if(boundary==='next-work')assert.deepEqual(after,[{activity:'pending',metrics:'3 tools'}]);else {assert.equal(after[0].activity,'completed');assert.equal(after[1].activity,boundary==='message-content'?'completed':'pending')}observations.push({boundary,after,passed:true});\n }finally{dom.cleanup()}\n}\n\nfor(const owner of ['left','right'])for(const resolution of ['terminal-direct','join-direct']){\n let notify,finished=false;\n const w1=timeline([['tool-1']])[0],w2=timeline([['tool-2']])[0],thought=()=>({id:fullId('op:reasoning:owned'),kind:'system',operationKind:'reasoning',status:finished?'completed':'pending',startedAt:0,completedAt:finished?9000:null});\n const dom=mountDom({rowIds:['tool-1','op:reasoning:owned','tool-2'],fetchTimeline:async()=>[w1,thought(),w2],subscribeTimeline:cb=>{notify=cb;return()=>{}}});\n try{await dom.flush();const spacer=dom.window.document.createElement('div');spacer.setAttribute('data-timeline-window-spacer','');dom.container.insertBefore(spacer,owner==='left'?dom.rows[2]:dom.rows[1]);dom.rows[1].remove();await dom.flush();assert(describe(dom).every(x=>x.activity==='unknown'));\n const metrics=dom.container.querySelector('[data-metrics]');metrics.focus();metrics.click();await dom.flush();\n if(resolution==='terminal-direct'){finished=true;notify('thr_test',true)}else spacer.remove();await dom.flush();const resolved=describe(dom);\n if(resolution==='terminal-direct')assert.deepEqual(resolved,[completed,completed]);else assert.deepEqual(resolved,[{activity:'pending',metrics:'2 tools'}]);\n assert.equal(dom.window.document.activeElement,dom.container.querySelector('[data-metrics]'));assert.equal(dom.container.querySelector('[data-metrics]').getAttribute('aria-expanded'),'true');\n observations.push({owner,resolution,resolved,focusAndDisclosurePreserved:true,passed:true});\n }finally{dom.cleanup()}\n}\nfor(const ownState of ['pending','error']){\n const w1=timeline([['tool-1','work',undefined,1000,ownState==='pending'?null:1300]])[0];w1.status=ownState;const w2=timeline([['tool-2']])[0],r={id:fullId('op:reasoning:owned'),kind:'system',operationKind:'reasoning',status:'pending',startedAt:0,completedAt:null};\n const dom=mountDom({rowIds:['tool-1','op:reasoning:owned','tool-2'],fetchTimeline:async()=>[w1,r,w2]});\n try{await dom.flush();const spacer=dom.window.document.createElement('div');spacer.setAttribute('data-timeline-window-spacer','');dom.container.insertBefore(spacer,dom.rows[1]);dom.rows[1].remove();await dom.flush();const split=describe(dom);assert.equal(split[0].activity,ownState);assert.equal(split[1].activity,'unknown');observations.push({ownState,split,passed:true})}finally{dom.cleanup()}\n}\nconsole.log(JSON.stringify(observations,null,2));\n\n",
+  "apiReadback": {
+    "method": "independent read-only local timeline API; current native completed turn, no content mutation",
+    "count": 5,
+    "durationsMs": [
+      219,
+      430,
+      36,
+      92,
+      494
+    ],
+    "totalMs": 1271,
+    "matchesNativeEvidence": true
+  },
+  "evidenceReadback": {
+    "junitTestcases": 116,
+    "junitFailures": 0,
+    "junitErrors": 0,
+    "suiteRerunByReviewer": false,
+    "typecheckAndBuildRerunByReviewer": false,
+    "browserGeneralContexts": 12,
+    "browserPendingSummaryContexts": 2,
+    "browserOwnershipContexts": 8,
+    "browserOwnershipWidths": [
+      390,
+      1280
+    ],
+    "nativeContexts": 2,
+    "nativeClosedOpenRecollapsedExpectedStatesChecked": true,
+    "nativeNumericTime": "5 tools · 1.3s",
+    "browserErrors": 0
+  },
+  "design": {
+    "skills": [
+      "impeccable Operate harden/polish",
+      "frontend-design"
+    ],
+    "reference": "accepted native gray, dividers, spacing and plain text; PR creation head45b54c77c1c69a5fd48a035e15cc8c120f1368cc",
+    "templateAndStyleDirectComparison": {
+      "template": true,
+      "style": true
+    },
+    "pngHashesVerified": 12,
+    "previouslyViewedPngsIdenticalBytes": [
+      "light-closed-760x420.png",
+      "light-closed-390x840.png",
+      "light-open-760x420.png",
+      "light-open-390x840.png",
+      "dark-closed-760x420.png",
+      "dark-closed-390x840.png",
+      "dark-open-760x420.png",
+      "dark-open-390x840.png"
+    ],
+    "newPendingPngsViewed": [
+      "light-pending-760x420.png",
+      "light-pending-390x840.png",
+      "dark-pending-760x420.png",
+      "dark-pending-390x840.png"
+    ],
+    "observations": [
+      "native gray, plain type and inline Russian attribution preserved",
+      "tool details and Thought remain grouped; useful agent stream remains outside dividers",
+      "only ring rotation phase differs in four pending screenshots; eight static PNGs exactly equal the prior independently viewed set",
+      "unknown state uses the pre-existing indicator and time-unavailable fallback, not a new icon or visual system"
+    ]
+  },
+  "limits": [
+    "candidate only; no install, merge or runtime operation authorized by review",
+    "writer produced browser/native artifacts; reviewer inspected scripts, outputs, PNGs and hashes, independently ran DOM probes and API read-back",
+    "full suite/typecheck/build were not rerun by reviewer",
+    "historical native t33 disappearance/time-out is not counted as a passing attempt",
+    "in ambiguous simultaneous splits, group ownership is unknown until mount, join or terminal; numeric time is withheld rather than attributing pending to both groups"
+  ],
+  "harnessCorrection": "one exploratory assertion treated a new ordinary tool call as a meaningful boundary; corrected to the expected single pending three-tool run before the final19 passing probes",
+  "mutations": "only requested reviewer artifact and own finite temporary probes; source/tests/Git refs/settings/runtime unchanged",
+  "temporaryProbeFilesRemoved": true
+}
