@@ -1,0 +1,162 @@
+{
+  "verdict": "P0/P1/P2 not found in bounded final candidate review; prior pending-summary P2 fixed",
+  "reviewedAt": "2026-10-31T10:33:01.523206+00:00",
+  "role": "independent read-only reviewer",
+  "sourceHashes": {
+    "group-tools.ts": "e170b1ad5dbd6d142e46c15682f809b4a69a48dab89fce042e2c462a4e72a41d",
+    "group-tools.test.mjs": "d6edbda01deda52670c077cf5508444799219a0edf9fb236a51c0f3c8e831983",
+    "app.tsx": "cc064c58a98d29dd42b602aba55fa63d685845d143569389f9088669637486ec",
+    "quotes.ts": "f0602bcffd488c315c68af1a0ab4adce84dccd4cfa35bbfae68f67744bd8806a"
+  },
+  "artifactHashes": {
+    "browser.json": "b63806e3bb7afdc1cc299634628bf06361b88b9ed2af99e6865f086fdc7b4967",
+    "native-candidate.json": "9dcf80c69981132d1082b9386f5df8587d8f4e86cf71ef77e3d06237f62019f7",
+    "tests.xml": "f19e47a4c67a13d44b7a8b4bcbd18b741babe602cf3f13985099c592f837c0f2",
+    "style-comparison.json": "94f13651785bb4cd419caa460dc173309c1391919585ce3a90271ba03a115f06",
+    "source-hashes.json": "c2edd7523260bbe2ccfb8d4186c277c68627d010ac7fded144bfcb30aa1e6934",
+    "light-pending-760x420.png": "6c7e24e7b6e5cb7fb118ee6222e44b0785680ed9e64287569a83ca259877bfcc",
+    "light-pending-390x840.png": "d7f2b5d12930abf7d17b25be73d1cee837ade025736004956262b981c9db6b29",
+    "light-closed-760x420.png": "b6e3ad5114279f9742f4eb7b3019e94879e60545c796ba990748ecc04a8ecedb",
+    "light-closed-390x840.png": "4fd0c6f70decdbe13d751568059943b17161b7722d3d70996f8ad42dd1df9273",
+    "light-open-760x420.png": "3bb7acc0aeca6dc4226d9bfa401418124be6d295def5777a87f3ac9724ccf793",
+    "light-open-390x840.png": "da7a4b00388116b1f23833e87e9ce5dc5c5b8f036384f33c822d12faad1bfd34",
+    "dark-pending-760x420.png": "f7c3a68fd8e334596c898e04115d40bfeb0d746fa9afd4cb5b753266d01484ae",
+    "dark-pending-390x840.png": "a40d57fe6c296a6610d41106153372220f7fc7f529bad1750256a239fc2b53b2",
+    "dark-closed-760x420.png": "66f27fba2cceeaeefc9ac5c47561bf2270d104cf27abece3d202d505f5d89f15",
+    "dark-closed-390x840.png": "594ac0b1e882a079c4061ea0669647e12f57b95c0ffbae7bac6527ba34610eb9",
+    "dark-open-760x420.png": "3e252ec44407a756ed5efecd8e712b7b1f2482486ec5340140ebeecd78fc59da",
+    "dark-open-390x840.png": "35f8fe7cbccb3726902565f64f453f723215b059583c3d7d8520a46cd525e095"
+  },
+  "scope": "final plain gray/divider delta, work-summary reasoning membership/activity, adjacent boundaries; dictionary and runtime excluded",
+  "priorFinding": {
+    "severity": "P2",
+    "reproducedSourceSha256": "658f3b6efd74c6422179762c56040f5ae92b5e94b871ccffd00cd98934a16bce",
+    "description": "pending reasoning inside native summary with completed tools showed completed icon and final time",
+    "fixedInSourceSha256": "e170b1ad5dbd6d142e46c15682f809b4a69a48dab89fce042e2c462a4e72a41d"
+  },
+  "independentProbes": [
+    {
+      "placement": "leading",
+      "before": {
+        "activity": "pending",
+        "metrics": "2 tools"
+      },
+      "after": {
+        "activity": "completed",
+        "metrics": "2 tools · 600ms"
+      },
+      "passed": true
+    },
+    {
+      "placement": "middle",
+      "before": {
+        "activity": "pending",
+        "metrics": "2 tools"
+      },
+      "after": {
+        "activity": "completed",
+        "metrics": "2 tools · 600ms"
+      },
+      "passed": true
+    },
+    {
+      "placement": "trailing",
+      "before": {
+        "activity": "pending",
+        "metrics": "2 tools"
+      },
+      "after": {
+        "activity": "completed",
+        "metrics": "2 tools · 600ms"
+      },
+      "passed": true
+    },
+    {
+      "boundary": "next-summary",
+      "activity": [
+        "completed",
+        "pending"
+      ],
+      "metrics": [
+        "1 tool · 300ms",
+        "1 tool"
+      ],
+      "passed": true
+    },
+    {
+      "boundary": "message",
+      "activity": [
+        "completed"
+      ],
+      "metrics": [
+        "1 tool · 300ms"
+      ],
+      "passed": true
+    },
+    {
+      "boundary": "question",
+      "activity": [
+        "completed"
+      ],
+      "metrics": [
+        "1 tool · 300ms"
+      ],
+      "passed": true
+    },
+    {
+      "boundary": "work",
+      "activity": [
+        "completed"
+      ],
+      "metrics": [
+        "1 tool · 300ms"
+      ],
+      "passed": true
+    }
+  ],
+  "probeHarness": "import assert from \"node:assert/strict\";\nimport test from \"node:test\";\nimport { JSDOM } from '/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-source/node_modules/jsdom/lib/api.js';\nimport { mountToolGrouping } from '/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-source/group-tools.ts';\nimport { QUOTE_SOURCES, QUOTES, pickRandomQuote } from '/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-source/quotes.ts';\n\nconst HIDDEN = \"data-bb-minus-hidden\";\n\nfunction fullId(id) {\n  return id.startsWith(\"thr_\") ? id : \"thr_test:\" + (id.startsWith(\"tool-\") ? \"tool:\" : \"\") + id;\n}\n\nfunction makeRow(window, id) {\n  const row = window.document.createElement(\"div\");\n  row.setAttribute(\"data-timeline-row-id\", fullId(id));\n  return row;\n}\n\nfunction mountDom({ rowIds, fetchTimeline, chooseQuote = () => QUOTES[0], clock, subscribeTimeline }) {\n  const dom = new JSDOM(\"<!doctype html><html><head></head><body></body></html>\", {\n    pretendToBeVisual: true,\n    url: \"https://bb.local/\",\n  });\n  const { window } = dom;\n  const globals = {\n    document: window.document,\n    Element: window.Element,\n    HTMLElement: window.HTMLElement,\n    MutationObserver: window.MutationObserver,\n    requestAnimationFrame: window.requestAnimationFrame.bind(window),\n    cancelAnimationFrame: window.cancelAnimationFrame.bind(window),\n  };\n  const previousGlobals = new Map();\n  for (const [name, value] of Object.entries(globals)) {\n    previousGlobals.set(name, Object.getOwnPropertyDescriptor(globalThis, name));\n    Object.defineProperty(globalThis, name, { configurable: true, writable: true, value });\n  }\n\n  const list = window.document.createElement(\"div\");\n  list.setAttribute(\"data-timeline-row-list\", \"top-level\");\n  const container = window.document.createElement(\"div\");\n  container.setAttribute(\"data-timeline-items\", \"\");\n  const rows = rowIds.map((id) => makeRow(window, id));\n  container.append(...rows);\n  list.append(container);\n  window.document.body.append(list);\n  const dispose = mountToolGrouping(fetchTimeline, chooseQuote, clock, subscribeTimeline);\n\n  return {\n    window,\n    container,\n    rows,\n    dispose,\n    makeRow: (id) => makeRow(window, id),\n    async flush() {\n      for (let index = 0; index < 2; index++) {\n        await Promise.resolve();\n        await new Promise((resolve) => window.setTimeout(resolve, 0));\n        await new Promise((resolve) => window.requestAnimationFrame(resolve));\n      }\n    },\n    cleanup() {\n      dispose();\n      for (const [name, descriptor] of previousGlobals) {\n        if (descriptor) Object.defineProperty(globalThis, name, descriptor);\n        else delete globalThis[name];\n      }\n      window.close();\n    },\n  };\n}\n\nfunction timeline(rows) {\n  return rows.map(([id, kind = \"work\", operationKind, startedAt = 1000, completedAt = 1300, workKind]) => ({\n    id: fullId(id),\n    kind,\n    startedAt,\n    ...(kind === \"work\" ? {\n      completedAt,\n      status: completedAt === null ? \"pending\" : \"completed\",\n    } : {}),\n    ...(operationKind === undefined ? {} : { operationKind }),\n    ...(workKind === undefined ? {} : { workKind }),\n  }));\n}\n\nfunction makeClock(startAt) {\n  let now = startAt;\n  let nextId = 0;\n  const timers = new Map();\n  return {\n    now: () => now,\n    setTimeout(callback, delayMs) {\n      const id = ++nextId;\n      timers.set(id, { callback, at: now + delayMs });\n      return id;\n    },\n    clearTimeout(id) {\n      timers.delete(id);\n    },\n    advance(milliseconds) {\n      now += milliseconds;\n      for (const [id, timer] of timers) {\n        if (timer.at <= now) {\n          timers.delete(id);\n          timer.callback();\n        }\n      }\n    },\n  };\n}\n\nfunction nativeSummary(dom, row, label, children = []) {\n  const root = dom.window.document.createElement('div');\n  const header = dom.window.document.createElement('div');\n  header.className = 'group/timeline-row';\n  const button = dom.window.document.createElement('button');\n  button.textContent = label;\n  button.setAttribute('aria-expanded', 'false');\n  header.append(button);\n  const shell = dom.window.document.createElement('div');\n  const list = dom.window.document.createElement('div');\n  list.dataset.timelineRowList = 'bundle';\n  const items = dom.window.document.createElement('div');\n  items.dataset.timelineItems = '';\n  items.append(...children);\n  list.append(items);\n  shell.append(list);\n  root.append(header);\n  row.append(root);\n  button.addEventListener('click', () => {\n    const open = button.getAttribute('aria-expanded') !== 'true';\n    button.setAttribute('aria-expanded', String(open));\n    if (open) root.append(shell);\n    else shell.remove();\n  });\n  return { button, root, shell, list, items };\n}\n\n\n\nconst observations=[];\nfor (const placement of ['leading','middle','trailing']) {\n let notify,finished=false;\n const w1=timeline([['tool-1']])[0],w2=timeline([['tool-2']])[0];\n const thought=()=>({id:fullId('op:reasoning:first'),kind:'system',operationKind:'reasoning',status:finished?'completed':'pending',startedAt:0,completedAt:finished?9000:null});\n const source=()=>placement==='middle'?[w1,thought(),w2]:placement==='trailing'?[w1,w2,thought()]:[thought(),w1,w2];\n const dom=mountDom({rowIds:['turn-1:work-summary:'+source()[0].id],fetchTimeline:async()=>source(),subscribeTimeline:cb=>{notify=cb;return()=>{}}});\n try {nativeSummary(dom,dom.rows[0],'Running 2 commands');await dom.flush();\n  const sample=()=>({activity:dom.container.querySelector('[data-bb-minus-group]')?.getAttribute('data-tool-state'),metrics:dom.container.querySelector('[data-metrics]')?.textContent});\n  const before=sample();assert.equal(before.activity,'pending');assert.equal(before.metrics,'2 tools');\n  const metrics=dom.container.querySelector('[data-metrics]');metrics.focus();metrics.click();await dom.flush();finished=true;notify('thr_test',true);await dom.flush();\n  const after=sample();assert.equal(after.activity,'completed');assert.equal(after.metrics,'2 tools · 600ms');assert.equal(metrics.getAttribute('aria-expanded'),'true');assert.equal(dom.window.document.activeElement,metrics);\n  observations.push({placement,before,after,passed:true});\n }finally{dom.cleanup()}\n}\nfor(const boundary of ['next-summary','message','question','work']) {\n const w1=timeline([['tool-1']])[0],w2=timeline([['tool-2']])[0];\n const reason={id:fullId('op:reasoning:next'),kind:'system',operationKind:'reasoning',status:'pending',startedAt:1000,completedAt:null};\n const barrier=boundary==='message'?{id:fullId('assistant:next'),kind:'conversation'}:boundary==='question'?{id:fullId('question:next'),kind:'work',workKind:'question'}:w2;\n const source=boundary==='next-summary'?[w1,reason,w2]:[w1,barrier,reason];\n const rowIds=boundary==='next-summary'?['turn-1:work-summary:'+w1.id,'turn-1:work-summary:'+reason.id]:['turn-1:work-summary:'+w1.id];\n const dom=mountDom({rowIds,fetchTimeline:async()=>source});\n try {nativeSummary(dom,dom.rows[0],'Ran 1 tool');if(boundary==='next-summary'){nativeSummary(dom,dom.rows[1],'Running 1 command');const spacer=dom.window.document.createElement('div');spacer.setAttribute('data-timeline-window-spacer','');dom.container.insertBefore(spacer,dom.rows[1]);}\n await dom.flush();const markers=[...dom.container.querySelectorAll('[data-bb-minus-group]')],activity=markers.map(m=>m.getAttribute('data-tool-state')),metrics=markers.map(m=>m.querySelector('[data-metrics]').textContent);\n assert.equal(activity[0],'completed');assert.equal(metrics[0],'1 tool · 300ms');if(boundary==='next-summary'){assert.equal(activity[1],'pending');assert.equal(metrics[1],'1 tool')}\n observations.push({boundary,activity,metrics,passed:true});\n }finally {dom.cleanup()}\n}\nconsole.log(JSON.stringify(observations,null,2));\n",
+  "evidenceReadback": {
+    "junitTestcases": 106,
+    "junitFailures": 0,
+    "junitErrors": 0,
+    "suiteRerunByReviewer": false,
+    "typecheckAndBuildRerunByReviewer": false,
+    "browserGeneralContexts": 12,
+    "browserPendingSummaryContexts": 2,
+    "nativeContexts": 2,
+    "nativeExpectedCount": 4,
+    "nativeApiDurationsIndependentlyRead": [
+      3478,
+      11474,
+      18813,
+      19051
+    ],
+    "nativeExpectedDurationMs": 52816,
+    "nativeApiTotalMatches": true,
+    "nativeOpenedAndRecollapsedExpectedStatesChecked": true
+  },
+  "design": {
+    "skills": [
+      "impeccable Operate polish/harden",
+      "frontend-design"
+    ],
+    "reference": "owner accepted native gray/dividers/insets plus plain non-italic amendment from2026-10-31",
+    "pngsViewed": 12,
+    "pngHashesVerified": 12,
+    "observations": [
+      "normal gray inline text and Russian attribution; no blockquote or forced source newline",
+      "dividers group tools and service Thought; useful agent messages remain outside",
+      "pending ring and no time; terminal static dot and smart duration",
+      "narrow screenshots preserve wrapping and both horizontal insets; desktop-open is a viewport crop, not full group evidence"
+    ]
+  },
+  "limits": [
+    "candidate-only; installed runtime not modified or verified by reviewer",
+    "browser/native evidence was produced by writer; reviewer inspected harness, receipts, outputs and PNGs, did not independently rerun browser",
+    "full suite/typecheck/build not rerun by reviewer",
+    "old failed/time-out native attempts remain failed, are not treated as PASS",
+    "no merge/install authorization implied"
+  ],
+  "mutations": "only this requested reviewer artifact and own temporary probes; no repo source, tests, Git refs, settings or runtime edits",
+  "temporaryProbeFilesRemoved": true
+}

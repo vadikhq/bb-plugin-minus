@@ -1,0 +1,479 @@
+{
+  "method": "isolated headless Chromium; current module and native BB CSS; synthetic five-batch Thought fixture; no shared runtime mutation",
+  "hashes": {
+    "group-tools.ts": "e170b1ad5dbd6d142e46c15682f809b4a69a48dab89fce042e2c462a4e72a41d",
+    "group-tools.test.mjs": "d6edbda01deda52670c077cf5508444799219a0edf9fb236a51c0f3c8e831983",
+    "app.tsx": "cc064c58a98d29dd42b602aba55fa63d685845d143569389f9088669637486ec",
+    "quotes.ts": "f0602bcffd488c315c68af1a0ab4adce84dccd4cfa35bbfae68f67744bd8806a"
+  },
+  "observations": [
+    {
+      "width": 320,
+      "zoom": 1,
+      "theme": "light",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.410231, 0.911982, -0.911982, 0.410231, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.5 0 0)",
+        "quoteFontStyle": "normal",
+        "hasBlockquote": false,
+        "iconColor": "oklch(0.5 0 0)",
+        "paddingTop": "16px",
+        "paddingBottom": "16px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 320,
+      "zoom": 1,
+      "theme": "dark",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.912386, 0.409331, -0.409331, 0.912386, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.68 0 0)",
+        "quoteFontStyle": "normal",
+        "hasBlockquote": false,
+        "iconColor": "oklch(0.68 0 0)",
+        "paddingTop": "16px",
+        "paddingBottom": "16px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 320,
+      "zoom": 2,
+      "theme": "light",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.891371, 0.453274, -0.453274, 0.891371, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.5 0 0)",
+        "quoteFontStyle": "normal",
+        "hasBlockquote": false,
+        "iconColor": "oklch(0.5 0 0)",
+        "paddingTop": "32px",
+        "paddingBottom": "32px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 320,
+      "zoom": 2,
+      "theme": "dark",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(-0.998346, 0.0574971, -0.0574971, -0.998346, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.68 0 0)",
+        "quoteFontStyle": "normal",
+        "hasBlockquote": false,
+        "iconColor": "oklch(0.68 0 0)",
+        "paddingTop": "32px",
+        "paddingBottom": "32px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "zoom": 1,
+      "theme": "light",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.204633, 0.978839, -0.978839, 0.204633, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.5 0 0)",
+        "quoteFontStyle": "normal",
+        "hasBlockquote": false,
+        "iconColor": "oklch(0.5 0 0)",
+        "paddingTop": "16px",
+        "paddingBottom": "16px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "zoom": 1,
+      "theme": "dark",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.840295, 0.54213, -0.54213, 0.840295, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.68 0 0)",
+        "quoteFontStyle": "normal",
+        "hasBlockquote": false,
+        "iconColor": "oklch(0.68 0 0)",
+        "paddingTop": "16px",
+        "paddingBottom": "16px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "zoom": 2,
+      "theme": "light",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.104481, 0.994527, -0.994527, 0.104481, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.5 0 0)",
+        "quoteFontStyle": "normal",
+        "hasBlockquote": false,
+        "iconColor": "oklch(0.5 0 0)",
+        "paddingTop": "32px",
+        "paddingBottom": "32px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "zoom": 2,
+      "theme": "dark",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(-0.156422, 0.98769, -0.98769, -0.156422, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.68 0 0)",
+        "quoteFontStyle": "normal",
+        "hasBlockquote": false,
+        "iconColor": "oklch(0.68 0 0)",
+        "paddingTop": "32px",
+        "paddingBottom": "32px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "zoom": 1,
+      "theme": "light",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.889211, 0.457497, -0.457497, 0.889211, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.5 0 0)",
+        "quoteFontStyle": "normal",
+        "hasBlockquote": false,
+        "iconColor": "oklch(0.5 0 0)",
+        "paddingTop": "16px",
+        "paddingBottom": "16px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "zoom": 1,
+      "theme": "dark",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.587302, 0.809368, -0.809368, 0.587302, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.68 0 0)",
+        "quoteFontStyle": "normal",
+        "hasBlockquote": false,
+        "iconColor": "oklch(0.68 0 0)",
+        "paddingTop": "16px",
+        "paddingBottom": "16px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "zoom": 2,
+      "theme": "light",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.951088, 0.308921, -0.308921, 0.951088, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.5 0 0)",
+        "quoteFontStyle": "normal",
+        "hasBlockquote": false,
+        "iconColor": "oklch(0.5 0 0)",
+        "paddingTop": "32px",
+        "paddingBottom": "32px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "zoom": 2,
+      "theme": "dark",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(-0.151499, 0.988457, -0.988457, -0.151499, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.68 0 0)",
+        "quoteFontStyle": "normal",
+        "hasBlockquote": false,
+        "iconColor": "oklch(0.68 0 0)",
+        "paddingTop": "32px",
+        "paddingBottom": "32px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    }
+  ],
+  "summaryObservations": [
+    {
+      "width": 390,
+      "reasoning": "pending trailing inside native summary; all eight work completed",
+      "pendingMetrics": "8 tools",
+      "pendingAnimation": "spin",
+      "completedMetrics": "8 tools · 1m 08s",
+      "completedAnimation": "none",
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "reasoning": "pending trailing inside native summary; all eight work completed",
+      "pendingMetrics": "8 tools",
+      "pendingAnimation": "spin",
+      "completedMetrics": "8 tools · 1m 08s",
+      "completedAnimation": "none",
+      "errors": [],
+      "passed": true
+    }
+  ],
+  "captures": [
+    {
+      "theme": "light",
+      "variant": "pending",
+      "receipt": {
+        "url": "http://127.0.0.1:52976/?theme=light&phase=pending&open=0",
+        "method": "isolated headless Chromium",
+        "browser": "Chromium 143.0.7499.4",
+        "deviceScaleFactor": 1,
+        "captures": [
+          {
+            "file": "/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-thought-plain-captures/light-pending-760x420.png",
+            "viewport": "760x420",
+            "bytes": 17770,
+            "sha256": "6c7e24e7b6e5cb7fb118ee6222e44b0785680ed9e64287569a83ca259877bfcc"
+          },
+          {
+            "file": "/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-thought-plain-captures/light-pending-390x840.png",
+            "viewport": "390x840",
+            "bytes": 18858,
+            "sha256": "d7f2b5d12930abf7d17b25be73d1cee837ade025736004956262b981c9db6b29"
+          }
+        ]
+      }
+    },
+    {
+      "theme": "light",
+      "variant": "closed",
+      "receipt": {
+        "url": "http://127.0.0.1:52976/?theme=light&phase=completed&open=0",
+        "method": "isolated headless Chromium",
+        "browser": "Chromium 143.0.7499.4",
+        "deviceScaleFactor": 1,
+        "captures": [
+          {
+            "file": "/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-thought-plain-captures/light-closed-760x420.png",
+            "viewport": "760x420",
+            "bytes": 18190,
+            "sha256": "b6e3ad5114279f9742f4eb7b3019e94879e60545c796ba990748ecc04a8ecedb"
+          },
+          {
+            "file": "/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-thought-plain-captures/light-closed-390x840.png",
+            "viewport": "390x840",
+            "bytes": 19172,
+            "sha256": "4fd0c6f70decdbe13d751568059943b17161b7722d3d70996f8ad42dd1df9273"
+          }
+        ]
+      }
+    },
+    {
+      "theme": "light",
+      "variant": "open",
+      "receipt": {
+        "url": "http://127.0.0.1:52976/?theme=light&phase=completed&open=1",
+        "method": "isolated headless Chromium",
+        "browser": "Chromium 143.0.7499.4",
+        "deviceScaleFactor": 1,
+        "captures": [
+          {
+            "file": "/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-thought-plain-captures/light-open-760x420.png",
+            "viewport": "760x420",
+            "bytes": 33697,
+            "sha256": "3bb7acc0aeca6dc4226d9bfa401418124be6d295def5777a87f3ac9724ccf793"
+          },
+          {
+            "file": "/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-thought-plain-captures/light-open-390x840.png",
+            "viewport": "390x840",
+            "bytes": 38970,
+            "sha256": "da7a4b00388116b1f23833e87e9ce5dc5c5b8f036384f33c822d12faad1bfd34"
+          }
+        ]
+      }
+    },
+    {
+      "theme": "dark",
+      "variant": "pending",
+      "receipt": {
+        "url": "http://127.0.0.1:52976/?theme=dark&phase=pending&open=0",
+        "method": "isolated headless Chromium",
+        "browser": "Chromium 143.0.7499.4",
+        "deviceScaleFactor": 1,
+        "captures": [
+          {
+            "file": "/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-thought-plain-captures/dark-pending-760x420.png",
+            "viewport": "760x420",
+            "bytes": 17652,
+            "sha256": "f7c3a68fd8e334596c898e04115d40bfeb0d746fa9afd4cb5b753266d01484ae"
+          },
+          {
+            "file": "/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-thought-plain-captures/dark-pending-390x840.png",
+            "viewport": "390x840",
+            "bytes": 18559,
+            "sha256": "a40d57fe6c296a6610d41106153372220f7fc7f529bad1750256a239fc2b53b2"
+          }
+        ]
+      }
+    },
+    {
+      "theme": "dark",
+      "variant": "closed",
+      "receipt": {
+        "url": "http://127.0.0.1:52976/?theme=dark&phase=completed&open=0",
+        "method": "isolated headless Chromium",
+        "browser": "Chromium 143.0.7499.4",
+        "deviceScaleFactor": 1,
+        "captures": [
+          {
+            "file": "/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-thought-plain-captures/dark-closed-760x420.png",
+            "viewport": "760x420",
+            "bytes": 18049,
+            "sha256": "66f27fba2cceeaeefc9ac5c47561bf2270d104cf27abece3d202d505f5d89f15"
+          },
+          {
+            "file": "/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-thought-plain-captures/dark-closed-390x840.png",
+            "viewport": "390x840",
+            "bytes": 18878,
+            "sha256": "594ac0b1e882a079c4061ea0669647e12f57b95c0ffbae7bac6527ba34610eb9"
+          }
+        ]
+      }
+    },
+    {
+      "theme": "dark",
+      "variant": "open",
+      "receipt": {
+        "url": "http://127.0.0.1:52976/?theme=dark&phase=completed&open=1",
+        "method": "isolated headless Chromium",
+        "browser": "Chromium 143.0.7499.4",
+        "deviceScaleFactor": 1,
+        "captures": [
+          {
+            "file": "/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-thought-plain-captures/dark-open-760x420.png",
+            "viewport": "760x420",
+            "bytes": 33120,
+            "sha256": "3e252ec44407a756ed5efecd8e712b7b1f2482486ec5340140ebeecd78fc59da"
+          },
+          {
+            "file": "/Users/vadikone/.bb/thread-storage/thr_bza87x5nhg/minus-thought-plain-captures/dark-open-390x840.png",
+            "viewport": "390x840",
+            "bytes": 38572,
+            "sha256": "35f8fe7cbccb3726902565f64f453f723215b059583c3d7d8520a46cd525e095"
+          }
+        ]
+      }
+    }
+  ]
+}

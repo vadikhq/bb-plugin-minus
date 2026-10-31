@@ -1,0 +1,174 @@
+{
+  "method": "isolated headless Chromium; current native completed turn t33; unmodified API; candidate JS/CSS only in disposable client",
+  "target": "private-native-row-1",
+  "hashes": {
+    "group-tools.ts": "e170b1ad5dbd6d142e46c15682f809b4a69a48dab89fce042e2c462a4e72a41d",
+    "group-tools.test.mjs": "d6edbda01deda52670c077cf5508444799219a0edf9fb236a51c0f3c8e831983",
+    "app.tsx": "cc064c58a98d29dd42b602aba55fa63d685845d143569389f9088669637486ec",
+    "quotes.ts": "f0602bcffd488c315c68af1a0ab4adce84dccd4cfa35bbfae68f67744bd8806a"
+  },
+  "bundle": "a673068fb2c4b5dd",
+  "apiMetrics": {
+    "count": 4,
+    "durations": [
+      3478,
+      11474,
+      18813,
+      19051
+    ],
+    "durationMs": 52816,
+    "expected": "4 tools · 52.8s"
+  },
+  "observations": [
+    {
+      "width": 1280,
+      "served": [
+        "app.js",
+        "app.css"
+      ],
+      "closed": {
+        "groups": [
+          {
+            "key": "private-native-row-2",
+            "metrics": "4 tools · 52.8s",
+            "expanded": "false",
+            "fontStyle": "normal",
+            "hasBlockquote": false,
+            "overflow": false
+          }
+        ],
+        "messagesVisible": true,
+        "messageCount": 1,
+        "measureDisplay": "block",
+        "overflow": false,
+        "nativeSummaryHidden": [
+          true
+        ],
+        "visibleStandaloneThoughts": [
+          true
+        ]
+      },
+      "opened": {
+        "groups": [
+          {
+            "key": "private-native-row-2",
+            "metrics": "4 tools · 52.8s",
+            "expanded": "true",
+            "fontStyle": "normal",
+            "hasBlockquote": false,
+            "overflow": false
+          }
+        ],
+        "messagesVisible": true,
+        "messageCount": 1,
+        "measureDisplay": "block",
+        "overflow": false,
+        "nativeSummaryHidden": [
+          false
+        ],
+        "visibleStandaloneThoughts": [
+          true
+        ]
+      },
+      "recollapsed": {
+        "groups": [
+          {
+            "key": "private-native-row-2",
+            "metrics": "4 tools · 52.8s",
+            "expanded": "false",
+            "fontStyle": "normal",
+            "hasBlockquote": false,
+            "overflow": false
+          }
+        ],
+        "messagesVisible": true,
+        "messageCount": 1,
+        "measureDisplay": "block",
+        "overflow": false,
+        "nativeSummaryHidden": [
+          true
+        ],
+        "visibleStandaloneThoughts": [
+          true
+        ]
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "served": [
+        "app.js",
+        "app.css"
+      ],
+      "closed": {
+        "groups": [
+          {
+            "key": "private-native-row-2",
+            "metrics": "4 tools · 52.8s",
+            "expanded": "false",
+            "fontStyle": "normal",
+            "hasBlockquote": false,
+            "overflow": false
+          }
+        ],
+        "messagesVisible": true,
+        "messageCount": 1,
+        "measureDisplay": "block",
+        "overflow": false,
+        "nativeSummaryHidden": [
+          true
+        ],
+        "visibleStandaloneThoughts": [
+          true
+        ]
+      },
+      "opened": {
+        "groups": [
+          {
+            "key": "private-native-row-2",
+            "metrics": "4 tools · 52.8s",
+            "expanded": "true",
+            "fontStyle": "normal",
+            "hasBlockquote": false,
+            "overflow": false
+          }
+        ],
+        "messagesVisible": true,
+        "messageCount": 1,
+        "measureDisplay": "block",
+        "overflow": false,
+        "nativeSummaryHidden": [
+          false
+        ],
+        "visibleStandaloneThoughts": [
+          true
+        ]
+      },
+      "recollapsed": {
+        "groups": [
+          {
+            "key": "private-native-row-2",
+            "metrics": "4 tools · 52.8s",
+            "expanded": "false",
+            "fontStyle": "normal",
+            "hasBlockquote": false,
+            "overflow": false
+          }
+        ],
+        "messagesVisible": true,
+        "messageCount": 1,
+        "measureDisplay": "block",
+        "overflow": false,
+        "nativeSummaryHidden": [
+          true
+        ],
+        "visibleStandaloneThoughts": [
+          true
+        ]
+      },
+      "errors": [],
+      "passed": true
+    }
+  ]
+}

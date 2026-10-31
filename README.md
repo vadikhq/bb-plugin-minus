@@ -33,9 +33,10 @@ switches grouped by area in a plugin settings section, which replaces bb's flat
 form on that page. Add an element by appending `{ key, label, selectors }` to
 an area. Prefer bb's aria labels and `data-*` attributes over Tailwind classes.
 
-`collapseToolCalls` is not CSS: `group-tools.ts` hides each run of tool rows in the top-level timeline and inserts a row styled after the native
+`collapseToolCalls` is not CSS: `group-tools.ts` hides each continuous tool block and its API-confirmed service Thought details in the top-level timeline and inserts a row styled after the native
 "Worked for" row. The summary shows a curated, self-contained Russian quote,
 Russian author/source attribution without a link, and a visible tool count.
+The row uses normal type between native dividers, without blockquote styling.
 The text wraps naturally as the chat narrows. Quote, metrics and source keep
 BB's muted foreground token, including on hover and focus; keyboard focus has
 a visible ring. bb virtualizes the timeline, so counts and runtimes come from
@@ -56,6 +57,6 @@ are respected; offscreen and background animations pause.
 
 MIT
 
-Collapsing tools keeps reasoning, unknown streaming rows, nested agent timelines and delegation/workflow streams visible. When a completed stage is open, its commentary uses the normal chat inset without an enclosing Worked for disclosure; quote and metrics controls reveal only the tool rows. Turning grouping off restores the native presentation. Approval, question and form rows remain available for the user to respond. The summary reads quote → Russian author/source → tool count and total time, with a shared native horizontal inset.
+Collapsing tools keeps useful messages, unknown streaming rows, nested agent timelines and delegation/workflow streams visible. API-confirmed pending/completed Thought rows sharing a tool cycle belong to that cycle's disclosure, without adding calls or duration. A pending Thought keeps the cycle active even when its row is virtualized; standalone, unverified or failed reasoning stays native. When a completed stage is open, its commentary uses the normal chat inset without an enclosing Worked for disclosure; quote and metrics controls reveal only the tool rows. Turning grouping off restores the native presentation. Approval, question and form rows remain available for the user to respond. The summary reads quote → Russian author/source → tool count and total time, with a shared native horizontal inset.
 
-The current accepted UI reference is [one summary per continuous tool block, 2026-10-31](docs/product-journal/2026-10-31-quote-flood.md), accepted by the owner in the Minus thread: “Теперь без флуда, оставляем”. It extends the accepted [ring, dot, disclosure arrow and final time](docs/product-journal/2026-10-30-ring-arrow.md) and the earlier divider/spacing decisions. Agent streams remain outside the dividers; quote and Russian attribution flow together without a link or forced line break. The [motion check and fork integration decision](docs/product-journal/2026-10-31-motion-pr.md) preserve this visual reference.
+The current UI reference is the approved [Thought-grouping amendment, 2026-10-31](docs/product-journal/2026-10-31-visible-thoughts.md), preserving the accepted [one-summary visual reference](docs/product-journal/2026-10-31-quote-flood.md) (“Теперь без флуда, оставляем”). It extends the accepted [ring, dot, disclosure arrow and final time](docs/product-journal/2026-10-30-ring-arrow.md) and the earlier divider/spacing decisions. Agent streams remain outside the dividers; quote and Russian attribution flow together without a link or forced line break. The [motion check and fork integration decision](docs/product-journal/2026-10-31-motion-pr.md) preserve this visual reference.

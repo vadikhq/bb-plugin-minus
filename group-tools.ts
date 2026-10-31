@@ -129,7 +129,7 @@ function isServiceReasoning(entry: TimelineRow | undefined): entry is TimelineRo
 }
 
 function reasoningDetail(row: HTMLElement, runs?: ThreadRuns, visibleRows?: ReadonlySet<string>): TimelineRow | undefined {
-  if (hasAgentContent(row) || visibleRows?.has(apiId(row))) return undefined;
+  if (rowKey(row).includes(":work-summary:") || hasAgentContent(row) || visibleRows?.has(apiId(row))) return undefined;
   const location = runs?.sourceOf.get(apiId(row));
   const entry = location?.source[location.index];
   return isServiceReasoning(entry) ? entry : undefined;
@@ -169,7 +169,7 @@ type ThreadRuns = {
 // API runs. Recover their complete membership from their own header count,
 // bounded by the API sibling list and conversation/interaction boundaries.
 // Never turn an incomplete API window into a partial, apparently exact total.
-function summaryMembers(row: HTMLElement, runs?: ThreadRuns): TimelineRow[] | undefined {
+function summaryEntries(row: HTMLElement, runs?: ThreadRuns): TimelineRow[] | undefined {
   if (!rowKey(row).includes(":work-summary:")) return undefined;
   const header = turnButton(row);
   if (header === null || !/\d+\s+\w+/.test(header.textContent ?? "")) return undefined;
@@ -186,14 +186,25 @@ function summaryMembers(row: HTMLElement, runs?: ThreadRuns): TimelineRow[] | un
     end = boundary.index;
   }
   const count = domCount(row);
-  const members: TimelineRow[] = [];
+  const entries: TimelineRow[] = [];
+  let members = 0;
   for (const entry of start.source.slice(start.index, end)) {
-    if (entry.kind === "system" && entry.operationKind === "reasoning") continue;
+    if (entry.kind === "system" && entry.operationKind === "reasoning") {
+      entries.push(entry);
+      continue;
+    }
+    // Include the summary's trailing service reasoning, but never borrow a
+    // later work/message/interaction beyond its proven tool membership.
+    if (members === count) return entries;
     if (entry.kind !== "work" || ["approval", "question", "form"].includes(entry.workKind ?? "")) return undefined;
-    members.push(entry);
-    if (members.length === count) return members;
+    entries.push(entry);
+    members++;
   }
-  return undefined;
+  return members === count ? entries : undefined;
+}
+
+function summaryMembers(row: HTMLElement, runs?: ThreadRuns): TimelineRow[] | undefined {
+  return summaryEntries(row, runs)?.filter(entry => entry.kind === "work");
 }
 
 function indexRuns(rows: TimelineRow[], now: number, visibleRows: Set<string>): ThreadRuns {
@@ -510,9 +521,15 @@ export function mountToolGrouping(
       refresh(threadId);
       return null;
     }
-    const summaries = rows.map(row => summaryMembers(row, runs));
+    const summaryRows = rows.map(row => summaryEntries(row, runs));
+    const summaries = summaryRows.map(entries => entries?.filter(entry => entry.kind === "work"));
     const detailsById = new Map(rows.map(row => reasoningDetail(row, runs, visibleRows))
       .filter((row): row is TimelineRow => row !== undefined).map(row => [row.id, row]));
+    // A native summary can start/end with reasoning or contain it between
+    // tools. Its verified API span proves activity without mounting a Thought.
+    for (const entry of summaryRows.flatMap(entries => entries ?? [])) {
+      if (isServiceReasoning(entry) && !visibleRows.has(entry.id)) detailsById.set(entry.id, entry);
+    }
     if (rows.some((row, index) => rowKey(row).includes(":work-summary:") &&
       turnButton(row) !== null && summaries[index] === undefined)) {
       refresh(threadId);

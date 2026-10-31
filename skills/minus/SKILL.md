@@ -8,7 +8,7 @@ description: Hide or show bb UI elements (back/forward buttons, sidebar and righ
 Each setting is a boolean; `true` hides the element in every open bb window, live.
 
 ```
-bb plugin config minus get
+bb plugin config minus
 bb plugin config minus set <key> true|false
 ```
 
@@ -24,6 +24,6 @@ to read as self-contained thoughts. Parallel calls contribute their individual r
 the manual "Stopped manually" row stays separate and is not counted.
 Users can also flip the settings in Settings → Plugins → Minus.
 
-Quote and Russian attribution flow together without a forced line break and wrap naturally with the chat width. During execution the ring spins and duration stays hidden; after the complete tool cycle it becomes a static circle with a dot and the final duration appears. Times use seconds, then minutes/seconds, then hours/minutes. Reduced-motion preferences are respected; offscreen and background animations pause.
+The summary uses normal type between native dividers, without blockquote styling. Quote and Russian attribution flow together without a forced line break and wrap naturally with the chat width. During execution the ring spins and duration stays hidden; after the complete tool cycle it becomes a static circle with a dot and the final duration appears. Times use seconds, then minutes/seconds, then hours/minutes. Reduced-motion preferences are respected; offscreen and background animations pause.
 
-Collapsing tools keeps reasoning, unknown streaming rows, nested agent timelines and delegation/workflow streams visible. When a completed stage is open, its commentary uses the normal chat inset without an enclosing Worked for disclosure; quote and metrics controls reveal only the tool rows. Turning grouping off restores the native presentation. Approval, question and form rows remain available for the user to respond. The summary reads quote → Russian author/source → tool count and total time, with a shared native horizontal inset.
+Collapsing tools keeps useful messages, unknown streaming rows, nested agent timelines and delegation/workflow streams visible. API-confirmed pending/completed Thought rows share the neighbouring tools' disclosure without adding calls or duration. A pending Thought keeps its cycle active through virtualization. Standalone, unverified or failed reasoning remains native. When a completed stage is open, its commentary uses the normal chat inset without an enclosing Worked for disclosure; quote and metrics controls reveal only the tool rows. Turning grouping off restores the native presentation. Approval, question and form rows remain available for the user to respond. The summary reads quote → Russian author/source → tool count and total time, with a shared native horizontal inset.

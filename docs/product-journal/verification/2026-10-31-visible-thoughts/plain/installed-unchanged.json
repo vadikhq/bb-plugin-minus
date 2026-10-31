@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-10-31T10:25:02.392Z",
+  "health": 200,
+  "source": "git:https://github.com/vadikhq/bb-plugin-minus.git@eb5f9157786c412ebf2a26fa48641617a6b53400",
+  "bundle": "a673068fb2c4b5dd",
+  "status": "running",
+  "statusDetail": null,
+  "enabled": true,
+  "settingsUnchanged": true,
+  "candidateInstalled": false
+}

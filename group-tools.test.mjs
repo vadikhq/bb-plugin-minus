@@ -1433,16 +1433,29 @@ test('native summary counts all 16 tools across reasoning boundaries', async () 
   } finally { dom.cleanup(); }
 });
 
-test('summary beginning with reasoning still collapses its complete tool membership', async () => {
-  const source = [['op:reasoning:first', 'system', 'reasoning'], ['tool-1'], ['op:reasoning:second', 'system', 'reasoning'], ['tool-2']];
-  const dom = mountDom({ rowIds: ['turn-1:work-summary:' + fullId('op:reasoning:first')], fetchTimeline: async () => timeline(source) });
-  try {
-    nativeSummary(dom, dom.rows[0], 'Ran 2 tools');
-    await dom.flush();
-    assert.equal(dom.rows[0].hasAttribute(HIDDEN), true);
-    assert.equal(dom.container.querySelector('[data-metrics]').textContent, '2 tools · 600ms');
-  } finally { dom.cleanup(); }
-});
+for (const pending of [false, true]) {
+  test('summary beginning with verified reasoning keeps its complete tool membership: pending=' + pending, async () => {
+    const source = [['op:reasoning:first', 'system', 'reasoning'], ['tool-1'],
+      ['op:reasoning:second', 'system', 'reasoning'], ['tool-2', 'work', undefined, 1000, pending ? null : 1300]];
+    const dom = mountDom({ rowIds: ['turn-1:work-summary:' + fullId('op:reasoning:first')],
+      fetchTimeline: async () => completedReasoningTimeline(source) });
+    try {
+      nativeSummary(dom, dom.rows[0], pending ? 'Running 2 commands' : 'Ran 2 tools');
+      await dom.flush();
+      const metrics = dom.container.querySelector('[data-metrics]');
+      assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
+      assert.equal(dom.rows[0].hasAttribute(HIDDEN), true);
+      assert.equal(metrics.textContent, pending ? '2 tools' : '2 tools · 600ms');
+      assert.equal(metrics.closest('[data-bb-minus-group]').getAttribute('data-tool-state'), pending ? 'pending' : 'completed');
+      metrics.click(); await dom.flush();
+      assert.equal(metrics.getAttribute('aria-expanded'), 'true');
+      assert.equal(dom.rows[0].hasAttribute(HIDDEN), false);
+      metrics.click(); await dom.flush();
+      assert.equal(metrics.getAttribute('aria-expanded'), 'false');
+      assert.equal(dom.rows[0].hasAttribute(HIDDEN), true);
+    } finally { dom.cleanup(); }
+  });
+}
 
 test('an incomplete summary API window never reports just its first five members', async () => {
   const dom = mountDom({ rowIds: ['turn-1:work-summary:' + fullId('tool-1')], fetchTimeline: async () => timeline(Array.from({ length: 5 }, (_, i) => ['tool-' + (i + 1)])) });
@@ -1450,6 +1463,51 @@ test('an incomplete summary API window never reports just its first five members
     nativeSummary(dom, dom.rows[0], 'Ran 16 tools');
     await dom.flush();
     assert.equal(dom.container.querySelector('[data-metrics]').textContent, '16 tools · time unavailable');
+  } finally { dom.cleanup(); }
+});
+
+for (const position of ['before', 'between', 'after']) {
+  test('pending reasoning inside a native summary keeps completed tools active: ' + position, async () => {
+    let finished = false, notify;
+    const thought = ['op:reasoning:active', 'system', 'reasoning', 1000, null];
+    const source = position === 'before' ? [thought, ['tool-1'], ['tool-2']] :
+      position === 'between' ? [['tool-1'], thought, ['tool-2']] : [['tool-1'], ['tool-2'], thought];
+    const dom = mountDom({ rowIds: ['turn-1:work-summary:' + fullId(source[0][0])],
+      fetchTimeline: async () => completedReasoningTimeline(source).map(row => row.operationKind === 'reasoning' && finished ?
+        { ...row, status: 'completed', completedAt: 9000 } : row),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      nativeSummary(dom, dom.rows[0], 'Running 2 commands');
+      await dom.flush();
+      const marker = dom.container.querySelector('[data-bb-minus-group]');
+      const metrics = marker.querySelector('[data-metrics]');
+      assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+      assert.equal(metrics.textContent, '2 tools');
+      metrics.click(); await dom.flush();
+      finished = true; notify('thr_test', true); await dom.flush();
+      assert.equal(marker.getAttribute('data-tool-state'), 'completed');
+      assert.equal(metrics.textContent, '2 tools · 600ms');
+      assert.equal(metrics.getAttribute('aria-expanded'), 'true');
+    } finally { dom.cleanup(); }
+  });
+}
+
+test('a pending Thought at the next mounted summary does not affect its completed neighbour', async () => {
+  const source = [['tool-1'], ['op:reasoning:next', 'system', 'reasoning', 1000, null], ['tool-2']];
+  const dom = mountDom({ rowIds: ['turn-1:work-summary:' + fullId('tool-1'),
+    'turn-1:work-summary:' + fullId('op:reasoning:next')], fetchTimeline: async () => completedReasoningTimeline(source) });
+  try {
+    nativeSummary(dom, dom.rows[0], 'Ran 1 tool');
+    nativeSummary(dom, dom.rows[1], 'Running 1 command');
+    const spacer = dom.window.document.createElement('div');
+    spacer.setAttribute('data-timeline-window-spacer', '');
+    dom.container.insertBefore(spacer, dom.rows[1]);
+    await dom.flush();
+    const markers = [...dom.container.querySelectorAll('[data-bb-minus-group]')];
+    assert.deepEqual(markers.map(row => row.getAttribute('data-tool-state')), ['completed', 'pending']);
+    assert.deepEqual(markers.map(row => row.querySelector('[data-metrics]').textContent), ['1 tool · 300ms', '1 tool']);
+    assert.equal(spacer.hasAttribute(HIDDEN), false);
   } finally { dom.cleanup(); }
 });
 

@@ -1,0 +1,24 @@
+{
+  "method": "additional isolated headless Chromium capture; height measured from document scrollHeight",
+  "hashes": {
+    "group-tools.ts": "94cd59245e9379e9da994f7ff5f0031949ee909f1ef7a0daa97aa66a11035672",
+    "group-tools.test.mjs": "dbbea172c581eb4807c243e689d792bb49a0932bd135429c36ab3b77d765e0d4",
+    "app.tsx": "cc064c58a98d29dd42b602aba55fa63d685845d143569389f9088669637486ec",
+    "quotes.ts": "f0602bcffd488c315c68af1a0ab4adce84dccd4cfa35bbfae68f67744bd8806a"
+  },
+  "height": 1997,
+  "receipt": {
+    "url": "isolated local fixture; ephemeral loopback URL omitted",
+    "method": "isolated headless Chromium",
+    "browser": "Chromium 143.0.7499.4",
+    "deviceScaleFactor": 1,
+    "captures": [
+      {
+        "file": "dark-open-200-320x1997.png",
+        "viewport": "320x1997",
+        "bytes": 95791,
+        "sha256": "5fe2be0bf21d122c7b5926748b9d112c0eb248fa9307a38e267820dacfbe9d5d"
+      }
+    ]
+  }
+}

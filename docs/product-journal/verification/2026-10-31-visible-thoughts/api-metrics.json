@@ -1,0 +1,25 @@
+{
+  "method": "independent work-only sums from unmodified native API; delegation is a preserved boundary",
+  "groups": [
+    {
+      "count": 5,
+      "durations": [
+        334,
+        215,
+        29,
+        115,
+        283
+      ],
+      "durationMs": 976
+    },
+    {
+      "count": 1,
+      "durations": [
+        30
+      ],
+      "durationMs": 30
+    }
+  ],
+  "totalTools": 6,
+  "totalToolMs": 1006
+}
