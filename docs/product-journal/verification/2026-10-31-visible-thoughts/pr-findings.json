@@ -1,0 +1,12 @@
+[
+  {
+    "severity": "P2",
+    "title": "Соседний Thought может включать индикатор завершённой группы",
+    "file": "group-tools.ts",
+    "line": 551,
+    "detail": "Автоматическое ревью сообщает о восстановлении activity через virtualization spacer без проверки владельца группы. Отдельная регрессионная проба пока не выполнена.",
+    "status": "open",
+    "evidence": "https://github.com/vadikhq/bb-plugin-minus/pull/2#discussion_r4431508214",
+    "commit": "45b54c77c1c69a5fd48a035e15cc8c120f1368cc"
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-31T11:39:46.141Z",
+  "repo": "vadikhq/bb-plugin-minus",
+  "pr": 2,
+  "branch": "bb/minus-visible-thoughts",
+  "previousHead": "45b54c77c1c69a5fd48a035e15cc8c120f1368cc",
+  "baseSha": "9bf014f9c594f79d6d95734152f755fd03bfb666",
+  "baseWorkflowPaths": [],
+  "localWorkflowPaths": [],
+  "registeredWorkflowCount": 0,
+  "scope": "technical P2 review fix; push current authorized branch; no merge/install"
+}

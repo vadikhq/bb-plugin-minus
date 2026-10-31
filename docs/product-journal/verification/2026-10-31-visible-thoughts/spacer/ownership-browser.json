@@ -1,0 +1,391 @@
+{
+  "method": "isolated headless Chromium; synthetic spacer ownership transitions, source modules unmodified in disposable client; no runtime mutation",
+  "sourceHash": "390bfc434714ff9f09e80bc381a7ae90d529bea6ad5f9952c1f477c6f430f375",
+  "observations": [
+    {
+      "width": 390,
+      "ownerSide": "left",
+      "simultaneous": false,
+      "split": [
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "virtualized": [
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "returned": [
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "completed": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "focusPreserved": true,
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "ownerSide": "left",
+      "simultaneous": true,
+      "split": [
+        {
+          "state": "unknown",
+          "metrics": "1 tool · time unavailable"
+        },
+        {
+          "state": "unknown",
+          "metrics": "1 tool · time unavailable"
+        }
+      ],
+      "virtualized": [
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "returned": [
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "completed": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "focusPreserved": true,
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "ownerSide": "right",
+      "simultaneous": false,
+      "split": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "virtualized": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "returned": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "completed": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "focusPreserved": true,
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "ownerSide": "right",
+      "simultaneous": true,
+      "split": [
+        {
+          "state": "unknown",
+          "metrics": "1 tool · time unavailable"
+        },
+        {
+          "state": "unknown",
+          "metrics": "1 tool · time unavailable"
+        }
+      ],
+      "virtualized": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "returned": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "completed": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "focusPreserved": true,
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "ownerSide": "left",
+      "simultaneous": false,
+      "split": [
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "virtualized": [
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "returned": [
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "completed": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "focusPreserved": true,
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "ownerSide": "left",
+      "simultaneous": true,
+      "split": [
+        {
+          "state": "unknown",
+          "metrics": "1 tool · time unavailable"
+        },
+        {
+          "state": "unknown",
+          "metrics": "1 tool · time unavailable"
+        }
+      ],
+      "virtualized": [
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "returned": [
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "completed": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "focusPreserved": true,
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "ownerSide": "right",
+      "simultaneous": false,
+      "split": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "virtualized": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "returned": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "completed": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "focusPreserved": true,
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "ownerSide": "right",
+      "simultaneous": true,
+      "split": [
+        {
+          "state": "unknown",
+          "metrics": "1 tool · time unavailable"
+        },
+        {
+          "state": "unknown",
+          "metrics": "1 tool · time unavailable"
+        }
+      ],
+      "virtualized": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "returned": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "pending",
+          "metrics": "1 tool"
+        }
+      ],
+      "completed": [
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        },
+        {
+          "state": "completed",
+          "metrics": "1 tool · 300ms"
+        }
+      ],
+      "focusPreserved": true,
+      "errors": [],
+      "passed": true
+    }
+  ],
+  "passed": true
+}
