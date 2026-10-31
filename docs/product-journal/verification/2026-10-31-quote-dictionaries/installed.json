@@ -91,7 +91,9 @@
   "sharedRuntimeRestarted": false,
   "diagnostics": {
     "initialHeadlessSandboxLaunch": "denied MachPortRendezvous; process exited; authorized local capture rerun outside sandbox succeeded",
-    "firstUiCleanupProbe": "malformed dictionaryActivate wrapper rejected; no state change; harness fixed; only Minus reloaded; subsequent direct UI and separate read-back passed"
+    "firstUiCleanupProbe": "malformed dictionaryActivate wrapper rejected; no state change; harness fixed; only Minus reloaded; subsequent direct UI and separate read-back passed",
+    "cumulativeHandlerErrorCount": 1,
+    "counterExplanation": "The one rejected malformed cleanup request is historical; plugin reload clears statusDetail, not cumulative statistics. No unexpected current error."
   },
   "passed": true
 }
