@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-31",
+  "source": "git:https://github.com/vadikhq/bb-plugin-minus.git@48d3ffb1de14f725a9b5cbacdc74ba0d2224ed22",
+  "bundle": "01adc6d58bab3125",
+  "installJob": {
+    "id": "8065ef87-0a34-45d5-8690-06c26eb4d2ba",
+    "state": "succeeded"
+  },
+  "enabled": true,
+  "status": "running",
+  "statusDetail": null,
+  "all31PreviousSettingsPreserved": true,
+  "activeDictionary": {
+    "id": "dalio",
+    "count": 452,
+    "revision": "dalio-ru-accepted-2026-10-31"
+  },
+  "dictionaries": [
+    {
+      "id": "original",
+      "count": 73,
+      "builtin": true
+    },
+    {
+      "id": "dalio",
+      "count": 452,
+      "builtin": true
+    }
+  ],
+  "sourceHashes": {
+    "app.tsx": "0085a9171ccdaf6d2f25196a2f806910f0abaa783781a4df3ded0b66cdb07890",
+    "server.ts": "cbf0bd085a06ab057a99f4bb3cc5aeaac753e8190c98abacd64cfeb2358ab6d3",
+    "group-tools.ts": "af61ccdbae0afc17767a78a006a6db58d279e163eb9f04b378e961babf8b1f8b",
+    "group-tools.test.mjs": "f74d64bbfb00400e737c4d8f824dbf4d2e50e3122784bdd8c553297387761198",
+    "dictionary-model.ts": "b837eaa71315c24781ca20a045c05c07bd565898aa642add1151f1ebfc8ff348",
+    "dictionary-store.ts": "34ccc86d667d62e7fe64ad4cf036add0369db6ab21f917f1d65dffcc1211fe99",
+    "dictionary-contract.ts": "505008155dc34289a078d11c6cd4df3bd06776195a26b4a67ea2418c37eaeba7",
+    "dictionary-builtins.ts": "84263e395cb322f23931c60680f078e264dd5403b649edc819b9131c53889b1c",
+    "dalio-quotes.ts": "ef16d7407c5a7e54353c74579234f6ff9306a098a57469e46ea7542fded16f6a",
+    "dictionaries.test.mjs": "f774ef9b984928da2bce5223ac536889ed72cf24f7de1ae525ae2182287c51b0",
+    "quotes.ts": "f0602bcffd488c315c68af1a0ab4adce84dccd4cfa35bbfae68f67744bd8806a",
+    "package.json": "14e86cd34db041bb10b783a34f236b2188c84830020693f595b06cd82c0b6186",
+    "package-lock.json": "233cb823d5097f4619b9194874ce18ebe64ac709bfd33f0d66be32102110c4a8"
+  },
+  "installedJsSha256": "e6a15b23798868e299508b5d950a97b29b96f9fb64428f1c48eb464e5174196a",
+  "ui": {
+    "method": "isolated headless Chromium; direct installed BB frontend, no fixtures/proxy/bundle substitution",
+    "settings": [
+      {
+        "width": 1280,
+        "value": "dalio",
+        "focusVisible": true,
+        "overflow": false,
+        "options": [
+          "Философская подборка · 73",
+          "Рэй Далио — Принципы · 452"
+        ],
+        "persistsAfterReload": true
+      },
+      {
+        "width": 390,
+        "value": "dalio",
+        "focusVisible": true,
+        "overflow": false,
+        "options": [
+          "Философская подборка · 73",
+          "Рэй Далио — Принципы · 452"
+        ],
+        "persistsAfterReload": true
+      }
+    ],
+    "timelineGroupCounts": [
+      {
+        "width": 1280,
+        "count": 7
+      },
+      {
+        "width": 390,
+        "count": 7
+      }
+    ],
+    "pageErrors": [],
+    "passed": true
+  },
+  "data": {
+    "sqliteDatabaseCreated": true,
+    "customDictionaryCount": 0
+  },
+  "finalErrors": [],
+  "hostHealth": 200,
+  "sharedRuntimeRestarted": false,
+  "diagnostics": {
+    "initialHeadlessSandboxLaunch": "denied MachPortRendezvous; process exited; authorized local capture rerun outside sandbox succeeded",
+    "firstUiCleanupProbe": "malformed dictionaryActivate wrapper rejected; no state change; harness fixed; only Minus reloaded; subsequent direct UI and separate read-back passed"
+  },
+  "passed": true
+}
