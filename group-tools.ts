@@ -67,7 +67,7 @@ const REFETCH_MS = 2000;
 
 const TOGGLE_HTML = `<div class="rounded-md text-subtle-foreground w-full">
   <div data-row class="group/timeline-row min-w-0 px-2 text-sm leading-5">
-    <button data-toggle="quote" type="button" aria-expanded="false" class="inline px-0 py-0 align-baseline text-sm leading-5 text-subtle-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 inline-block size-3.5 align-text-bottom text-subtle-foreground" aria-hidden="true" data-minus-icon="activity"></svg><span data-activity-label class="sr-only"></span></button><label data-quote-control class="group/toggle inline whitespace-normal break-words cursor-pointer"><span data-quote class="whitespace-normal break-words text-sm italic leading-5 text-subtle-foreground"></span> — <span data-source class="mr-1.5 break-words text-xs not-italic leading-5 text-subtle-foreground"></span></label>
+    <button data-toggle="quote" type="button" aria-expanded="false" class="inline px-0 py-0 align-baseline text-sm leading-5 text-subtle-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 inline-block size-3.5 align-text-bottom text-subtle-foreground" aria-hidden="true" data-minus-icon="activity"></svg><span data-activity-label class="sr-only"></span></button><label data-quote-control class="group/toggle inline whitespace-normal break-words cursor-pointer"><span data-quote class="whitespace-normal break-words text-sm not-italic leading-5 text-subtle-foreground"></span> — <span data-source class="mr-1.5 break-words text-xs not-italic leading-5 text-subtle-foreground"></span></label>
     <button data-metrics data-toggle="metrics" type="button" aria-expanded="false" class="inline max-w-full whitespace-normal break-words px-0 py-0 text-left align-baseline text-xs leading-5 text-subtle-foreground underline underline-offset-2 hover:decoration-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"><span data-count class="whitespace-nowrap"></span><span data-time-separator> · </span><span data-time class="whitespace-nowrap"></span><svg data-minus-chevron viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="bb-icon-stroke pointer-events-none ml-1.5 inline-block size-3 align-text-bottom origin-center text-subtle-foreground transition-[rotate] duration-200 ease-out" aria-hidden="true"><path d="M6 4l4 4-4 4"></path></svg></button>
   </div>
 </div>`;
@@ -119,6 +119,20 @@ function isToolRow(row: HTMLElement, runs?: ThreadRuns, visibleRows?: ReadonlySe
   const known = runs?.collapsible.get(apiId(row));
   if (known !== undefined) return known;
   return TOOL_ROW.test(key) || key.includes(":work-summary:");
+}
+
+// Only API-confirmed service reasoning belongs to the tool disclosure. Unknown
+// rows, errors, and rows carrying an agent message or child stream stay visible.
+function isServiceReasoning(entry: TimelineRow | undefined): entry is TimelineRow {
+  return entry?.kind === "system" && entry.operationKind === "reasoning" &&
+    (entry.status === "completed" || entry.status === "pending");
+}
+
+function reasoningDetail(row: HTMLElement, runs?: ThreadRuns, visibleRows?: ReadonlySet<string>): TimelineRow | undefined {
+  if (hasAgentContent(row) || visibleRows?.has(apiId(row))) return undefined;
+  const location = runs?.sourceOf.get(apiId(row));
+  const entry = location?.source[location.index];
+  return isServiceReasoning(entry) ? entry : undefined;
 }
 
 // A work summary's DOM id ends with the id of the first API row it covers.
@@ -290,6 +304,9 @@ export function mountToolGrouping(
   const quoteByRow = new Map<string, QuoteEntry>();
   const threads = new Map<string, ThreadRuns>();
   const visibleRows = new Set<string>();
+  // Identity survives virtualization; state is always read from the current
+  // API snapshot. A returning Thought must not restart or finish its cycle.
+  const knownThoughtIds = new Set<string>();
   const lastFetch = new Map<string, number>();
   const inFlight = new Set<string>();
   const queuedRefreshes = new Map<string, boolean>();
@@ -465,16 +482,17 @@ export function mountToolGrouping(
     turnChoices.set(row.dataset.timelineRowId!, button.getAttribute("aria-expanded") !== "true");
   }
 
-  // API reasoning can live inside native tool bundles without a visible row.
-  // Only DOM-adjacent tools may share a disclosure across that hidden detail;
-  // source boundaries and virtualization spacers remain independent.
-  function canJoinAdjacentApiRows(left: HTMLElement, right: HTMLElement, runs: ThreadRuns): boolean {
+  // Completed hidden reasoning and verified mounted Thought details may share
+  // a disclosure with adjacent tools. Source boundaries and spacers remain
+  // independent; an unmounted pending/unknown reasoning row is not proof.
+  function canJoinAdjacentApiRows(left: HTMLElement, right: HTMLElement, runs: ThreadRuns, details?: ReadonlySet<string>): boolean {
     const a = runs.sourceOf.get(apiId(left));
     const b = runs.sourceOf.get(apiId(right));
     if (a === undefined || b === undefined || a.source !== b.source || a.index >= b.index) return false;
     return a.source.slice(a.index, b.index + 1).every(row =>
       runs.collapsible.get(row.id) === true ||
-      (row.kind === "system" && row.operationKind === "reasoning" && row.status === "completed"));
+      (row.kind === "system" && row.operationKind === "reasoning" && !visibleRows.has(row.id) &&
+        (row.status === "completed" || (row.status === "pending" && details?.has(row.id)))));
   }
 
   function apiRun(rows: HTMLElement[]): {
@@ -493,17 +511,39 @@ export function mountToolGrouping(
       return null;
     }
     const summaries = rows.map(row => summaryMembers(row, runs));
+    const detailsById = new Map(rows.map(row => reasoningDetail(row, runs, visibleRows))
+      .filter((row): row is TimelineRow => row !== undefined).map(row => [row.id, row]));
     if (rows.some((row, index) => rowKey(row).includes(":work-summary:") &&
       turnButton(row) !== null && summaries[index] === undefined)) {
       refresh(threadId);
       return null;
     }
     const runIds = new Set(rows.map(row => runs.runOf.get(apiId(row))).filter(id => id !== undefined));
-    if (summaries.some(members => members !== undefined) || runIds.size > 1) {
+    const toolIds = new Set([...runIds].flatMap(run => runs.memberIds[run])
+      .concat(summaries.flatMap(members => members?.map(row => row.id) ?? [])));
+    // A mounted Thought can be virtualized while the same cycle is pending.
+    // Recover only its proven neighbouring identity in the same sibling list,
+    // stopping at any work, conversation, error, or unknown system boundary.
+    for (const id of toolIds) {
+      const location = runs.sourceOf.get(id);
+      if (location === undefined) continue;
+      for (const direction of [-1, 1]) {
+        let index = location.index + direction;
+        let entry = location.source[index];
+        while (isServiceReasoning(entry) && knownThoughtIds.has(entry.id) && !visibleRows.has(entry.id)) {
+          detailsById.set(entry.id, entry);
+          index += direction;
+          entry = location.source[index];
+        }
+      }
+    }
+    const details = [...detailsById.values()];
+    if (summaries.some(members => members !== undefined) || runIds.size > 1 || details.length > 0) {
       const members = new Map<string, TimelineRow>();
       let unknownCount = 0;
       for (const [index, row] of rows.entries()) {
         if (row.dataset.timelineRowId === undefined) continue;
+        if (reasoningDetail(row, runs, visibleRows) !== undefined) continue;
         const summary = summaries[index];
         const run = runs.runOf.get(apiId(row));
         if (summary === undefined && rowKey(row).includes(":work-summary:")) {
@@ -518,7 +558,7 @@ export function mountToolGrouping(
         }
       }
       let durationMs: number | null = unknownCount > 0 ? null : 0;
-      let pending = false;
+      let pending = details.some(row => row.status === "pending");
       for (const member of members.values()) {
         if (VISIBLE_WORK.has(member.workKind ?? "")) return null;
         const end = member.status === "pending" ? undefined : member.completedAt ?? undefined;
@@ -529,7 +569,8 @@ export function mountToolGrouping(
       if (pending || unknownCount > 0) refresh(threadId);
       const ids = [...members.keys()];
       if (ids.length === 0) return null;
-      const activity = combinedActivity([...members.values()].map(toolActivity).concat(unknownCount > 0 ? ["unknown"] : []));
+      const activity = combinedActivity([...members.values(), ...details].map(toolActivity)
+        .concat(unknownCount > 0 ? ["unknown"] : []));
       return { key: "timeline:" + threadId + ":" + ids[0], count: ids.length + unknownCount, durationMs, pending, activity, memberIds: ids };
     }
     const ids = rows.filter((row) => row.dataset.timelineRowId !== undefined).map(apiId);
@@ -569,8 +610,10 @@ export function mountToolGrouping(
     // Native summaries may start at reasoning rather than their first tool.
     // A fully verified adjacent span does not need one quote per API run.
     const mounted = rows.filter(row => row.dataset.timelineRowId !== undefined);
+    const details = new Set([...knownThoughtIds,
+      ...mounted.filter(row => reasoningDetail(row, api, visibleRows) !== undefined).map(apiId)]);
     if (!rows.some(row => row.hasAttribute("data-timeline-window-spacer")) &&
-      mounted.length > 1 && mounted.slice(1).every((row, index) => canJoinAdjacentApiRows(mounted[index], row, api))) {
+      mounted.length > 1 && mounted.slice(1).every((row, index) => canJoinAdjacentApiRows(mounted[index], row, api, details))) {
       return [rows];
     }
     const groups: HTMLElement[][] = [];
@@ -586,6 +629,19 @@ export function mountToolGrouping(
       }
       const id = row.dataset.timelineRowId;
       const run = id === undefined ? undefined : api.runOf.get(apiId(row));
+      if (details.has(apiId(row))) {
+        if (group.length > 0 && (pendingSpacers.length > 0 ||
+          (previousApiRow !== undefined && !canJoinAdjacentApiRows(previousApiRow, row, api, details)))) {
+          groups.push(group);
+          group = [];
+          openRun = undefined;
+        }
+        for (const spacer of pendingSpacers) spacer.removeAttribute(HIDDEN);
+        pendingSpacers = [];
+        group.push(row);
+        previousApiRow = row;
+        continue;
+      }
       if (run === undefined) {
         let nextRun: number | undefined;
         for (let next = i + 1; next < rows.length; next++) {
@@ -627,8 +683,14 @@ export function mountToolGrouping(
         }
         continue;
       }
+      if (previousApiRow !== undefined && details.has(apiId(previousApiRow)) &&
+        (pendingSpacers.length > 0 || !canJoinAdjacentApiRows(previousApiRow, row, api, details))) {
+        if (group.length > 0) groups.push(group);
+        group = [];
+        openRun = undefined;
+      }
       if (openRun !== undefined && run !== openRun &&
-        !(pendingSpacers.length === 0 && previousApiRow !== undefined && canJoinAdjacentApiRows(previousApiRow, row, api))) {
+        !(pendingSpacers.length === 0 && previousApiRow !== undefined && canJoinAdjacentApiRows(previousApiRow, row, api, details))) {
         for (const spacer of pendingSpacers) spacer.removeAttribute(HIDDEN);
         pendingSpacers = [];
         if (group.length > 0) groups.push(group);
@@ -747,7 +809,11 @@ export function mountToolGrouping(
         }
         const threadId = child.dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0];
         if (threadId !== undefined && !threads.has(threadId)) refresh(threadId);
-        if (child.dataset.timelineRowId !== undefined && isToolRow(child, threads.get(threadId ?? ""), visibleRows)) {
+        const api = threads.get(threadId ?? "");
+        const thought = reasoningDetail(child, api, visibleRows);
+        if (thought !== undefined) knownThoughtIds.add(thought.id);
+        if (child.dataset.timelineRowId !== undefined &&
+          (isToolRow(child, api, visibleRows) || thought !== undefined)) {
           if (
             run.length > 0 &&
             spacers.length > 0 &&
@@ -791,18 +857,19 @@ export function mountToolGrouping(
       }
       for (const part of parts) {
         const { rows, api: candidate } = part;
+        const threadId = rows[0].dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0] ?? "unknown";
         // A pending/stale API run can span separate visible DOM parts. Give each
         // part its row fallback identity rather than moving one header/end
         // between them on every observer pass. Full-run metrics are ambiguous.
         const api = candidate !== null && apiParts.get(candidate.key) === 1 && !ambiguousParts.has(part) ? candidate : null;
         const calls =
           api?.count ??
-          rows.reduce((sum, row) => sum + (row.dataset.timelineRowId === undefined ? 0 : domCount(row)), 0);
+          rows.reduce((sum, row) => sum + (row.dataset.timelineRowId === undefined ||
+            reasoningDetail(row, threads.get(threadId), visibleRows) !== undefined ? 0 : domCount(row)), 0);
         if (calls === 0) {
           for (const row of rows) row.removeAttribute(HIDDEN);
           continue;
         }
-        const threadId = rows[0].dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0] ?? "unknown";
         const fallbackKey = `row:${threadId}:${rowKey(rows[0])}`;
         const key = api?.key ?? fallbackKey;
         const mountedIds = rows

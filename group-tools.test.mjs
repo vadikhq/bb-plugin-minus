@@ -141,7 +141,8 @@ for (const count of [1, 2, 3]) {
       assert.equal(button.getAttribute("aria-describedby"), quote.id + " " + quote.id + "-activity");
       assert.equal(quote.textContent, QUOTES[0].text);
       assert.equal(quote.title, QUOTES[0].text);
-      assert.ok(quote.classList.contains("italic"));
+      assert.ok(quote.classList.contains("not-italic"));
+      assert.equal(quote.classList.contains("italic"), false);
       assert.equal(source.textContent, QUOTE_SOURCES[QUOTES[0].source].byline);
       assert.equal(button.getAttribute("aria-labelledby"), quote.id + " " + source.id);
       assert.equal(source.tagName, "SPAN");
@@ -1762,10 +1763,13 @@ test('the combined visual cycle hides time until every constituent run finishes'
   } finally { dom.cleanup(); }
 });
 
-test('joining after a visible reasoning row disappears preserves the latest choice and metrics focus', async () => {
-  const dom = mountDom({ rowIds: ['tool-1', 'op:reasoning:visible', 'tool-2'], fetchTimeline: async () => completedReasoningTimeline([
-    ['tool-1'], ['op:reasoning:visible', 'system', 'reasoning'], ['tool-2'],
-  ]) });
+test('confirming a mounted Thought preserves the latest choice and metrics focus when groups join', async () => {
+  let verified = false, notify;
+  const rows = [['tool-1'], ['op:reasoning:visible', 'system', 'reasoning'], ['tool-2']];
+  const dom = mountDom({ rowIds: rows.map(row => row[0]),
+    fetchTimeline: async () => verified ? completedReasoningTimeline(rows) : timeline(rows),
+    subscribeTimeline: callback => { notify = callback; return () => {}; },
+  });
   try {
     await dom.flush();
     const controls = [...dom.container.querySelectorAll('[data-metrics]')];
@@ -1773,6 +1777,8 @@ test('joining after a visible reasoning row disappears preserves the latest choi
     controls[0].click();await dom.flush();
     controls[0].click();await dom.flush();
     controls[1].focus();controls[1].click();await dom.flush();
+    verified = true;notify('thr_test', true);await dom.flush();
+    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
     dom.rows[1].remove();await dom.flush();
     const merged = dom.container.querySelector('[data-metrics]');
     assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
@@ -1781,6 +1787,153 @@ test('joining after a visible reasoning row disappears preserves the latest choi
     merged.click();await dom.flush();
     assert.equal(merged.getAttribute('aria-expanded'), 'false');
     assert(dom.rows.filter(row => row.isConnected).every(row => row.hasAttribute(HIDDEN)));
+  } finally { dom.cleanup(); }
+});
+
+test('five tool batches separated by mounted Thoughts share one quote and only tool metrics', async () => {
+  const rows = [['assistant:before', 'conversation']];
+  let tool = 0;
+  for (const [index, count] of [2, 2, 2, 1, 1].entries()) {
+    for (let i = 0; i < count; i++) rows.push(['tool-' + ++tool]);
+    rows.push(['op:reasoning:' + index, 'system', 'reasoning', 0, 9000]);
+  }
+  rows.push(['assistant:after', 'conversation']);
+  const dom = mountDom({ rowIds: rows.map(row => row[0]), fetchTimeline: async () => completedReasoningTimeline(rows) });
+  try {
+    await dom.flush();
+    const controls = [...dom.container.querySelectorAll('[data-metrics]')];
+    assert.equal(controls.length, 1);
+    assert.equal(controls[0].textContent, '8 tools · 2.4s');
+    assert.equal(dom.rows[0].hasAttribute(HIDDEN), false);
+    assert.equal(dom.rows.at(-1).hasAttribute(HIDDEN), false);
+    assert(dom.rows.slice(1, -1).every(row => row.hasAttribute(HIDDEN)));
+    controls[0].click();await dom.flush();
+    assert(dom.rows.every(row => !row.hasAttribute(HIDDEN)));
+    controls[0].click();await dom.flush();
+    assert(dom.rows.slice(1, -1).every(row => row.hasAttribute(HIDDEN)));
+    dom.dispose();
+    assert(dom.rows.every(row => !row.hasAttribute(HIDDEN)));
+  } finally { dom.cleanup(); }
+});
+
+for (const position of ['before', 'between', 'after']) {
+  test('pending mounted Thought ' + position + ' the tools keeps the cycle active without counting its time', async () => {
+    let finished = false, notify;
+    const thought = ['op:reasoning:active', 'system', 'reasoning', 0, null];
+    const rows = position === 'before' ? [thought, ['tool-1'], ['tool-2']] :
+      position === 'between' ? [['tool-1'], thought, ['tool-2']] : [['tool-1'], ['tool-2'], thought];
+    const dom = mountDom({ rowIds: rows.map(row => row[0]),
+      fetchTimeline: async () => completedReasoningTimeline(rows).map(row => row.operationKind === 'reasoning' && finished ?
+        { ...row, status: 'completed', completedAt: 9000 } : row),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      await dom.flush();
+      const marker = dom.container.querySelector('[data-bb-minus-group]');
+      assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
+      assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+      assert.equal(marker.querySelector('[data-metrics]').textContent, '2 tools');
+      marker.querySelector('[data-metrics]').click();await dom.flush();
+      finished = true;notify('thr_test', true);await dom.flush();
+      assert.equal(marker.getAttribute('data-tool-state'), 'completed');
+      assert.equal(marker.querySelector('[data-metrics]').textContent, '2 tools · 600ms');
+      assert.equal(marker.querySelector('[data-metrics]').getAttribute('aria-expanded'), 'true');
+      assert(dom.rows.every(row => !row.hasAttribute(HIDDEN)));
+    } finally { dom.cleanup(); }
+  });
+}
+
+test('a standalone verified Thought stays native instead of creating a zero-tool quote', async () => {
+  const dom = mountDom({ rowIds: ['op:reasoning:only'], fetchTimeline: async () => completedReasoningTimeline([
+    ['op:reasoning:only', 'system', 'reasoning'],
+  ]) });
+  try {
+    await dom.flush();
+    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 0);
+    assert.equal(dom.rows[0].hasAttribute(HIDDEN), false);
+  } finally { dom.cleanup(); }
+});
+
+for (const bothSides of [false, true]) {
+  test('virtualizing a pending Thought preserves cycle activity until terminal: both sides ' + bothSides, async () => {
+    let finished = false, notify;
+    const rows = [['tool-1'], ['op:reasoning:virtual-pending', 'system', 'reasoning', 0, null],
+      ...(bothSides ? [['tool-2']] : [])];
+    const dom = mountDom({ rowIds: rows.map(row => row[0]),
+      fetchTimeline: async () => completedReasoningTimeline(rows).map(row => row.operationKind === 'reasoning' && finished ?
+        { ...row, status: 'completed', completedAt: 9000 } : row),
+      subscribeTimeline: callback => { notify = callback;return () => {}; },
+    });
+    try {
+      await dom.flush();
+      const expectedCount = bothSides ? '2 tools' : '1 tool';
+      const thought = dom.rows[1];
+      const inspect = () => {
+        assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
+        const marker = dom.container.querySelector('[data-bb-minus-group]');
+        assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+        assert.equal(marker.querySelector('[data-metrics]').textContent, expectedCount);
+      };
+      inspect();thought.remove();await dom.flush();inspect();
+      dom.container.insertBefore(thought, bothSides ? dom.rows[2] : null);await dom.flush();inspect();
+      thought.remove();await dom.flush();
+      finished = true;notify('thr_test', true);await dom.flush();
+      const marker = dom.container.querySelector('[data-bb-minus-group]');
+      assert.equal(marker.getAttribute('data-tool-state'), 'completed');
+      assert.equal(marker.querySelector('[data-metrics]').textContent, expectedCount + (bothSides ? ' · 600ms' : ' · 300ms'));
+    } finally { dom.cleanup(); }
+  });
+}
+
+for (const status of ['error', 'cancelled', 'unknown-state']) {
+  test('mounted reasoning with ' + status + ' status remains an independent visible boundary', async () => {
+    const dom = mountDom({ rowIds: ['tool-1', 'op:reasoning:boundary', 'tool-2'], fetchTimeline: async () =>
+      completedReasoningTimeline([['tool-1'], ['op:reasoning:boundary', 'system', 'reasoning'], ['tool-2']])
+        .map(row => row.operationKind === 'reasoning' ? { ...row, status } : row),
+    });
+    try {
+      await dom.flush();
+      assert.equal(dom.rows[1].hasAttribute(HIDDEN), false);
+      assert.deepEqual([...dom.container.querySelectorAll('[data-metrics]')].map(e => e.textContent), ['1 tool · 300ms', '1 tool · 300ms']);
+    } finally { dom.cleanup(); }
+  });
+}
+
+test('a grouped Thought gaining a message becomes a protected boundary even after virtualization', async () => {
+  const dom = mountDom({ rowIds: ['tool-1', 'op:reasoning:stream', 'tool-2'], fetchTimeline: async () =>
+    completedReasoningTimeline([['tool-1'], ['op:reasoning:stream', 'system', 'reasoning'], ['tool-2']]),
+  });
+  try {
+    await dom.flush();
+    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
+    const message = dom.window.document.createElement('div');
+    message.className = 'group/message';message.textContent = 'Полезный промежуточный результат';
+    dom.rows[1].append(message);await dom.flush();
+    assert.equal(dom.rows[1].hasAttribute(HIDDEN), false);
+    assert.equal(message.closest('[data-bb-minus-hidden]'), null);
+    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 2);
+    dom.rows[1].remove();await dom.flush();
+    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 2);
+  } finally { dom.cleanup(); }
+});
+
+test('Thought grouping recovers from a failed API refresh without reviving an older disclosure', async () => {
+  let fail = false, notify;
+  const dom = mountDom({ rowIds: ['tool-1', 'op:reasoning:refresh', 'tool-2'], fetchTimeline: async () => {
+    if (fail) throw Error('temporary API failure');
+    return completedReasoningTimeline([['tool-1'], ['op:reasoning:refresh', 'system', 'reasoning'], ['tool-2']]);
+  }, subscribeTimeline: callback => { notify = callback;return () => {}; } });
+  try {
+    await dom.flush();
+    const metrics = dom.container.querySelector('[data-metrics]');
+    metrics.click();await dom.flush();metrics.click();await dom.flush();
+    fail = true;notify('thr_test', true);await dom.flush();
+    assert.equal(dom.rows[1].hasAttribute(HIDDEN), false);
+    fail = false;notify('thr_test', true);await dom.flush();
+    const restored = dom.container.querySelector('[data-metrics]');
+    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
+    assert.equal(restored.getAttribute('aria-expanded'), 'false');
+    assert.equal(restored.textContent, '2 tools · 600ms');
   } finally { dom.cleanup(); }
 });
 
