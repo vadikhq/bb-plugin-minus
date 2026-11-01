@@ -531,23 +531,15 @@ export function mountToolGrouping(
       return null;
     }
     const runIds = new Set(rows.map(row => runs.runOf.get(apiId(row))).filter(id => id !== undefined));
-    const toolIds = new Set([...runIds].flatMap(run => runs.memberIds[run])
-      .concat(summaries.flatMap(members => members?.map(row => row.id) ?? [])));
-    // A mounted Thought can be virtualized while the same cycle is pending.
-    // Recover only its proven neighbouring identity in the same sibling list,
-    // stopping at any work, conversation, error, or unknown system boundary.
-    for (const id of toolIds) {
+    // Each recovered id already has a unique owner revalidated below against
+    // the current API sibling list and work/conversation/visible boundaries.
+    // Read those proven details directly: an unmounted completed Thought
+    // between the tool and its owned pending Thought is not a new boundary.
+    for (const id of recoverableThoughts) {
       const location = runs.sourceOf.get(id);
       if (location === undefined) continue;
-      for (const direction of [-1, 1]) {
-        let index = location.index + direction;
-        let entry = location.source[index];
-        while (isServiceReasoning(entry) && recoverableThoughts.has(entry.id) && !visibleRows.has(entry.id)) {
-          detailsById.set(entry.id, entry);
-          index += direction;
-          entry = location.source[index];
-        }
-      }
+      const entry = location.source[location.index];
+      if (isServiceReasoning(entry) && !visibleRows.has(entry.id)) detailsById.set(entry.id, entry);
     }
     const details = [...detailsById.values()];
     if (summaries.some(members => members !== undefined) || runIds.size > 1 || details.length > 0) {

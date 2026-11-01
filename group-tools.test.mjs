@@ -2170,6 +2170,35 @@ for (const bothSides of [false, true]) {
   });
 }
 
+for (const position of ['before', 'after']) {
+  test('an owned pending Thought is recovered past unmounted completed reasoning: ' + position, async () => {
+    let finished = false, notify;
+    const completed = ['op:reasoning:completed-gap', 'system', 'reasoning'];
+    const pending = ['op:reasoning:owned-gap', 'system', 'reasoning', 1000, null];
+    const source = position === 'after' ? [['tool-1'], completed, pending] : [pending, completed, ['tool-1']];
+    const dom = mountDom({
+      rowIds: source.filter(row => row !== completed).map(row => row[0]),
+      fetchTimeline: async () => completedReasoningTimeline(source).map(row =>
+        row.id === fullId(pending[0]) && finished ? { ...row, status: 'completed' } : row),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      await dom.flush();
+      const marker = dom.container.querySelector('[data-bb-minus-group]');
+      const metrics = marker.querySelector('[data-metrics]');
+      assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+      metrics.focus(); metrics.click();
+      dom.rows[position === 'after' ? 1 : 0].remove(); await dom.flush();
+      assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+      assert.equal(metrics.textContent, '1 tool');
+      assert.equal(metrics.getAttribute('aria-expanded'), 'true');
+      assert.equal(dom.window.document.activeElement, metrics);
+      finished = true; notify('thr_test', true); await dom.flush();
+      assert.equal(marker.getAttribute('data-tool-state'), 'completed');
+    } finally { dom.cleanup(); }
+  });
+}
+
 for (const bothSides of [false, true]) {
   test('a pending Thought keeps its proven owners while only it remains mounted: both sides ' + bothSides, async () => {
     let finished = false, notify;
