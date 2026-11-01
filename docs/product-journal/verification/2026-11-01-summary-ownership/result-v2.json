@@ -1,0 +1,80 @@
+{
+  "reviewer": "/root/summary_ownership_review",
+  "at": "2026-11-01T16:39:25.117Z",
+  "sourceSha256": "be67740662382b53a2fdf6db6a16b0b477892c0e5a4a3b37000b476a4744a2bd",
+  "testSha256": "b7bdd86fdfb240f09f0d571e2bf4db6dc7486e69193bf8797599cab5f0bbcd17",
+  "verdict": "PASS: both identified ownership P2 findings closed on these exact candidate bytes; no open P0/P1/P2 in the targeted reviewed scope",
+  "openFindings": [],
+  "resolvedFindings": [
+    {
+      "severity": "P2",
+      "thread": "PRRT_kwDOVaTjmM6yafTK",
+      "cause": "Native summary borrowed trailing reasoning across a sibling virtualization gap",
+      "beforeSource": "9f78539a47b12cb807a2e93e0a3cd731345565d6503ef7aa7a1a5bcef6146559",
+      "beforeRightOwnerStates": [
+        "pending",
+        "pending"
+      ],
+      "afterRightOwnerStates": [
+        "completed",
+        "pending"
+      ],
+      "leftOwnerControl": [
+        "pending",
+        "completed"
+      ],
+      "status": "still closed on be677 in JSDOM and four fresh Chromium fixtures"
+    },
+    {
+      "severity": "P2",
+      "thread": "PRRT_kwDOVaTjmM6ycSOC",
+      "cause": "Thought-only mounted part overwrote its proven tool-owner anchors with an empty set",
+      "beforeSource": "683aa8b135de1698a6d45d55bc628e096e636918427beb979ed5dc42b3fe1e8f",
+      "beforeRemountStates": [
+        "completed"
+      ],
+      "afterRemountStates": [
+        "pending"
+      ],
+      "variants": [
+        1,
+        2
+      ],
+      "status": "closed; empty current tool set does not erase prior proof, while every API connection is still revalidated"
+    }
+  ],
+  "independentChecks": {
+    "zeroToolCycleRaw1And2": true,
+    "thoughtNativeVisibleWithNoZeroToolQuote": true,
+    "pendingUntilApiTerminal": true,
+    "conversationBoundaryDuringThoughtOnly": true,
+    "nestedSourceBoundaryDuringThoughtOnly": true,
+    "boundarySingleToolBecomesCompleted": true,
+    "boundaryTwoToolsLeftCompletedRightPending": true,
+    "nativeSummaryLeftRightOwners": true,
+    "nativeSummaryNoSpacerTrailingPreserved": true,
+    "nativeSummaryFocusAndDisclosurePreserved": true,
+    "zeroToolDisclosureChoicePreservedAfterRemount": true,
+    "chromiumContexts": 8,
+    "chromiumWidths": [
+      390,
+      1280
+    ],
+    "chromiumPageErrors": 0,
+    "reviewedPng": 8,
+    "savedPng": 16,
+    "allFixtureBrowserServerCleanup": true
+  },
+  "minimality": "The second fix only refuses to replace owner anchors with an empty mounted-tool set. It leaves the first spacer-bound summary guard and current-API source/boundary revalidation unchanged. Independent boundary controls explicitly verify that retaining history does not reattach Thought across a new conversation or nested source.",
+  "cleanup": "All reviewer JSDOM windows, HTTP servers, browser contexts and browser processes exited via their own finally cleanup. Frozen small baseline source files remain as reproducible review evidence; no dependencies copied or changed.",
+  "writer": {
+    "fullTests": 120,
+    "failures": 0,
+    "typeScript": "PASS",
+    "build": "PASS",
+    "beforeNewRegressionTests": 2,
+    "beforeFailures": 2,
+    "sdkPin": "0.6.79",
+    "installed": false
+  }
+}

@@ -865,7 +865,10 @@ export function mountToolGrouping(
         for (const row of rows) {
           const threadId = row.dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0];
           const thought = reasoningDetail(row, threads.get(threadId ?? ""), visibleRows);
-          if (thought !== undefined) thoughtToolOwners.set(thought.id, partTools[index]);
+          // A Thought-only mounted part supplies no replacement ownership
+          // proof. Keep its anchors for tool remount; recovery below still
+          // revalidates them against the current API sibling boundaries.
+          if (thought !== undefined && partTools[index].size > 0) thoughtToolOwners.set(thought.id, partTools[index]);
         }
       }
       const recovered = rowParts.map(() => new Set<string>());

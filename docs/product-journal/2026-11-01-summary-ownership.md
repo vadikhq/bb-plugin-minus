@@ -51,3 +51,23 @@ Tests SHA256: `4f18e85a90d5b82f094683c557e955ffb53e55498054b26105cc1656d78d8c81`
 P2 снят на указанных source/tests hashes, открытых P0/P1/P2 в проверенном объёме нет. Независимая проверка actual module через JSDOM и отдельный Chromium fixture подтвердила owner-right/owner-left, remount/terminal, фокус, раскрытие, count и cleanup. Просмотрены 8 PNG; writer дополнительно просмотрел узкий owner-right и широкий owner-left. Это синтетическая браузерная проверка, не installed/native-live evidence. Два прежних таймаута подготовки fixture (неполный QuoteEntry) не считаются PASS; они сохранены отдельно, финальный повтор на неизменённом модуле прошёл с нулём page errors и terminal cleanup.
 
 [Санитизированная сводка проверки](verification/2026-11-01-summary-ownership/result.json) связывает регрессию до/после, source/test hashes, полный suite и независимый вердикт. Подробные локальные квитанции: `summary-owner-review-final.json`, `summary-owner-review-browser.json` в thread storage текущего writer. Исходник установленного артефакта не менялся; старые121 combined tests не выдаются за проверку нового объединённого source. После отдельно согласованного merge #3 будущая объединённая редакция #2 требует собственных проверок и нового точного merge-разрешения.
+
+
+## Последующий P2: Thought остаётся без смонтированных инструментов
+
+Свежий автоматический Code Review на опубликованном `fb00914afb0f667333a90e8388fa04d3e72eb21c` выявил отдельный путь потери доказанного владельца: инструменты виртуализируются первыми, Thought остаётся в zero-tool part, и `thoughtToolOwners` заменяет прежние anchors пустым Set. Когда инструменты возвращаются, а Thought виртуализируется, группа ошибочно объявляется completed до его завершения. Замечание [P2](https://github.com/vadikhq/bb-plugin-minus/pull/2#discussion_r4436453279) проверяется отдельно от прежнего исправления.
+
+Две регрессии — один инструмент и инструменты с обеих сторон Thought — сначала дали ожидаемый FAIL (`completed` вместо `pending`). Теперь mounted part без tool anchors не заменяет прежнюю ownership proof. Существующая проверка актуальной API sibling list, промежуточных conversation/error/unknown boundaries и единственного владельца остаётся обязательной; stale anchors не становятся безусловным разрешением recovery.
+
+Точная следующая редакция: source SHA256 `be67740662382b53a2fdf6db6a16b0b477892c0e5a4a3b37000b476a4744a2bd`, tests `b7bdd86fdfb240f09f0d571e2bf4db6dc7486e69193bf8797599cab5f0bbcd17`. Полный suite: 120 PASS, 0 failures; TypeScript/build PASS, SDK pin0.6.79 сохранён. Доказательства writer: `minus-owner-anchor-before.junit.xml`, `minus-owner-anchor-full.junit.xml`, `minus-owner-anchor-tsc.log`, `minus-owner-anchor-build.log`, `minus-owner-anchor-writer.patch` в thread storage. Браузерная/независимая квитанция этой новой редакции сохраняется отдельно; прежнее683a review не выдаётся за review новых байтов.
+
+Изменение не добавляет UI, данных, настроек или новых размеров/таймаутов. Сверка `bb-plugin-workflow`, `bb-plugin-authoring`, `impeccable` Operate и `frontend-design`: восстанавливается прежний сценарий корректного индикатора работы, визуальная основа и SDK/lifecycle не меняются; writer/ветка сохраняются, словарь и runtime не затронуты. Эта правка также не устанавливается и не даёт merge-разрешения.
+
+
+## Оба замечания проверены на итоговой редакции
+
+Независимый финальный вердикт на `be6774…` / `b7bdd8…`: оба P2 сняты, открытых P0/P1/P2 в адресном объёме нет. Actual-module JSDOM подтвердил zero-tool lifecycle для1/2tools, а также conversation/nested-source revalidation, пока смонтирован только Thought: старыеanchors не пересекают новую границу, собственный правыйowner сохраняется. Повтор предыдущего native-summary сценария также PASS.
+
+На этих же байтах выполнены8 Chromium-контекстов (390/1280px, прежнийsummary left/right и новыйzero-tool1/2), сохранены16 PNG, независимо просмотрены8 после перехода. Это isolated headless Chromium с синтетическими disposable HTTP fixtures, не installed/native-live проверка. Все browser/server cleanup завершены. Итог: [санитизированная квитанция v2](verification/2026-11-01-summary-ownership/result-v2.json), полная локальная квитанция `summary-owner-review-final-v2.json`. Старый результат683a остаётся историей.
+
+120 тестов и TypeScript/build относятся к этой новой редакции. Владелец не давал разрешение merge/установки: публикация исправления идёт только в текущий PR #2. Словарь и чужая ветка сохраняются; установленный artifact не подменяется.

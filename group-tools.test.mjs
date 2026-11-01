@@ -2170,6 +2170,38 @@ for (const bothSides of [false, true]) {
   });
 }
 
+for (const bothSides of [false, true]) {
+  test('a pending Thought keeps its proven owners while only it remains mounted: both sides ' + bothSides, async () => {
+    let finished = false, notify;
+    const source = [['tool-1'], ['op:reasoning:alone', 'system', 'reasoning', 1000, null],
+      ...(bothSides ? [['tool-2']] : [])];
+    const dom = mountDom({
+      rowIds: source.map(row => row[0]),
+      fetchTimeline: async () => completedReasoningTimeline(source).map(row =>
+        row.operationKind === 'reasoning' && finished ? { ...row, status: 'completed' } : row),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      await dom.flush();
+      assert.equal(dom.container.querySelector('[data-bb-minus-group]').getAttribute('data-tool-state'), 'pending');
+      const thought = dom.rows[1], tools = dom.rows.filter(row => row !== thought);
+      for (const tool of tools) tool.remove();
+      await dom.flush();
+      assert.equal(dom.container.querySelectorAll('[data-bb-minus-group]').length, 0);
+      assert.equal(thought.hasAttribute(HIDDEN), false);
+      dom.container.insertBefore(tools[0], thought);
+      if (bothSides) dom.container.append(tools[1]);
+      thought.remove(); await dom.flush();
+      const marker = dom.container.querySelector('[data-bb-minus-group]');
+      assert.equal(dom.container.querySelectorAll('[data-bb-minus-group]').length, 1);
+      assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+      assert.equal(marker.querySelector('[data-metrics]').textContent, bothSides ? '2 tools' : '1 tool');
+      finished = true; notify('thr_test', true); await dom.flush();
+      assert.equal(marker.getAttribute('data-tool-state'), 'completed');
+    } finally { dom.cleanup(); }
+  });
+}
+
 for (const ownerSide of ['left', 'right']) {
   test('a known pending Thought stays with its own group across a spacer and virtualization: ' + ownerSide, async () => {
     let finished = false, notify;
