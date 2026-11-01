@@ -175,7 +175,11 @@ function summaryEntries(row: HTMLElement, runs?: ThreadRuns): TimelineRow[] | un
   if (start === undefined) return undefined;
   let end = start.source.length;
   let next = row.nextElementSibling;
-  while (next !== null && (next.hasAttribute(MARKER) || next.hasAttribute(GROUP_END) || next.hasAttribute("data-timeline-window-spacer"))) next = next.nextElementSibling;
+  let crossesSpacer = false;
+  while (next !== null && (next.hasAttribute(MARKER) || next.hasAttribute(GROUP_END) || next.hasAttribute("data-timeline-window-spacer"))) {
+    if (next.hasAttribute("data-timeline-window-spacer")) crossesSpacer = true;
+    next = next.nextElementSibling;
+  }
   if (next instanceof HTMLElement && next.dataset.timelineRowId !== undefined) {
     const boundary = runs?.sourceOf.get(apiId(next));
     // Native composition can advance before its API snapshot. Do not borrow
@@ -187,6 +191,10 @@ function summaryEntries(row: HTMLElement, runs?: ThreadRuns): TimelineRow[] | un
   const entries: TimelineRow[] = [];
   let members = 0;
   for (const entry of start.source.slice(start.index, end)) {
+    // The count proves tools and their interior reasoning, not a trailing
+    // Thought across a virtualized gap. apiRun restores that detail only
+    // through its previously proven tool owners.
+    if (members === count && crossesSpacer) return entries;
     if (entry.kind === "system" && entry.operationKind === "reasoning") {
       entries.push(entry);
       continue;

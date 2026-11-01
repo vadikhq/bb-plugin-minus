@@ -1706,6 +1706,48 @@ test('a pending Thought at the next mounted summary does not affect its complete
   } finally { dom.cleanup(); }
 });
 
+for (const ownerSide of ['left', 'right']) {
+  test('a native summary cannot borrow virtualized trailing Thought from the ' + ownerSide + ' group', async () => {
+    let finished = false, notify;
+    const source = [['tool-1'], ['op:reasoning:owned', 'system', 'reasoning', 1000, null], ['tool-2']];
+    const dom = mountDom({
+      rowIds: ['turn-1:work-summary:' + fullId('tool-1'), 'op:reasoning:owned', 'tool-2'],
+      fetchTimeline: async () => completedReasoningTimeline(source).map(row =>
+        row.operationKind === 'reasoning' && finished ? { ...row, status: 'completed' } : row),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      nativeSummary(dom, dom.rows[0], 'Ran 1 tool');
+      const thought = dom.rows[1], spacer = dom.window.document.createElement('div');
+      spacer.setAttribute('data-timeline-window-spacer', '');
+      dom.container.insertBefore(spacer, ownerSide === 'left' ? dom.rows[2] : thought);
+      const inspect = async () => {
+        await dom.flush();
+        const markers = [...dom.container.querySelectorAll('[data-bb-minus-group]')];
+        assert.deepEqual(markers.map(row => row.getAttribute('data-tool-state')),
+          ownerSide === 'left' ? ['pending', 'completed'] : ['completed', 'pending']);
+        assert.deepEqual(markers.map(row => row.querySelector('[data-metrics]').textContent), ['1 tool', '1 tool']);
+        assert.equal(spacer.hasAttribute(HIDDEN), false);
+        return markers;
+      };
+      const markers = await inspect();
+      const metrics = markers[ownerSide === 'left' ? 0 : 1].querySelector('[data-metrics]');
+      metrics.focus(); metrics.click();
+      thought.remove(); await inspect();
+      dom.container.insertBefore(thought, ownerSide === 'left' ? spacer : dom.rows[2]);
+      await inspect();
+      thought.remove(); await inspect();
+      finished = true; notify('thr_test', true); await dom.flush();
+      assert.deepEqual([...dom.container.querySelectorAll('[data-bb-minus-group]')]
+        .map(row => row.getAttribute('data-tool-state')), ['completed', 'completed']);
+      assert.equal(metrics.getAttribute('aria-expanded'), 'true');
+      assert.equal(dom.window.document.activeElement, metrics);
+      dom.dispose();
+      assert(dom.rows.filter(row => row.isConnected).every(row => !row.hasAttribute(HIDDEN)));
+    } finally { dom.cleanup(); }
+  });
+}
+
 test('mixed summary exposes delegated work outside tool disclosures and restores its native shell', async () => {
   const source = [['tool-1'], ['tool-2'], ['delegation:child', 'work', undefined, 1000, 5000, 'delegation'], ['tool-3'], ['assistant:after', 'conversation']];
   const dom = mountDom({ rowIds: ['turn-1:work-summary:' + fullId('tool-1'), 'assistant:after'], fetchTimeline: async () => timeline(source) });
