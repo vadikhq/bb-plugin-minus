@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-31",
+  "stage": "pre-install candidate",
+  "tests": {
+    "command": "npm test",
+    "passed": 95,
+    "failed": 0
+  },
+  "typecheck": "tsc --noEmit: PASS",
+  "build": "bb plugin build .: PASS",
+  "independentReview": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0,
+    "sourceHashes": {
+      "app.tsx": "0085a9171ccdaf6d2f25196a2f806910f0abaa783781a4df3ded0b66cdb07890",
+      "server.ts": "cbf0bd085a06ab057a99f4bb3cc5aeaac753e8190c98abacd64cfeb2358ab6d3",
+      "group-tools.ts": "af61ccdbae0afc17767a78a006a6db58d279e163eb9f04b378e961babf8b1f8b",
+      "group-tools.test.mjs": "f74d64bbfb00400e737c4d8f824dbf4d2e50e3122784bdd8c553297387761198",
+      "dictionary-model.ts": "b837eaa71315c24781ca20a045c05c07bd565898aa642add1151f1ebfc8ff348",
+      "dictionary-store.ts": "34ccc86d667d62e7fe64ad4cf036add0369db6ab21f917f1d65dffcc1211fe99",
+      "dictionary-contract.ts": "505008155dc34289a078d11c6cd4df3bd06776195a26b4a67ea2418c37eaeba7",
+      "dictionary-builtins.ts": "84263e395cb322f23931c60680f078e264dd5403b649edc819b9131c53889b1c",
+      "dalio-quotes.ts": "ef16d7407c5a7e54353c74579234f6ff9306a098a57469e46ea7542fded16f6a",
+      "dictionaries.test.mjs": "f774ef9b984928da2bce5223ac536889ed72cf24f7de1ae525ae2182287c51b0",
+      "quotes.ts": "f0602bcffd488c315c68af1a0ab4adce84dccd4cfa35bbfae68f67744bd8806a",
+      "package.json": "14e86cd34db041bb10b783a34f236b2188c84830020693f595b06cd82c0b6186",
+      "package-lock.json": "233cb823d5097f4619b9194874ce18ebe64ac709bfd33f0d66be32102110c4a8"
+    }
+  },
+  "visual": {
+    "method": "isolated headless Chromium; native read-only UI proxy; actual candidate JS/CSS; fixture RPC, no live persistence",
+    "passed": true,
+    "widths": [
+      1280,
+      390
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "candidateJsSha256": "e6a15b23798868e299508b5d950a97b29b96f9fb64428f1c48eb464e5174196a",
+    "installedVersionVerified": false
+  },
+  "sdk": {
+    "pin": "0.6.79",
+    "host": "0.6.94",
+    "warning": "Build reports a version difference; checked contracts pass."
+  },
+  "ciPreflight": {
+    "githubActionsWorkflowCount": 0,
+    "headAndOriginMainWorkflowPaths": []
+  },
+  "limitations": [
+    "Fixture RPC visual checks do not prove live persistence.",
+    "Physical mobile, native VoiceOver and frontend SDK test harness not exercised.",
+    "Installation and exact source read-back remain a separate stage."
+  ]
+}
