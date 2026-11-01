@@ -120,7 +120,7 @@
   },
   "installed": {
     "sourceType": "verified local path artifact",
-    "bundle": "407e1a1a5ccf83b6",
+    "bundle": "8a72ad3bac7b9afb",
     "jsSha256": "b250bbfdc556fc789281ae524857a557780304e7756dc72fd0c7c1b6c87899a7",
     "status": "running",
     "statusDetail": null,
@@ -164,9 +164,9 @@
             "listPaddingEnd": "0px",
             "listGap": "8px",
             "listBefore": "none",
-            "listHeight": 126,
+            "listHeight": 127,
             "measureDisplay": "block",
-            "measureHeight": 126,
+            "measureHeight": 127,
             "metrics": "2 tools",
             "timeNodes": 0,
             "nowrap": "nowrap",
@@ -186,9 +186,9 @@
             "listPaddingEnd": "0px",
             "listGap": "8px",
             "listBefore": "none",
-            "listHeight": 248.375,
+            "listHeight": 268.375,
             "measureDisplay": "block",
-            "measureHeight": 248.375,
+            "measureHeight": 268.375,
             "metrics": "17 tools",
             "timeNodes": 0,
             "nowrap": "nowrap",
@@ -208,9 +208,9 @@
             "listPaddingEnd": "0px",
             "listGap": "8px",
             "listBefore": "none",
-            "listHeight": 106,
+            "listHeight": 85,
             "measureDisplay": "block",
-            "measureHeight": 106,
+            "measureHeight": 85,
             "metrics": "2 tools",
             "timeNodes": 0,
             "nowrap": "nowrap",
@@ -243,7 +243,9 @@
           "errors": []
         }
       ]
-    }
+    },
+    "documentationPreserved": true,
+    "errorCount": 0
   },
   "privacy": "Raw API pages, conversation screenshots, database backup and settings values remain in local thread storage; not committed."
 }
