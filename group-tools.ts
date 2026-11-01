@@ -2,7 +2,7 @@
 // behind one quote toggle styled like bb's "Worked for" row. bb owns the rows (React),
 // so this only sets an attribute on them and inserts its own sibling markers.
 // The timeline is virtualized, so counts come from the timeline API, not mounted rows.
-import { pickRandomQuote, QUOTE_SOURCES, type QuoteEntry } from "./quotes.ts";
+import { defaultQuote, quoteAttribution, type GroupQuote } from "./dictionary-builtins.ts";
 
 type TimelineRow = {
   id: string;
@@ -272,7 +272,7 @@ function indexRuns(rows: TimelineRow[], visibleRows: Set<string>): ThreadRuns {
 
 export function mountToolGrouping(
   fetchTimeline: FetchTimeline,
-  chooseQuote: () => QuoteEntry = pickRandomQuote,
+  chooseQuote: () => GroupQuote = defaultQuote,
   clock: Clock = systemClock,
   subscribeTimeline?: SubscribeTimeline,
 ): () => void {
@@ -285,8 +285,8 @@ export function mountToolGrouping(
   // Preserve only unchanged, already-proven physical virtualization gaps.
   const stableSpacerJoins = new WeakMap<HTMLElement, { left: string; right: string; style: string | null }>();
   let disclosureRevision = 0;
-  const quoteByGroup = new Map<string, QuoteEntry>();
-  const quoteByRow = new Map<string, QuoteEntry>();
+  const quoteByGroup = new Map<string, GroupQuote>();
+  const quoteByRow = new Map<string, GroupQuote>();
   const threads = new Map<string, ThreadRuns>();
   const visibleRows = new Set<string>();
   // Identity survives virtualization; state is always read from the current
@@ -1025,20 +1025,16 @@ export function mountToolGrouping(
         const activityLabel = el.querySelector<HTMLElement>("[data-activity-label]")!;
         activityLabel.id = quoteId + "-activity";
         if (activityLabel.textContent !== ACTIVITY_LABELS[activity]) activityLabel.textContent = ACTIVITY_LABELS[activity];
-        const source = QUOTE_SOURCES[quote.source];
-        const sourceLocator = quote.locator.replace(
-          /^Project Gutenberg plain-text line (\d+)$/,
-          "Строка $1 в тексте Project Gutenberg",
-        );
+        const source = quoteAttribution(quote);
         const sourceLink = el.querySelector<HTMLElement>("[data-source]")!;
         sourceLink.id = quoteId + "-source";
         quoteButton.setAttribute("aria-labelledby", quoteId + " " + sourceLink.id);
         if (sourceLink.textContent !== source.byline) sourceLink.textContent = source.byline;
         sourceLink.setAttribute(
           "aria-label",
-          source.credit + ". «" + source.title + "». " + sourceLocator + ". Русский перевод Minus.",
+          source.detail,
         );
-        sourceLink.title = source.credit + ". «" + source.title + "». " + sourceLocator + ". Русский перевод Minus.";
+        sourceLink.title = source.detail;
         const metrics = el.querySelector<HTMLElement>("[data-metrics]")!;
         const visibleCount = calls + " tool" + (calls === 1 ? "" : "s");
         const count = metrics.querySelector("[data-count]")!;

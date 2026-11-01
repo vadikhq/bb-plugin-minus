@@ -3,7 +3,7 @@
   "version": "0.2.1",
   "type": "module",
   "scripts": {
-    "test": "node --experimental-strip-types --test group-tools.test.mjs"
+    "test": "node --experimental-strip-types --test group-tools.test.mjs dictionaries.test.mjs"
   },
   "engines": {
     "bb": ">=0.47",
@@ -25,6 +25,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "better-sqlite3": "^12.11.1",
+    "cron-parser": "^5.5.0",
     "hono": "^4.13.14",
     "jsdom": "^29.1.1",
     "typescript": "^5.7.0"

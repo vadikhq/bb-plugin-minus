@@ -2514,3 +2514,24 @@ test('a late agent message splits a combined visual block and stays outside its 
     assert.deepEqual([...dom.container.querySelectorAll('[data-count]')].map(e => e.textContent), ['1 tool', '1 tool']);
   } finally { dom.cleanup(); }
 });
+
+
+test("Dalio attribution stays compact and stable while rows are virtualized", async () => {
+  const { DALIO_QUOTES } = await import("./dalio-quotes.ts");
+  const selected = DALIO_QUOTES.find(q => q.id === "dalio-ru-life-1-7");
+  let picks = 0;
+  const dom = mountDom({ rowIds: ["tool-1"], fetchTimeline: async () => timeline([["tool-1"], ["tool-2"]]), chooseQuote: () => { picks++; return selected; } });
+  try {
+    await dom.flush();
+    const inspect = () => dom.container.querySelector("[data-quote-control]").textContent;
+    assert.equal(inspect(), "Боль + анализ = прогресс. · Рэй Далио → Примите реальность и работайте с ней");
+    const before = inspect();
+    const row = dom.makeRow("tool-2");dom.container.append(row);await dom.flush();
+    assert.equal(inspect(), before);assert.equal(picks, 1);
+    assert(!inspect().includes("Жизненные принципы"));assert(!inspect().includes("1.7"));
+    const button = dom.container.querySelector("[data-toggle=quote]");button.click();await dom.flush();
+    assert.equal(button.getAttribute("aria-expanded"), "true");
+    assert.equal(dom.rows[0].hasAttribute(HIDDEN), false);assert.equal(row.hasAttribute(HIDDEN), false);
+    assert.equal(inspect(), before);
+  } finally { dom.cleanup(); }
+});

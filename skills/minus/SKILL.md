@@ -5,7 +5,7 @@ description: Hide or show bb UI elements (back/forward buttons, sidebar and righ
 
 # Minus
 
-Each setting is a boolean; `true` hides the element in every open bb window, live.
+Each visibility setting is a boolean; `true` hides the element in every open bb window, live.
 
 ```
 bb plugin config minus
@@ -26,4 +26,18 @@ Users can also flip the settings in Settings → Plugins → Minus.
 
 The summary uses normal type between native dividers, without blockquote styling. Quote and Russian attribution flow together without a forced line break and wrap naturally with the chat width. During execution the ring spins; after the complete tool cycle it becomes a static circle with a dot. Tool runtimes are not calculated or displayed. Reduced-motion preferences are respected; offscreen and background animations pause.
 
-Collapsing tools keeps useful messages, unknown streaming rows, nested agent timelines and delegation/workflow streams visible. API-confirmed pending/completed Thought rows share the neighbouring tools' disclosure without adding calls. A pending Thought keeps its cycle active through virtualization. Standalone, unverified or failed reasoning remains native. When a completed stage is open, its commentary and grouped tools use the normal chat inset without an enclosing Worked for disclosure; quote and metrics controls reveal only the tool rows. Turning grouping off restores the native presentation. Approval, question and form rows remain available for the user to respond. The summary reads quote → Russian author/source → tool count, with a shared native horizontal inset.
+Collapsing tools keeps useful messages, unknown streaming rows, nested agent timelines and delegation/workflow streams visible. API-confirmed pending/completed Thought rows share the neighbouring tools' disclosure without adding calls. A pending Thought keeps its cycle active through virtualization. Standalone, unverified or failed reasoning remains native. When a completed stage is open, its commentary and grouped tools use the normal chat inset without an enclosing Worked for disclosure; quote and metrics controls reveal only the tool rows. Turning grouping off restores the native presentation. Approval, question and form rows remain available for the user to respond. The summary reads quote · Russian author/source → tool count, with a shared native horizontal inset.
+
+## Quote dictionaries
+
+The string setting `quoteDictionary` selects the dictionary. Built-ins: `dalio` (452 accepted quotes, initial default) and `original` (the unchanged 73-entry philosophy collection). Settings → Plugins → Minus → Словари цитат exposes the same selection. Attribution uses ordinary muted text: quote · author → section. Dalio uses the exact chapter, without book title or principle number.
+
+Use the native agent tool `minus_dictionaries`:
+
+- `{"action":"list"}` returns dictionary IDs, titles, counts, revisions and the active ID.
+- `{"action":"import","dictionary":{"id":"my-dictionary","title":"My dictionary","quotes":[{"id":"quote-1","text":"Exact checked text","author":"Checked author","section":"Exact section","sourceTitle":"Source title","locator":"Page, post ID or timestamp","sourceUrl":"https://example.org/source"}]}}` adds a separate dictionary. `sourceUrl` is optional; the other fields are required. Verify the source, attribution, translation and permitted use before importing real content. Do not treat this example as a real quotation.
+- `{"action":"activate","id":"my-dictionary"}` changes the active selection only when the owner has chosen it.
+
+Import never activates the new dictionary. All entries are validated before a database transaction; empty sets, duplicate IDs/texts and invalid URLs are rejected without partial writes. Repeating identical content is idempotent. To replace a custom dictionary with different content, read its current revision through `list` and supply `expectedRevision` on `import`; a stale revision fails. Built-ins cannot be replaced. A normal timeline refresh retains the displayed quote; an explicit dictionary change starts the newly selected set.
+
+New agent-tool registration may require a new provider session; do not restart the shared BB host to refresh existing sessions. Custom dictionaries live in the plugin SQLite database. Preserve and verify their restoration before any future remove/reinstall; settings alone are not a complete backup.
