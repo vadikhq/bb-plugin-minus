@@ -9,8 +9,6 @@ type TimelineRow = {
   kind: string;
   operationKind?: string;
   workKind?: string;
-  startedAt?: number;
-  completedAt?: number | null;
   status?: string | null;
   children?: TimelineRow[] | null;
 };
@@ -56,6 +54,7 @@ const GROUP_END = "data-bb-minus-group-end";
 const FLAT_TURN = "data-bb-minus-stream-turn";
 const FLAT_SUMMARY = "data-bb-minus-stream-summary";
 const TURN_SHELL = "data-bb-minus-turn-shell";
+const FLAT_LIST = "data-bb-minus-flat-list";
 const STREAM_FOCUS = "data-bb-minus-stream-focus";
 // Fallback IDs from the SDK's work row kinds. Unknown/streaming rows stay visible.
 const TOOL_ROW = /^(command|tool|file-change|web-search|web-fetch|image-generation|image-view|file-read|search|plan-steps|extension):/;
@@ -67,8 +66,8 @@ const REFETCH_MS = 2000;
 
 const TOGGLE_HTML = `<div class="rounded-md text-subtle-foreground w-full">
   <div data-row class="group/timeline-row min-w-0 px-2 text-sm leading-5">
-    <button data-toggle="quote" type="button" aria-expanded="false" class="inline px-0 py-0 align-baseline text-sm leading-5 text-subtle-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 inline-block size-3.5 align-text-bottom text-subtle-foreground" aria-hidden="true" data-minus-icon="activity"></svg><span data-activity-label class="sr-only"></span></button><label data-quote-control class="group/toggle inline whitespace-normal break-words cursor-pointer"><span data-quote class="whitespace-normal break-words text-sm not-italic leading-5 text-subtle-foreground"></span> — <span data-source class="mr-1.5 break-words text-xs not-italic leading-5 text-subtle-foreground"></span></label>
-    <button data-metrics data-toggle="metrics" type="button" aria-expanded="false" class="inline max-w-full whitespace-normal break-words px-0 py-0 text-left align-baseline text-xs leading-5 text-subtle-foreground underline underline-offset-2 hover:decoration-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"><span data-count class="whitespace-nowrap"></span><span data-time-separator> · </span><span data-time class="whitespace-nowrap"></span><svg data-minus-chevron viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="bb-icon-stroke pointer-events-none ml-1.5 inline-block size-3 align-text-bottom origin-center text-subtle-foreground transition-[rotate] duration-200 ease-out" aria-hidden="true"><path d="M6 4l4 4-4 4"></path></svg></button>
+    <button data-toggle="quote" type="button" aria-expanded="false" class="inline px-0 py-0 align-baseline text-sm leading-5 text-subtle-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 inline-block size-3.5 align-text-bottom text-subtle-foreground" aria-hidden="true" data-minus-icon="activity"></svg><span data-activity-label class="sr-only"></span></button><label data-quote-control class="group/toggle inline whitespace-normal break-words cursor-pointer"><span data-quote class="whitespace-normal break-words text-sm not-italic leading-5 text-subtle-foreground"></span> · <span data-source class="mr-1.5 break-words text-xs not-italic leading-5 text-subtle-foreground"></span></label>
+    <button data-metrics data-toggle="metrics" type="button" aria-expanded="false" class="inline-flex max-w-full items-center whitespace-nowrap px-0 py-0 text-left align-baseline text-xs leading-5 text-subtle-foreground underline underline-offset-2 hover:decoration-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"><span data-count class="whitespace-nowrap"></span><svg data-minus-chevron viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="bb-icon-stroke pointer-events-none ml-1.5 inline-block size-3 align-text-bottom origin-center text-subtle-foreground transition-[rotate] duration-200 ease-out" aria-hidden="true"><path d="M6 4l4 4-4 4"></path></svg></button>
   </div>
 </div>`;
 
@@ -160,7 +159,6 @@ type ThreadRuns = {
   counts: number[];
   firstIds: string[];
   memberIds: string[][];
-  durationMs: Array<number | null>;
   pending: boolean[];
   activity: ToolActivity[];
 };
@@ -207,15 +205,13 @@ function summaryMembers(row: HTMLElement, runs?: ThreadRuns): TimelineRow[] | un
   return summaryEntries(row, runs)?.filter(entry => entry.kind === "work");
 }
 
-function indexRuns(rows: TimelineRow[], now: number, visibleRows: Set<string>): ThreadRuns {
+function indexRuns(rows: TimelineRow[], visibleRows: Set<string>): ThreadRuns {
   const sourceOf: ThreadRuns["sourceOf"] = new Map();
   const collapsible = new Map<string, boolean>();
   const runOf = new Map<string, number>();
   const counts: number[] = [];
   const firstIds: string[] = [];
   const memberIds: string[][] = [];
-  const durationMs: number[] = [];
-  const durationKnown: boolean[] = [];
   const pending: boolean[] = [];
   const activity: ToolActivity[] = [];
   const visit = (source: TimelineRow[]) => {
@@ -238,8 +234,6 @@ function indexRuns(rows: TimelineRow[], now: number, visibleRows: Set<string>): 
         counts.push(0);
         firstIds.push(row.id);
         memberIds.push([]);
-        durationMs.push(0);
-        durationKnown.push(true);
         pending.push(false);
         activity.push("completed");
       }
@@ -250,13 +244,6 @@ function indexRuns(rows: TimelineRow[], now: number, visibleRows: Set<string>): 
         const index = counts.length - 1;
         counts[index]++;
         activity[index] = combinedActivity([activity[index], toolActivity(row)]);
-        const startedAt = row.startedAt;
-        const endedAt = row.status === "pending" ? undefined : row.completedAt ?? undefined;
-        if (!Number.isFinite(startedAt) || endedAt === undefined) {
-          durationKnown[index] = false;
-        } else {
-          durationMs[index] += Math.max(0, endedAt - startedAt!);
-        }
         if (row.status === "pending") pending[index] = true;
       }
     }
@@ -270,32 +257,9 @@ function indexRuns(rows: TimelineRow[], now: number, visibleRows: Set<string>): 
     counts,
     firstIds,
     memberIds,
-    durationMs: durationMs.map((duration, index) => durationKnown[index] ? duration : null),
     pending,
     activity,
   };
-}
-
-// The SDK timestamps are milliseconds: 1000ms = 1s, 60s = 1m, and 60m = 1h.
-// One decimal in the seconds range keeps short calls compact at 100ms precision.
-function formatToolTime(durationMs: number | null): string {
-  if (durationMs === null) return "time unavailable";
-  if (durationMs < 1000) return Math.round(durationMs) + "ms";
-  // Round before selecting units so 59.999s becomes 1m, never 60s.
-  const roundedSeconds = Math.round(durationMs / 100) / 10;
-  if (roundedSeconds < 60) {
-    // Tenths keep the compact tooling row useful for short calls.
-    return new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(roundedSeconds) + "s";
-  }
-  const totalSeconds = Math.round(durationMs / 1000);
-  if (totalSeconds < 60 * 60) {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return minutes + "m" + (seconds === 0 ? "" : " " + String(seconds).padStart(2, "0") + "s");
-  }
-  const hours = Math.floor(totalSeconds / (60 * 60));
-  const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
-  return hours + "h" + (minutes === 0 ? "" : " " + minutes + "m");
 }
 
 export function mountToolGrouping(
@@ -310,6 +274,8 @@ export function mountToolGrouping(
   const disclosureChoices = new Map<string, DisclosureChoice>();
   const rowDisclosureChoices = new Map<string, DisclosureChoice>();
   const renderedMembers = new WeakMap<HTMLElement, readonly string[]>();
+  // Preserve only unchanged, already-proven physical virtualization gaps.
+  const stableSpacerJoins = new WeakMap<HTMLElement, { left: string; right: string; style: string | null }>();
   let disclosureRevision = 0;
   const quoteByGroup = new Map<string, QuoteEntry>();
   const quoteByRow = new Map<string, QuoteEntry>();
@@ -343,6 +309,8 @@ export function mountToolGrouping(
 [${FLAT_SUMMARY}] > div > [class~="group/timeline-row"]{display:none}
 [${TURN_SHELL}]{display:contents}
 [${TURN_SHELL}]::before,[${TURN_SHELL}]::after{display:none}
+[${FLAT_LIST}]{padding-inline:0;margin-block:0}
+[${FLAT_LIST}]::before,[${FLAT_LIST}]::after{display:none}
 [${STREAM_FOCUS}]:focus-visible{outline:1px solid var(--ring)}`;
   style.textContent += `
 [${MARKER}][data-tool-state="pending"] [data-minus-icon]{animation:var(--animate-spin);opacity:1}
@@ -394,7 +362,7 @@ export function mountToolGrouping(
     fetchTimeline(threadId)
       .then(
         (rows) => {
-          if (!disposed) threads.set(threadId, indexRuns(rows, clock.now(), visibleRows));
+          if (!disposed) threads.set(threadId, indexRuns(rows, visibleRows));
         },
         () => {
           // A failed refresh cannot prove that a spacer does not hide a new run boundary.
@@ -447,7 +415,21 @@ export function mountToolGrouping(
       if (button.getAttribute("aria-expanded") !== "true") continue;
       const list = [...row.querySelectorAll<HTMLElement>(isTurn ? '[data-timeline-row-list="nested"]' : '[data-timeline-row-list="bundle"]')]
         .find(list => list.closest("[data-timeline-row-id]") === row);
-      if (list === undefined || (isTurn && list.querySelector(".group\\/message") === null)) continue;
+      if (list === undefined) continue;
+      // A turn containing only tools and protected delegation still needs a
+      // single presentation. Do not wrap Minus dividers in Worked for's frame.
+      const hasOwnedTools = [...list.querySelectorAll<HTMLElement>("[data-timeline-row-id]")]
+        .some(child => {
+          const ownerList = child.closest("[data-timeline-row-list]");
+          const summary = ownerList?.getAttribute("data-timeline-row-list") === "bundle"
+            ? ownerList.closest<HTMLElement>("[data-timeline-row-id]") : null;
+          // Descend only through an already-protected native mixed summary.
+          // A delegated agent's nested timeline is never an owned tool list.
+          const owned = ownerList === list || (summary?.hasAttribute(FLAT_SUMMARY) === true &&
+            summary.parentElement?.closest("[data-timeline-row-list]") === list);
+          return owned && isToolRow(child, api, visibleRows);
+        });
+      if (isTurn && list.querySelector(".group\\/message") === null && !hasOwnedTools) continue;
       const root = button.parentElement?.parentElement;
       if (root === undefined || root === null || root.parentElement !== row || !root.contains(list)) continue;
       const shells: HTMLElement[] = [];
@@ -464,6 +446,10 @@ export function mountToolGrouping(
       // and each quote continues to control only its own work rows.
       row.setAttribute(isTurn ? FLAT_TURN : FLAT_SUMMARY, "");
       presentation.add(row);
+      // The owned native list carries its own indent and pseudo divider.
+      // Keep its layout/measurement box; remove only that duplicate framing.
+      list.setAttribute(FLAT_LIST, "");
+      presentation.add(list);
       for (const shell of shells) {
         shell.setAttribute(TURN_SHELL, "");
         presentation.add(shell);
@@ -476,6 +462,7 @@ export function mountToolGrouping(
     el.removeAttribute(FLAT_TURN);
     el.removeAttribute(FLAT_SUMMARY);
     el.removeAttribute(TURN_SHELL);
+    el.removeAttribute(FLAT_LIST);
     const focusMode = el.getAttribute(STREAM_FOCUS);
     if (focusMode !== null) {
       el.removeAttribute(STREAM_FOCUS);
@@ -510,7 +497,6 @@ export function mountToolGrouping(
   function apiRun(rows: HTMLElement[], recoverableThoughts: ReadonlySet<string>): {
     key: string;
     count: number;
-    durationMs: number | null;
     pending: boolean;
     activity: ToolActivity;
     memberIds: readonly string[];
@@ -575,13 +561,9 @@ export function mountToolGrouping(
           if (source !== undefined) members.set(id, source.source[source.index]);
         }
       }
-      let durationMs: number | null = unknownCount > 0 ? null : 0;
       let pending = details.some(row => row.status === "pending");
       for (const member of members.values()) {
         if (VISIBLE_WORK.has(member.workKind ?? "")) return null;
-        const end = member.status === "pending" ? undefined : member.completedAt ?? undefined;
-        if (!Number.isFinite(member.startedAt) || end === undefined) durationMs = null;
-        else if (durationMs !== null) durationMs += Math.max(0, end - member.startedAt!);
         if (member.status === "pending") pending = true;
       }
       if (pending || unknownCount > 0) refresh(threadId);
@@ -589,7 +571,7 @@ export function mountToolGrouping(
       if (ids.length === 0) return null;
       const activity = combinedActivity([...members.values(), ...details].map(toolActivity)
         .concat(unknownCount > 0 ? ["unknown"] : []));
-      return { key: "timeline:" + threadId + ":" + ids[0], count: ids.length + unknownCount, durationMs, pending, activity, memberIds: ids };
+      return { key: "timeline:" + threadId + ":" + ids[0], count: ids.length + unknownCount, pending, activity, memberIds: ids };
     }
     const ids = rows.filter((row) => row.dataset.timelineRowId !== undefined).map(apiId);
     const knownIds = ids.filter((id) => runs.runOf.has(id));
@@ -610,7 +592,6 @@ export function mountToolGrouping(
     return {
       key: "timeline:" + threadId + ":" + firstRowId,
       count: runs.counts[first] + unknownCount,
-      durationMs: unknownRows.length > 0 ? null : runs.durationMs[first],
       pending: runs.pending[first],
       activity: combinedActivity([runs.activity[first], ...(unknownRows.length > 0 ? ["unknown" as const] : [])]),
       memberIds: runs.memberIds[first],
@@ -763,21 +744,25 @@ export function mountToolGrouping(
     return el;
   }
 
-  function hasStableTimelineForSpacer(left: HTMLElement, right: HTMLElement): boolean {
+  function hasStableTimelineForSpacer(left: HTMLElement, right: HTMLElement, spacers: readonly HTMLElement[]): boolean {
     const threadId = left.dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0];
     const rightThreadId = right.dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0];
-    if (
-      threadId === undefined ||
-      threadId !== rightThreadId ||
-      inFlight.has(threadId)
-    ) return false;
+    if (threadId === undefined || threadId !== rightThreadId) return false;
     const runs = threads.get(threadId);
-    return (
-      runs !== undefined &&
-      !runs.pending.some(Boolean) &&
-      runs.runOf.has(apiId(left)) &&
-      runs.runOf.get(apiId(left)) === runs.runOf.get(apiId(right))
-    );
+    const run = runs?.runOf.get(apiId(left));
+    if (runs === undefined || run === undefined || runs.pending[run] !== false ||
+      run !== runs.runOf.get(apiId(right))) return false;
+    const leftId = apiId(left), rightId = apiId(right);
+    // Revalidation must not tear down an unchanged proven presentation. It
+    // must not extend that proof to a new gap, pair, or native spacer size.
+    if (inFlight.has(threadId) && spacers.some(spacer => {
+      const proof = stableSpacerJoins.get(spacer);
+      return proof?.left !== leftId || proof.right !== rightId || proof.style !== spacer.getAttribute("style");
+    })) return false;
+    for (const spacer of spacers) stableSpacerJoins.set(spacer, {
+      left: leftId, right: rightId, style: spacer.getAttribute("style"),
+    });
+    return true;
   }
 
   function pass() {
@@ -813,7 +798,7 @@ export function mountToolGrouping(
         visibleRows.add(id);
         const threadId = row.dataset.timelineRowId.match(/^thr_[a-z0-9]+/)?.[0];
         const api = threads.get(threadId ?? "");
-        if (api !== undefined && api.runOf.has(id)) threads.set(threadId!, indexRuns(api.rows, clock.now(), visibleRows));
+        if (api !== undefined && api.runOf.has(id)) threads.set(threadId!, indexRuns(api.rows, visibleRows));
       }
       // Join across a spacer only when the current API maps both mounted rows to the same run.
       const runs: HTMLElement[][] = [];
@@ -835,7 +820,7 @@ export function mountToolGrouping(
           if (
             run.length > 0 &&
             spacers.length > 0 &&
-            !hasStableTimelineForSpacer(run[run.length - 1], child)
+            !hasStableTimelineForSpacer(run[run.length - 1], child, spacers)
           ) {
             runs.push(run);
             run = [];
@@ -906,10 +891,9 @@ export function mountToolGrouping(
         });
         // If a spacer appears as its Thought is virtualized, neither side
         // proves ownership. Keep the existing unknown state and withhold the
-        // final duration until mount or terminal resolves it; do not invent
+        // completed status until mount or terminal resolves it; do not invent
         // a pending owner or announce completion for both parts.
         if (api !== null && pendingOwnership) {
-          api.durationMs = null;
           api.activity = combinedActivity([api.activity, "unknown"]);
           if (threadId !== undefined) refresh(threadId);
         }
@@ -1028,24 +1012,13 @@ export function mountToolGrouping(
           source.credit + ". «" + source.title + "». " + sourceLocator + ". Русский перевод Minus.",
         );
         sourceLink.title = source.credit + ". «" + source.title + "». " + sourceLocator + ". Русский перевод Minus.";
-        const duration = api?.pending ? null : formatToolTime(api?.durationMs ?? null);
         const metrics = el.querySelector<HTMLElement>("[data-metrics]")!;
         const visibleCount = calls + " tool" + (calls === 1 ? "" : "s");
-        if (metrics.textContent !== visibleCount + (duration === null ? "" : " · " + duration)) {
-          // Let count and time wrap independently at narrow widths/text zoom,
-          // keeping each value with its unit rather than overflowing the inset.
-          metrics.querySelector("[data-count]")!.textContent = visibleCount;
-          metrics.querySelector("[data-time]")!.textContent = duration ?? "";
-          metrics.querySelector("[data-time-separator]")!.textContent = duration === null ? "" : " · ";
-        }
-        metrics.title = duration === null ? "Время появится после завершения вызовов." :
-          "Total time across individual tool calls; parallel calls are added together.";
+        const count = metrics.querySelector("[data-count]")!;
+        if (count.textContent !== visibleCount) count.textContent = visibleCount;
+        metrics.title = "Show or hide tool calls.";
         const accessibleLabel =
-          (open ? "Hide " : "Show ") +
-          calls +
-          " tool call" +
-          (calls === 1 ? "" : "s") +
-          (duration === null ? ". Время появится после завершения вызовов." : ". Total tool time: " + duration + ".");
+          (open ? "Hide " : "Show ") + calls + " tool call" + (calls === 1 ? "" : "s") + ".";
         for (const button of el.querySelectorAll<HTMLButtonElement>("[data-toggle]")) {
           button.setAttribute("aria-label", accessibleLabel);
           button.setAttribute("aria-describedby", quoteId + " " + activityLabel.id);
@@ -1065,7 +1038,7 @@ export function mountToolGrouping(
         }
       }
     }
-    for (const el of document.querySelectorAll(`[${FLAT_TURN}], [${FLAT_SUMMARY}], [${TURN_SHELL}], [${STREAM_FOCUS}]`)) {
+    for (const el of document.querySelectorAll(`[${FLAT_TURN}], [${FLAT_SUMMARY}], [${TURN_SHELL}], [${FLAT_LIST}], [${STREAM_FOCUS}]`)) {
       if (!turnPresentation.has(el)) clearTurnPresentation(el);
     }
     for (const el of document.querySelectorAll(`[${MARKER}], [${GROUP_END}]`)) if (!used.has(el)) {
@@ -1121,7 +1094,7 @@ export function mountToolGrouping(
     style.remove();
     for (const el of document.querySelectorAll(`[${MARKER}], [${GROUP_END}]`)) el.remove();
     for (const el of document.querySelectorAll(`[${HIDDEN}]`)) el.removeAttribute(HIDDEN);
-    for (const el of document.querySelectorAll(`[${FLAT_TURN}], [${FLAT_SUMMARY}], [${TURN_SHELL}], [${STREAM_FOCUS}]`)) clearTurnPresentation(el);
+    for (const el of document.querySelectorAll(`[${FLAT_TURN}], [${FLAT_SUMMARY}], [${TURN_SHELL}], [${FLAT_LIST}], [${STREAM_FOCUS}]`)) clearTurnPresentation(el);
     for (const row of document.querySelectorAll<HTMLElement>("[data-timeline-row-id]")) {
       const id = row.dataset.timelineRowId!;
       if (!autoOpenedTurns.has(id) || turnChoices.has(id) ||
