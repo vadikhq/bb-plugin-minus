@@ -1688,6 +1688,80 @@ for (const position of ['before', 'between', 'after']) {
   });
 }
 
+for (const initialSpacer of [false, true]) {
+  test('a native summary retains only previously proved Thought ownership after a spacer: initial=' + initialSpacer, async () => {
+    let finished = false, notify;
+    const dom = mountDom({
+      rowIds: ['turn-1:work-summary:' + fullId('tool-1')],
+      fetchTimeline: async () => completedReasoningTimeline([
+        ['tool-1'], ['op:reasoning:native-owned', 'system', 'reasoning', 1000, finished ? 1300 : null],
+      ]),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      nativeSummary(dom, dom.rows[0], 'Ran 1 tool');
+      const spacer = dom.window.document.createElement('div');
+      spacer.setAttribute('data-timeline-window-spacer', '');
+      if (initialSpacer) dom.container.append(spacer);
+      await dom.flush();
+      const marker = dom.container.querySelector('[data-bb-minus-group]');
+      assert.equal(marker.getAttribute('data-tool-state'), initialSpacer ? 'completed' : 'pending');
+      if (initialSpacer) {
+        spacer.remove(); await dom.flush();
+        assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+      }
+      dom.container.append(spacer); await dom.flush();
+      assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+      assert.equal(marker.querySelector('[data-metrics]').textContent, '1 tool');
+      assert.equal(spacer.hasAttribute(HIDDEN), false);
+      finished = true; notify('thr_test', true); await dom.flush();
+      assert.equal(marker.getAttribute('data-tool-state'), 'completed');
+    } finally { dom.cleanup(); }
+  });
+}
+
+test('inferred native trailing reasoning cannot replace its valid right-hand owner when a gap returns', async () => {
+  const dom = mountDom({
+    rowIds: ['turn-1:work-summary:' + fullId('tool-1'), 'op:reasoning:right', 'tool-2'],
+    fetchTimeline: async () => completedReasoningTimeline([
+      ['tool-1'], ['op:reasoning:right', 'system', 'reasoning', 1000, null], ['tool-2'],
+    ]),
+  });
+  try {
+    nativeSummary(dom, dom.rows[0], 'Ran 1 tool');
+    const spacer = dom.window.document.createElement('div');
+    spacer.setAttribute('data-timeline-window-spacer', '');
+    dom.container.insertBefore(spacer, dom.rows[1]); await dom.flush();
+    const states = () => [...dom.container.querySelectorAll('[data-bb-minus-group]')].map(row => row.getAttribute('data-tool-state'));
+    assert.deepEqual(states(), ['completed', 'pending']);
+    dom.rows[1].remove(); await dom.flush();
+    assert.deepEqual(states(), ['completed', 'pending']);
+    spacer.remove(); await dom.flush();
+    assert.deepEqual(states(), ['pending']);
+    dom.container.insertBefore(spacer, dom.rows[2]); await dom.flush();
+    assert.deepEqual(states(), ['completed', 'pending']);
+    assert.deepEqual([...dom.container.querySelectorAll('[data-metrics]')].map(row => row.textContent), ['1 tool', '1 tool']);
+  } finally { dom.cleanup(); }
+});
+
+test('native interior reasoning stays one pending cycle when a summary is replaced by raw tools', async () => {
+  const dom = mountDom({
+    rowIds: ['turn-1:work-summary:' + fullId('tool-1')],
+    fetchTimeline: async () => completedReasoningTimeline([
+      ['tool-1'], ['op:reasoning:interior', 'system', 'reasoning', 1000, null], ['tool-2'],
+    ]),
+  });
+  try {
+    nativeSummary(dom, dom.rows[0], 'Running 2 tools'); await dom.flush();
+    dom.rows[0].remove();
+    dom.container.append(dom.makeRow('tool-1'), dom.makeRow('tool-2')); await dom.flush();
+    const markers = [...dom.container.querySelectorAll('[data-bb-minus-group]')];
+    assert.equal(markers.length, 1);
+    assert.equal(markers[0].querySelector('[data-metrics]').textContent, '2 tools');
+    assert.equal(markers[0].getAttribute('data-tool-state'), 'pending');
+  } finally { dom.cleanup(); }
+});
+
 test('a pending Thought at the next mounted summary does not affect its completed neighbour', async () => {
   const source = [['tool-1'], ['op:reasoning:next', 'system', 'reasoning', 1000, null], ['tool-2']];
   const dom = mountDom({ rowIds: ['turn-1:work-summary:' + fullId('tool-1'),

@@ -765,6 +765,18 @@ export function mountToolGrouping(
     return true;
   }
 
+  function isThoughtOwnerConnected(id: string, owners: ReadonlySet<string>, tools: ReadonlySet<string>, api?: ThreadRuns): boolean {
+    const detail = api?.sourceOf.get(id);
+    if (detail === undefined) return false;
+    return [...owners].some(owner => {
+      const anchor = api?.sourceOf.get(owner);
+      if (!tools.has(owner) || anchor?.source !== detail.source) return false;
+      const from = Math.min(anchor.index, detail.index) + 1;
+      const to = Math.max(anchor.index, detail.index);
+      return detail.source.slice(from, to).every(entry => isServiceReasoning(entry) && !visibleRows.has(entry.id));
+    });
+  }
+
   function pass() {
     frame = 0;
     mountedThreads.clear();
@@ -856,11 +868,32 @@ export function mountToolGrouping(
       for (const [index, rows] of rowParts.entries()) {
         for (const row of rows) {
           const threadId = row.dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0];
-          const thought = reasoningDetail(row, threads.get(threadId ?? ""), visibleRows);
+          const api = threads.get(threadId ?? "");
+          const thought = reasoningDetail(row, api, visibleRows);
           // A Thought-only mounted part supplies no replacement ownership
           // proof. Keep its anchors for tool remount; recovery below still
           // revalidates them against the current API sibling boundaries.
           if (thought !== undefined && partTools[index].size > 0) thoughtToolOwners.set(thought.id, partTools[index]);
+          // Native summaries also prove reasoning ownership without mounting
+          // a separate Thought row. Keep only that summary's tool anchors;
+          // an initially unproven trailing span behind a spacer stays excluded.
+          const summary = summaryEntries(row, api);
+          if (summary === undefined) continue;
+          const owners = new Set(summary.filter(entry => entry.kind === "work").map(entry => entry.id));
+          if (owners.size === 0) continue;
+          const lastWork = summary.map(entry => entry.kind).lastIndexOf("work");
+          for (const [position, entry] of summary.entries()) {
+            if (!isServiceReasoning(entry) || visibleRows.has(entry.id)) continue;
+            // Native membership proves identity too, including after a
+            // summary is recomposed into raw tool rows.
+            knownThoughtIds.add(entry.id);
+            const previous = thoughtToolOwners.get(entry.id);
+            // Leading/interior membership is explicit. Inferred trailing
+            // membership cannot replace an existing API-valid owner.
+            if (position > lastWork && previous !== undefined &&
+              isThoughtOwnerConnected(entry.id, previous, previous, api)) continue;
+            thoughtToolOwners.set(entry.id, owners);
+          }
         }
       }
       const recovered = rowParts.map(() => new Set<string>());
@@ -869,16 +902,7 @@ export function mountToolGrouping(
         const matches = partTools.flatMap((tools, index) => {
           const threadId = rowParts[index][0].dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0];
           const api = threads.get(threadId ?? "");
-          const detail = api?.sourceOf.get(id);
-          if (detail === undefined) return [];
-          const connected = [...owners].some(owner => {
-            const anchor = api?.sourceOf.get(owner);
-            if (!tools.has(owner) || anchor?.source !== detail.source) return false;
-            const from = Math.min(anchor.index, detail.index) + 1;
-            const to = Math.max(anchor.index, detail.index);
-            return detail.source.slice(from, to).every(entry => isServiceReasoning(entry) && !visibleRows.has(entry.id));
-          });
-          return connected ? [index] : [];
+          return isThoughtOwnerConnected(id, owners, tools, api) ? [index] : [];
         });
         if (matches.length === 1) recovered[matches[0]].add(id);
         else for (const index of matches) uncertain[index].add(id);

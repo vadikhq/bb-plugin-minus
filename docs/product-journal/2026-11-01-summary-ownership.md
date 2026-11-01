@@ -91,3 +91,30 @@ P2 снят на указанных source/tests hashes, открытых P0/P1/
 31 независимая JSDOM-проба и12 Chromium-контекстов PASS на390/1280px. Покрыты оба направления recovery через completed A, отсутствие ownership для первоначально unmounted pending A, отсутствие добавления newlypending A вdetails, terminal B, conversation/nested/error/cancelled/unknown/visible boundaries и оба прежних P2. Синтетические disposable HTTP fixtures с actual transpiled module не объявляются installed/native-live проверкой. Cleanup всех собственных browser/server подтверждён. Writer дополнительно просмотрел узкий recovery-gap PNG.
 
 [Санитизированный результат v3](verification/2026-11-01-summary-ownership/result-v3.json) и122 PASS теста, TypeScript/build относятся к окончательным байтам этой публикации. Предыдущие результаты сохранены как история исправлений. Новая установка и merge не выполнялись; последующая интеграция словарей требует новой проверки объединённого source и нового точного согласования.
+
+
+## Последующий P2: native summary как источник ownership proof
+
+Автоматическое ревью `8215b276bcb15e0c5830388f6d5cd626eb9ced5b` обнаружило [P2](https://github.com/vadikhq/bb-plugin-minus/pull/2#discussion_r4436578924): native summary уже подтверждает свой pending Thought без отдельной mounted строки, но такое доказательство ранее не сохранялось. После появления sibling virtualization spacer подтверждённый trailing Thought исключался из текущего span и без сохранённого owner переставал поддерживать pending.
+
+Теперь proof захватывается из обоих поддержанных источников: standalone mounted Thought и уже подтверждённый `summaryEntries` native span. Для summary сохраняются только её собственные work IDs, без присвоения инструментов остальных summaries в визуальной группе. Service reasoning проверяется по status/visibleRows. Если gap присутствовал до первого доказанного span, trailing reasoning по-прежнему исключён и ownership не выдумывается. При recovery прежние API source/boundary/unique-owner проверки сохраняются.
+
+Два порядка переходов — исходно без spacer и исходно со spacer — сначала дали ожидаемый FAIL на прежнем source. Неподтверждённый первоначальный span не получает pending; удаление gap доказывает принадлежность, а его возвращение сохраняет pending до API terminal. Первый неопубликованный кандидат четвёртой редакции: source `07efed8b56182f367c3cabba883a8ce3baef4e98cf8d3c269eba8b9310fef87c`, tests `b84d36894f34ecd351ff61507524ac2754cec04d440f9066664025ac325d40af`. Полный suite124 PASS; TypeScript/build PASS. Старые результатыv1–v3 не выдаются за проверку новых байтов.
+
+Writer evidence: `minus-native-proof-before.junit.xml`, `minus-native-proof-full.junit.xml`, `minus-native-proof-tsc.log`, `minus-native-proof-build.log`. UI/SDK/manifest/storage/словарь/runtime не меняются, новых размеров или лимитов нет. Сверка workflow/authoring и обоих дизайн-навыков сохраняет принятый вид и сценарий корректного индикатора. Независимая проверка финальных байтов сохраняется отдельно перед публикацией.
+
+
+## Коррекция неопубликованного native-proof кандидата
+
+Независимое ревью первого кандидата07ef обнаружило регрессию: при снятии gap с virtualized Thought, ранее доказанно принадлежащим правой группе, inferred native trailing span перезаписывал его правые anchors левыми. Повторное появление gap переносило pending на неправильную сторону. Кандидат07ef не коммитился, не публиковался и не устанавливался. Отдельная native-summary→raw-tools проба также обнаружила потерю подтверждённой identity interior Thought.
+
+Две дополнительные unit-регрессии сначала дали ожидаемый FAIL. Теперь одна общая `isThoughtOwnerConnected` сохраняет прежние current-API проверки без их дублирования. Native leading/interior membership может обновить proof; inferred trailing membership не заменяет уже действительные anchors. Проверка сохранности истории не требует mounted anchor, тогда как recovery по-прежнему требует tool anchor в текущей части и единственного владельца. Native membership также сохраняет identity в `knownThoughtIds`, чтобы рекомпозиция в raw rows не разделяла подтверждённый цикл. Initial gap не создаёт proof, error/unknown/visible/conversation/nested границы сохраняются.
+
+Точная исправленная редакция: source `cd66cccd444d6e7df89376e76f70fbb5953f597a12530750124fe1ab6dbce88f`, tests `c79af733feb6b49348cc360f54d23acdc938ec3f3e1baf182b82cc621595b42c`. Полный suite126 PASS, TypeScript/build PASS. Материалы: `minus-native-priority-before.junit.xml`, `minus-native-priority-full.junit.xml`, `minus-native-priority-tsc.log`, `minus-native-priority-build.log` в thread storage. Итоговый independent verdict относится отдельно к этим байтам; source заморожен до его получения.
+
+
+## Итоговая проверка четвёртой правки и её регрессионных контролей
+
+Независимый вердикт `summary-owner-review-final-v41.json`: все четыре GitHub P2 и обнаруженная до публикации регрессия native-proof исправлены на `cd66cc…` / `c79af7…`; открытых P0/P1/P2 в адресном объёме нет. 44 JSDOM-пробы и16 Chromium-контекстов PASS на390/1280px; просмотрены10 актуальных PNG. Подтверждены native-only ownership через spacer, первоначальный неизвестный gap, прежний правыйowner после удаления/возврата gap, native interior→raw рекомпозиция, обновление API-invalid proof и прежние conversation/nested/delegation/error/visible границы.
+
+[Санитизированная квитанция v4.1](verification/2026-11-01-summary-ownership/result-v41.json) привязана к точным source/tests hashes. Браузерные результаты — синтетические локальные fixtures с настоящим модулем, не installed/native-live Minus. Cleanup подтверждён. Полный suite126/126, TypeScript/build PASS. Только эта проверенная редакция четвёртой правки публикуется в своей ветке; отвергнутый07ef кандидат не публиковался. Merge и установка не выполнялись.
