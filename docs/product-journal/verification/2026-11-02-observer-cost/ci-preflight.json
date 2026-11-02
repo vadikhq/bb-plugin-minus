@@ -1,0 +1,9 @@
+{
+  "base": "7c6c85c2a7545c93de47936069b5e5055e49953b",
+  "headWorkflowFiles": [],
+  "baseWorkflowFiles": [],
+  "apiWorkflowCount": 0,
+  "reachableActionsJobs": [],
+  "selfHostedViolation": false,
+  "ciResult": "not configured; not a CI pass"
+}

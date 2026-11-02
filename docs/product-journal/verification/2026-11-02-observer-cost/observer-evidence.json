@@ -1,0 +1,56 @@
+{
+  "method": "finite isolated JSDOM; actual modules, synthetic timeline; no browser/runtime or real user data",
+  "bound": "drain <= 20 frames: ten two-frame native lifecycle transitions; only a test guard, not a product timeout",
+  "cases": [
+    {
+      "variant": "baseline",
+      "sourceSha256": "1aaa646af8d77e96d14c6ef7feef705216c5aeb0541b3f1557f2e49252dc83bd",
+      "outside": [
+        {
+          "name": "aside characterData",
+          "passes": 1
+        },
+        {
+          "name": "aside childList",
+          "passes": 1
+        },
+        {
+          "name": "body childList without timeline",
+          "passes": 1
+        },
+        {
+          "name": "unrelated style",
+          "passes": 0
+        }
+      ],
+      "lifecycle": "passed",
+      "duplicateFirstFocus": "passed",
+      "dispose": "passed"
+    },
+    {
+      "variant": "candidate",
+      "sourceSha256": "b5eab1887227359601fa00d4243c5530daf95b7201e3356381f3e0b9e804818f",
+      "outside": [
+        {
+          "name": "aside characterData",
+          "passes": 0
+        },
+        {
+          "name": "aside childList",
+          "passes": 0
+        },
+        {
+          "name": "body childList without timeline",
+          "passes": 0
+        },
+        {
+          "name": "unrelated style",
+          "passes": 0
+        }
+      ],
+      "lifecycle": "passed",
+      "duplicateFirstFocus": "passed",
+      "dispose": "passed"
+    }
+  ]
+}

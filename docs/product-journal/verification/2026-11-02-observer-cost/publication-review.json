@@ -1,0 +1,17 @@
+{
+  "verdict": "PASS",
+  "scope": "portable observer regression and journal/evidence publication; runtime source unchanged",
+  "sourceSha256": "b5eab1887227359601fa00d4243c5530daf95b7201e3356381f3e0b9e804818f",
+  "testSha256": "37ee7b96500b2c6cac1701bee459cd13f581c0b21b63262e4c5f574037a827f7",
+  "journalSha256": "7679d701b7519481d2bc01f61678403f58606b9691a86d497b11065a4adcb9c5",
+  "originalReviewSha256": "a3d8d7fcb93494998f21b60d87e0fac867b753b3bcb27aca2cd7f725042e8b4d",
+  "existingTestBytesPreserved": true,
+  "cleanup": "nested finally restores globals and closes DOM even if disposal assertion fails",
+  "publicArtifactScan": "no local directory prefixes or credential markers",
+  "testsReadOnlyReview": [
+    127,
+    2,
+    1
+  ],
+  "newTestsRunByReviewer": false
+}

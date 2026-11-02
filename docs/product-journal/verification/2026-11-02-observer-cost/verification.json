@@ -1,0 +1,107 @@
+{
+  "base": "7c6c85c2a7545c93de47936069b5e5055e49953b",
+  "baselineSourceSha256": "1aaa646af8d77e96d14c6ef7feef705216c5aeb0541b3f1557f2e49252dc83bd",
+  "candidateSourceSha256": "b5eab1887227359601fa00d4243c5530daf95b7201e3356381f3e0b9e804818f",
+  "testSourceSha256": "37ee7b96500b2c6cac1701bee459cd13f581c0b21b63262e4c5f574037a827f7",
+  "baselineTestsSha256": "eeb299c615a32c4bd8267bbc0da4f0e0f91698f8aaf334b5ef372d336ff04034",
+  "existingTestsUnchanged": true,
+  "dependencyManifestSha256": "f74f2cca25283d42bf4ee01b4ad5a2901e53540b7def8d0de7943f1e6a9a80df",
+  "allCompiledInputBytesMatchVerifiedArtifact": true,
+  "testMethod": "isolated JSDOM, actual candidate module; only test import paths rebound to independent dependencies",
+  "suites": [
+    {
+      "file": "grouping.junit.xml",
+      "tests": 127,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    {
+      "file": "comparison.junit.xml",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    {
+      "file": "regression.junit.xml",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    }
+  ],
+  "build": {
+    "sdkPin": "0.6.79",
+    "hostSdk": "0.6.94",
+    "warningRetained": true,
+    "files": [
+      {
+        "path": "app.css",
+        "sha256": "98b188a4769c7c3aa60c03c1eb2580f3d9dc24ba8f80478bd86b24cae9df3959",
+        "bytes": 32545
+      },
+      {
+        "path": "app.js",
+        "sha256": "1acf07db287f9eb1de21860ab6a71a64e8342c4484dbedfa79a6c3da13d95c7a",
+        "bytes": 582718
+      },
+      {
+        "path": "app.meta.json",
+        "sha256": "22d893225a00a5379c55ec192eea511b734b3fea6ded3b4a538c2911192b6d3f",
+        "bytes": 284
+      },
+      {
+        "path": "package.json",
+        "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+        "bytes": 18
+      },
+      {
+        "path": "server.js",
+        "sha256": "30ef3933e03951524c8048ed11e876ad42e50cdbd354b79ac03592b94980d07a",
+        "bytes": 552994
+      },
+      {
+        "path": "server.js.map",
+        "sha256": "e2668835cb7cabc65fee080fa8cfc48d164beda947d092e3f40d4e531b0d470a",
+        "bytes": 49512
+      },
+      {
+        "path": "server.meta.json",
+        "sha256": "2f8f74227c5f40f5e638b8063562226a4fdef64d5be9a45aab92076c93b6a3fa",
+        "bytes": 209
+      }
+    ]
+  },
+  "sourceBoundUX": {
+    "mode": "Operate",
+    "authority": "README current UI pointer → 2026-11-01 count-only amendment; accepted likes prototype is separate and not introduced here",
+    "baseline": {
+      "parts": 6,
+      "sha256": "8129785d837a8aece574aebc56571d6940208dcd356f488142fa6598014cb54e"
+    },
+    "candidate": {
+      "parts": 6,
+      "sha256": "8129785d837a8aece574aebc56571d6940208dcd356f488142fa6598014cb54e"
+    },
+    "identical": true,
+    "focusedDisclosure": "passed in comparative test",
+    "streamingAndPaneLifecycle": "passed",
+    "nativeOwnership": "127 unmodified product regressions passed",
+    "visualCapture": "not performed: no layout/string/style changes; live capture forbidden during incident",
+    "skills": {
+      "bb-plugin-workflow": "same accepted scope; stages separated; no live actions",
+      "bb-plugin-authoring": "same SDK 0.6.79, official build and typecheck, disposal coverage",
+      "impeccable": "optimize: eliminate measured outside-timeline full passes, preserve focus and lifecycle",
+      "frontend-design": "preserve existing native typography, geometry and motion; signatures identical"
+    },
+    "settings": "existing /settings/plugins/minus unchanged",
+    "rails": "no new entry; out of performance scope"
+  },
+  "independentCodeAndPreparationReview": "passed on exact candidate source",
+  "runtimeActions": [],
+  "installation": "not performed",
+  "incidentRootCause": "not established",
+  "ownerClientRecovery": "owner reported BB works normally before candidate installation",
+  "evidenceSanitization": "Only local directory prefixes replaced with $BB_THREAD_STORAGE in exported logs/XML; original receipts retained by writer"
+}
