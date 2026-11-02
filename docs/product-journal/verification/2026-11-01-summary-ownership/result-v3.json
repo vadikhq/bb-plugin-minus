@@ -1,0 +1,73 @@
+{
+  "reviewer": "/root/summary_ownership_review",
+  "reviewedAt": "2026-11-01T16:57:52.713Z",
+  "sourceSha256": "b848c432c00766f7069e8c1a52f83560a817187e6099b20cc15818369c834206",
+  "testSha256": "a297d3936dd495ff3da60af448e14721a46ad697e3cfbe6c31da1e244671ce45",
+  "verdict": "PASS: all three identified ownership P2 findings closed on these exact candidate bytes; no open P0/P1/P2 in the targeted reviewed scope",
+  "openFindings": [],
+  "resolvedFindings": [
+    {
+      "thread": "PRRT_kwDOVaTjmM6yafTK",
+      "severity": "P2",
+      "trigger": "native summary borrowed a trailing owned Thought across its sibling virtualization spacer",
+      "status": "remains fixed; before/after owner sides pass fresh exact-module JSDOM/Chromium"
+    },
+    {
+      "thread": "PRRT_kwDOVaTjmM6ycSOC",
+      "severity": "P2",
+      "trigger": "Thought-only DOM part erased prior tool anchors with an empty set",
+      "status": "remains fixed; one/two-tool lifecycle and changed API source boundaries pass fresh JSDOM/Chromium"
+    },
+    {
+      "thread": "PRRT_kwDOVaTjmM6ycYmV",
+      "severity": "P2",
+      "trigger": "an unmounted completed Thought between the tool and its previously owned pending Thought stopped the redundant recovery walk",
+      "beforeSourceSha256": "be67740662382b53a2fdf6db6a16b0b477892c0e5a4a3b37000b476a4744a2bd",
+      "beforeVirtualizedState": "completed",
+      "afterVirtualizedState": "pending",
+      "directions": [
+        "before",
+        "after"
+      ],
+      "status": "fixed; current uniquely recovered owned ids are read directly without admitting any extra intervening ids"
+    }
+  ],
+  "proofAudit": {
+    "apiRunCallSites": 1,
+    "onlyCall": "apiRun(rows, recovered[index])",
+    "producer": "same synchronous pass constructs each recovered Set using current API detail/anchor locations; anchor must belong to the current part and share the API source, every intermediate entry must be service reasoning and not visible, and exactly one current part must match",
+    "consumer": "reads the current entry for only those already-proven ids, with an additional service-reasoning/visible guard",
+    "conclusion": "Direct consumption is sufficient for the current private function/call graph. The removed second walk imposed an incompatible membership requirement on intermediate reasoning and lost valid endpoint proof. It did not add a useful boundary beyond the producer."
+  },
+  "independentChecks": {
+    "jsdomTargetedCases": 31,
+    "newGapDirections": 2,
+    "gapControlsPerDirection": 10,
+    "initialUnownedPendingPreventsOwnership": true,
+    "newUnownedPendingNotAddedToDetails": true,
+    "ownedTerminalCanCompleteWhileUnownedPendingRemains": true,
+    "conversationNestedErrorCancelledUnknownVisibleIntermediateBoundaries": true,
+    "visibleOwnedEndpointExcluded": true,
+    "priorTwoP2ControlsPreserved": true,
+    "browserContexts": 12,
+    "browserWidths": [
+      390,
+      1280
+    ],
+    "browserPageErrors": 0,
+    "savedPng": 24,
+    "reviewedPng": 8,
+    "fixtureCleanup": true
+  },
+  "cleanup": "All reviewer JSDOM windows, contexts, browsers and local HTTP servers completed their finally cleanup. Small frozen baseline source files and scripts remain as reproducible review evidence; no dependencies were copied or altered.",
+  "writer": {
+    "fullTests": 122,
+    "failures": 0,
+    "typeScript": "PASS",
+    "build": "PASS",
+    "beforeNewRegressionTests": 2,
+    "beforeFailures": 2,
+    "sdkPin": "0.6.79",
+    "installed": false
+  }
+}

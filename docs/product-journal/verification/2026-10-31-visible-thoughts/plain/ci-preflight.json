@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-10-31T10:25:00.378Z",
+  "repo": "vadikhq/bb-plugin-minus",
+  "branch": "bb/minus-visible-thoughts",
+  "base": "main",
+  "baseSha": "9bf014f9c594f79d6d95734152f755fd03bfb666",
+  "baseWorkflowPaths": [],
+  "localWorkflowPaths": [],
+  "registeredWorkflowCount": 0,
+  "priorBranchPullRequests": [],
+  "permittedAction": "push current approved branch; PR creation still awaits exact final-text approval",
+  "conclusion": "No Actions workflows on executable local/base source or registered in repository; no CI compute route to start."
+}

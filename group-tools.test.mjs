@@ -4,7 +4,203 @@ import { JSDOM } from "jsdom";
 import { mountToolGrouping } from "./group-tools.ts";
 import { QUOTE_SOURCES, QUOTES, pickRandomQuote } from "./quotes.ts";
 
+for (const change of ["new", "resized"]) {
+  test("an unproven " + change + " spacer stays visible during revalidation", async () => {
+    const rows = timeline([["tool-1"], ["tool-2"]]);
+    let notify, resolveRefresh, reads = 0;
+    const dom = mountDom({ rowIds: ["tool-1", "tool-2"],
+      fetchTimeline: () => ++reads === 1 ? Promise.resolve(rows) : new Promise(resolve => { resolveRefresh = resolve; }),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    const spacer = dom.window.document.createElement("div");
+    spacer.setAttribute("data-timeline-window-spacer", "");
+    if (change === "resized") dom.container.insertBefore(spacer, dom.rows[1]);
+    try {
+      await dom.flush();
+      assert.equal(dom.container.querySelectorAll("[data-bb-minus-group]").length, 1);
+      notify("thr_test", true);
+      if (change === "new") dom.container.insertBefore(spacer, dom.rows[1]);
+      else {
+        spacer.style.height = "40px";
+        dom.window.document.body.append(dom.window.document.createElement("span"));
+      }
+      await dom.flush();
+      assert.equal(spacer.hasAttribute(HIDDEN), false);
+      assert.equal(dom.container.querySelectorAll("[data-bb-minus-group]").length, 2);
+      resolveRefresh(timeline([["tool-1"], ["assistant:virtualized", "conversation"], ["tool-2"]]));
+      await dom.flush();
+      assert.equal(spacer.hasAttribute(HIDDEN), false);
+      assert.equal(dom.container.querySelectorAll("[data-bb-minus-group]").length, 2);
+    } finally { resolveRefresh?.(rows); dom.cleanup(); }
+  });
+}
+
+test("a completed virtualized run stays joined while an unrelated run is pending", async () => {
+  const rows = timeline([
+    ["tool-1"], ["tool-2"],
+    ["assistant:next", "conversation"],
+    ["tool-next", "work", undefined, 2000, null],
+  ]);
+  const dom = mountDom({ rowIds: ["tool-1", "tool-2"], fetchTimeline: async () => rows });
+  const spacer = dom.window.document.createElement("div");
+  spacer.setAttribute("data-timeline-window-spacer", "");
+  dom.container.insertBefore(spacer, dom.rows[1]);
+  try {
+    await dom.flush();
+    const markers = [...dom.container.querySelectorAll("[data-bb-minus-group]")];
+    assert.equal(markers.length, 1);
+    assert.equal(markers[0].querySelector("[data-metrics]").textContent, "2 tools");
+    assert.equal(spacer.hasAttribute(HIDDEN), true);
+  } finally { dom.cleanup(); }
+});
+
+test("revalidation does not split a proven virtualized run or replace its quote", async () => {
+  const rows = timeline([["tool-1"], ["tool-2"]]);
+  let notify, resolveRefresh, fetches = 0, selections = 0;
+  const dom = mountDom({
+    rowIds: ["tool-1", "tool-2"],
+    fetchTimeline: () => ++fetches === 1 ? Promise.resolve(rows) : new Promise(resolve => { resolveRefresh = resolve; }),
+    chooseQuote: () => QUOTES[selections++ % QUOTES.length],
+    subscribeTimeline: callback => { notify = callback; return () => {}; },
+  });
+  const spacer = dom.window.document.createElement("div");
+  spacer.setAttribute("data-timeline-window-spacer", "");
+  dom.container.insertBefore(spacer, dom.rows[1]);
+  try {
+    await dom.flush();
+    assert.equal(dom.container.querySelectorAll("[data-bb-minus-group]").length, 1);
+    const marker = dom.container.querySelector("[data-bb-minus-group]");
+    const text = marker.querySelector("[data-quote]").textContent;
+    notify("thr_test", true);
+    assert.equal(fetches, 2);
+    // A real commentary/reconnect mutation can arrive while this request is in flight.
+    dom.window.document.body.append(dom.window.document.createElement("span"));
+    await dom.flush();
+    assert.equal(dom.container.querySelectorAll("[data-bb-minus-group]").length, 1);
+    assert.equal(dom.container.querySelector("[data-bb-minus-group]"), marker);
+    assert.equal(marker.querySelector("[data-quote]").textContent, text);
+    assert.equal(spacer.hasAttribute(HIDDEN), true);
+    resolveRefresh(rows);
+    await dom.flush();
+    assert.equal(dom.container.querySelector("[data-bb-minus-group]"), marker);
+    assert.equal(marker.querySelector("[data-quote]").textContent, text);
+  } finally { resolveRefresh?.(rows); dom.cleanup(); }
+});
+
 const HIDDEN = "data-bb-minus-hidden";
+
+
+test("completed turn flattens its protected mixed summary without flattening delegated timelines", async () => {
+  const children = completedReasoningTimeline([
+    ["delegation:workflow", "work", undefined, 1000, 1300, "delegation"],
+    ["op:reasoning:first", "system", "reasoning"], ["tool-1"],
+    ["op:reasoning:second", "system", "reasoning"], ["tool-2"],
+  ]);
+  const summaryId = "thread:work-summary:" + fullId("delegation:workflow");
+  const dom = mountDom({ rowIds: ["done:turn:0"], fetchTimeline: async () => [{id:fullId("done:turn:0"),kind:"turn",children}] });
+  const turn = attachCompletedTurn(dom, dom.rows[0], [summaryId]);
+  const nodes = children.map(row => dom.makeRow(row.id));
+  const summary = nativeSummary(dom, turn.rows[0], "Ran 1 subagent, 2 tools", nodes);
+  try {
+    // Opening the turn, its summary, and its bundle settles over nested native mounts.
+    await dom.flush(); await dom.flush();
+    assert.equal(turn.rows[0].hasAttribute("data-bb-minus-stream-summary"), true);
+    assert.equal(dom.rows[0].hasAttribute("data-bb-minus-stream-turn"), true);
+    assert.equal(turn.list.hasAttribute("data-bb-minus-flat-list"), true);
+    assert.equal(summary.list.hasAttribute("data-bb-minus-flat-list"), true);
+    assert.equal(summary.items.querySelectorAll("[data-metrics]").length, 1);
+    assert.equal(summary.items.querySelector("[data-metrics]").textContent, "2 tools");
+    assert.equal(nodes[0].hasAttribute(HIDDEN), false);
+    assert(nodes.slice(1).every(row => row.hasAttribute(HIDDEN)));
+    for (const el of [dom.rows[0], dom.container, dom.window.document.body, dom.window.document.documentElement]) assert.equal(el.hasAttribute("data-bb-minus-turn-shell"), false);
+    summary.items.querySelector("[data-metrics]").click();await dom.flush();
+    assert(nodes.every(row => !row.hasAttribute(HIDDEN)));
+    const shells = [turn.list.parentElement, summary.shell];
+    dom.dispose();
+    assert.equal(dom.rows[0].hasAttribute("data-bb-minus-stream-turn"), false);
+    assert(shells.every(el => !el.hasAttribute("data-bb-minus-turn-shell")));
+    assert.equal(turn.list.hasAttribute("data-bb-minus-flat-list"), false);
+    assert.equal(summary.list.hasAttribute("data-bb-minus-flat-list"), false);
+  } finally { dom.cleanup(); }
+});
+
+
+test("tool-only completed turn has no outer Worked for frame and keeps delegation visible", async () => {
+  const children = completedReasoningTimeline([
+    ["delegation:workflow", "work", undefined, 1000, 1300, "delegation"],
+    ["op:reasoning:first", "system", "reasoning"], ["tool-1"],
+    ["op:reasoning:second", "system", "reasoning"], ["tool-2"],
+  ]);
+  const dom = mountDom({ rowIds: ["done:turn:0"], fetchTimeline: async () => [{id: fullId("done:turn:0"),kind:"turn",children}] });
+  const turn = attachCompletedTurn(dom, dom.rows[0], children.map(row => row.id));
+  try {
+    await dom.flush();
+    assert.equal(dom.rows[0].hasAttribute("data-bb-minus-stream-turn"), true);
+    const metrics = turn.items.querySelector("[data-metrics]");
+    assert.equal(metrics.textContent, "2 tools");
+    assert.equal(turn.items.querySelectorAll("[data-bb-minus-group]").length, 1);
+    assert.equal(turn.rows[0].hasAttribute(HIDDEN), false);
+    assert(turn.rows.slice(1).every(row => row.hasAttribute(HIDDEN)));
+    metrics.click();await dom.flush();
+    assert(turn.rows.every(row => !row.hasAttribute(HIDDEN)));
+    const shell = turn.list.parentElement;
+    dom.dispose();
+    assert.equal(dom.rows[0].hasAttribute("data-bb-minus-stream-turn"), false);
+    assert.equal(shell.hasAttribute("data-bb-minus-turn-shell"), false);
+  } finally { dom.cleanup(); }
+});
+
+
+test("screenshot tool batches and service Thoughts share one count-only quote before delegation", async () => {
+  const rows = [["op:reasoning:standalone", "system", "reasoning"], ["assistant:intro", "conversation"]];
+  let tool = 0;
+  for (const [batch, count] of [3, 5, 5, 4].entries()) {
+    for (let n = 0; n < count; n++) rows.push(["tool-" + ++tool]);
+    rows.push(["op:reasoning:batch-" + batch, "system", "reasoning"]);
+    if (batch === 2) rows.push(["op:reasoning:second-detail", "system", "reasoning"]);
+  }
+  rows.push(["delegation:workflow", "work", undefined, 1000, 1300, "delegation"], ["assistant:after", "conversation"]);
+  const dom = mountDom({ rowIds: rows.map(row => row[0]), fetchTimeline: async () => completedReasoningTimeline(rows) });
+  try {
+    await dom.flush();
+    const groups = [...dom.container.querySelectorAll("[data-bb-minus-group]")];
+    assert.equal(groups.length, 1);
+    assert.equal(groups[0].querySelector("[data-metrics]").textContent, "17 tools");
+    assert.equal(groups[0].querySelector("[data-time], [data-time-separator]"), null);
+    const useful = [dom.rows[0], dom.rows[1], dom.rows.at(-2), dom.rows.at(-1)];
+    assert(useful.every(row => !row.hasAttribute(HIDDEN)));
+    assert(dom.rows.slice(2, -2).every(row => row.hasAttribute(HIDDEN)));
+    const metrics = groups[0].querySelector("[data-metrics]");
+    metrics.click();
+    await dom.flush();
+    assert(dom.rows.every(row => !row.hasAttribute(HIDDEN)));
+    metrics.click();
+    await dom.flush();
+    assert(dom.rows.slice(2, -2).every(row => row.hasAttribute(HIDDEN)));
+    assert(useful.every(row => !row.hasAttribute(HIDDEN)));
+  } finally { dom.cleanup(); }
+});
+
+test("tool grouping never reads call timestamps for counts, activity or disclosure", async () => {
+  const rows = completedReasoningTimeline([["tool-1"], ["op:reasoning:detail", "system", "reasoning"], ["tool-2"]]);
+  let timestampReads = 0;
+  for (const row of rows) for (const key of ["startedAt", "completedAt"]) Object.defineProperty(row, key, {
+    get() { timestampReads++; throw new Error("Tool duration must not be calculated"); },
+  });
+  const dom = mountDom({ rowIds: ["tool-1", "op:reasoning:detail", "tool-2"], fetchTimeline: async () => rows });
+  try {
+    await dom.flush();
+    const marker = dom.container.querySelector("[data-bb-minus-group]");
+    assert.equal(marker.querySelector("[data-metrics]").textContent, "2 tools");
+    assert.equal(marker.getAttribute("data-tool-state"), "completed");
+    assert.equal(marker.querySelector("[data-time], [data-time-separator]"), null);
+    assert.equal(timestampReads, 0);
+    for (const button of marker.querySelectorAll("[data-toggle]")) {
+      assert.equal(button.getAttribute("aria-label"), "Show 2 tool calls.");
+      assert.doesNotMatch(button.title, /time|врем/i);
+    }
+  } finally { dom.cleanup(); }
+});
 
 function fullId(id) {
   return id.startsWith("thr_") ? id : "thr_test:" + (id.startsWith("tool-") ? "tool:" : "") + id;
@@ -131,12 +327,11 @@ for (const count of [1, 2, 3]) {
       assert.ok(metrics.classList.contains("text-subtle-foreground"));
       assert.equal(
         button.getAttribute("aria-label"),
-        "Show " + count + " tool call" + (count === 1 ? "" : "s") + ". Total tool time: " +
-          count * 300 + "ms.",
+        "Show " + count + " tool call" + (count === 1 ? "" : "s") + ".",
       );
       assert.equal(
         metrics.textContent,
-        count + " tool" + (count === 1 ? "" : "s") + " · " + count * 300 + "ms",
+        count + " tool" + (count === 1 ? "" : "s"),
       );
       assert.equal(button.getAttribute("aria-describedby"), quote.id + " " + quote.id + "-activity");
       assert.equal(quote.textContent, QUOTES[0].text);
@@ -185,7 +380,7 @@ test("uses the full timeline count when only one tool row is mounted", async () 
     const marker = dom.container.querySelector("[data-bb-minus-group]");
     assert.equal(
       marker.querySelector("button").getAttribute("aria-label"),
-      "Show 3 tool calls. Total tool time: 900ms.",
+      "Show 3 tool calls.",
     );
     assert.equal(marker.textContent.includes("Called"), false);
     assert.equal(dom.rows[0].hasAttribute(HIDDEN), true);
@@ -197,7 +392,7 @@ test("uses the full timeline count when only one tool row is mounted", async () 
   }
 });
 
-test("shows the sum of individual tool runtimes rather than group wall time", async () => {
+test("counts overlapping calls without a time label", async () => {
   const rowIds = ["tool-1", "tool-2"];
   const dom = mountDom({
     rowIds,
@@ -210,15 +405,15 @@ test("shows the sum of individual tool runtimes rather than group wall time", as
     await dom.flush();
     const marker = dom.container.querySelector("[data-bb-minus-group]");
     const metrics = marker.querySelector("[data-metrics]");
-    assert.equal(metrics.textContent, "2 tools · 3s");
-    assert.ok(metrics.title.includes("parallel calls are added together"));
-    assert.match(marker.querySelector("button").getAttribute("aria-label"), /Total tool time: 3s/);
+    assert.equal(metrics.textContent, "2 tools");
+    assert.doesNotMatch(metrics.title, /time|врем/i);
+    assert.equal(marker.querySelector("button").getAttribute("aria-label"), "Show 2 tool calls.");
   } finally {
     dom.cleanup();
   }
 });
 
-test("shows duration only after the tool cycle finishes", async () => {
+test("keeps the call count stable when the tool cycle finishes", async () => {
   const clock = makeClock(10000);
   const rowIds = ["tool-1"];
   let fetchCount = 0;
@@ -239,7 +434,7 @@ test("shows duration only after the tool cycle finishes", async () => {
     clock.advance(2000);
     await dom.flush();
     assert.equal(fetchCount, 2);
-    assert.equal(metrics.textContent, "1 tool · 1.5s");
+    assert.equal(metrics.textContent, "1 tool");
   } finally {
     dom.cleanup();
   }
@@ -273,7 +468,7 @@ test("keeps a manual stop visible and outside collapsed tool-call groups", async
     assertGroupsAndStop(); // API-backed grouping keeps the system row as a boundary.
     assert.deepEqual(
       [...dom.container.querySelectorAll("[data-metrics]")].map((metrics) => metrics.textContent),
-      ["1 tool · 500ms", "1 tool · 1.5s"],
+      ["1 tool", "1 tool"],
     );
 
     const buttons = [...dom.container.querySelectorAll("[data-bb-minus-group] [data-toggle=quote]")];
@@ -324,10 +519,10 @@ test("splits a virtualized tool run at an API interruption boundary", async () =
     assert.equal(markers.length, 2);
     assert.equal(
       markers[0].querySelector("button").getAttribute("aria-label"),
-      "Show 1 tool call. Total tool time: time unavailable.",
+      "Show 1 tool call.",
     );
     assert.equal(markers[1].querySelector("button").getAttribute("aria-label"),
-      "Show 1 tool call. Total tool time: time unavailable.");
+      "Show 1 tool call.");
     assert.equal(spacer.hasAttribute(HIDDEN), false);
 
     rejectFirstTimeline(new Error("timeline temporarily unavailable"));
@@ -350,8 +545,8 @@ test("splits a virtualized tool run at an API interruption boundary", async () =
     assert.deepEqual(
       markers.map((marker) => marker.querySelector("button").getAttribute("aria-label")),
       [
-        "Show 1 tool call. Total tool time: 300ms.",
-        "Show 1 tool call. Total tool time: 300ms.",
+        "Show 1 tool call.",
+        "Show 1 tool call.",
       ],
     );
     assert.equal(spacer.hasAttribute(HIDDEN), false);
@@ -510,9 +705,9 @@ test("preserves a known API boundary when one mounted tool id is missing", async
     assert.deepEqual(
       markers.map((marker) => marker.querySelector("button").getAttribute("aria-label")),
       [
-        "Show 1 tool call. Total tool time: 300ms.",
-        "Show 1 tool call. Total tool time: time unavailable.",
-        "Show 1 tool call. Total tool time: 300ms.",
+        "Show 1 tool call.",
+        "Show 1 tool call.",
+        "Show 1 tool call.",
       ],
     );
     assert.deepEqual(dom.rows.map((row) => row.hasAttribute(HIDDEN)), [true, true, true]);
@@ -533,7 +728,7 @@ test("counts an uncached mounted tool row without duplicating its run toggle", a
     assert.equal(markers.length, 1);
     assert.equal(
       markers[0].querySelector("button").getAttribute("aria-label"),
-      "Show 3 tool calls. Total tool time: time unavailable.",
+      "Show 3 tool calls.",
     );
     assert.deepEqual(dom.rows.map((row) => row.hasAttribute(HIDDEN)), [true, true, true]);
 
@@ -682,7 +877,7 @@ test("keeps the quote stable when virtualization mounts another row in the same 
     const after = dom.container.querySelector("[data-quote]").textContent;
     assert.equal(after, before);
     assert.equal(dom.container.querySelectorAll("[data-bb-minus-group]").length, 1);
-    assert.equal(dom.container.querySelector("[data-metrics]").textContent, "3 tools · 900ms");
+    assert.equal(dom.container.querySelector("[data-metrics]").textContent, "3 tools");
     assert.equal(chooseCount, 1);
   } finally {
     dom.cleanup();
@@ -732,7 +927,7 @@ test("keeps reasoning and unknown live rows visible before, during and after the
     assert.deepEqual(dom.rows.map(row => row.hasAttribute(HIDDEN)), [true, false, false, true]);
     const buttons = [...dom.container.querySelectorAll("[data-bb-minus-group] [data-toggle=quote]")];
     assert.equal(buttons.length, 2);
-    assert.ok(buttons.every(button => button.getAttribute("aria-label") === "Show 1 tool call. Total tool time: 300ms."));
+    assert.ok(buttons.every(button => button.getAttribute("aria-label") === "Show 1 tool call."));
     buttons[0].click();
     await dom.flush();
     assert.deepEqual(dom.rows.map(row => row.hasAttribute(HIDDEN)), [false, false, false, true]);
@@ -766,7 +961,7 @@ test("an uncached tool cannot bridge a spacer containing an agent stream", async
     await dom.flush();
     assert.equal(dom.container.querySelectorAll("[data-bb-minus-group]").length, 2);
     assert.equal(spacer.hasAttribute(HIDDEN), false);
-    assert.deepEqual([...dom.container.querySelectorAll("[data-metrics]")].map(x => x.textContent), ["1 tool · time unavailable", "1 tool · 300ms"]);
+    assert.deepEqual([...dom.container.querySelectorAll("[data-metrics]")].map(x => x.textContent), ["1 tool", "1 tool"]);
   } finally { dom.cleanup(); }
 });
 
@@ -791,7 +986,7 @@ test("a work row acquiring nested agent content becomes a visible independent bo
     assert.deepEqual(dom.rows.map(row => row.hasAttribute(HIDDEN)), [true, false, true]);
     const markers = [...dom.container.querySelectorAll(":scope > [data-bb-minus-group]")];
     assert.equal(markers.length, 2);
-    assert.ok(markers.every(marker => marker.querySelector("[data-metrics]").textContent === "1 tool · 300ms"));
+    assert.ok(markers.every(marker => marker.querySelector("[data-metrics]").textContent === "1 tool"));
     assert.equal(message.hasAttribute(HIDDEN), false);
     message.append("; проверяю следующий");
     await dom.flush();
@@ -819,7 +1014,7 @@ test("native running tool bundles collapse while agent messages remain visible",
     assert.equal(dom.rows[0].hasAttribute(HIDDEN), true);
     assert.equal(dom.rows[1].hasAttribute(HIDDEN), false);
     const metrics = dom.container.querySelector("[data-metrics]");
-    assert.equal(metrics.textContent, "2 tools · 600ms");
+    assert.equal(metrics.textContent, "2 tools");
     metrics.click();
     await dom.flush();
     assert.equal(dom.rows[0].hasAttribute(HIDDEN), false);
@@ -1174,7 +1369,7 @@ test('keeps completed-turn commentary visible while hiding its tools with final 
     assert.equal(turn.button.getAttribute('aria-expanded'), 'true');
     assert.deepEqual(turn.rows.map(row => row.hasAttribute(HIDDEN)), [false, true, false, true]);
     assert.equal(turn.items.querySelectorAll('[data-bb-minus-group]').length, 2);
-    assert.deepEqual([...turn.items.querySelectorAll('[data-metrics]')].map(x => x.textContent), ['1 tool · 300ms', '1 tool · 300ms']);
+    assert.deepEqual([...turn.items.querySelectorAll('[data-metrics]')].map(x => x.textContent), ['1 tool', '1 tool']);
     const metrics = turn.items.querySelector('[data-metrics]');
     assert.equal(metrics.tagName, 'BUTTON');
     metrics.click();
@@ -1342,7 +1537,7 @@ test('does not open completed turns inside a delegated agent timeline', async ()
   } finally { dom.cleanup(); }
 });
 
-test('a terminal realtime event refreshes final duration without a DOM change or throttle delay', async () => {
+test('a terminal realtime event refreshes completion without a DOM change or throttle delay', async () => {
   const clock = makeClock(10000);let notify;let fetchCount = 0;let unsubscribed = 0;
   const dom = mountDom({rowIds:['tool-1'],clock,
     subscribeTimeline: callback => { notify = callback;return () => { unsubscribed++; }; },
@@ -1358,7 +1553,7 @@ test('a terminal realtime event refreshes final duration without a DOM change or
     notify('thr_test', true);
     await dom.flush();
     assert.equal(fetchCount, 2);
-    assert.equal(metrics.textContent, '1 tool · 1.5s');
+    assert.equal(metrics.textContent, '1 tool');
     dom.dispose();assert.equal(unsubscribed, 1);
     notify('thr_test', true);clock.advance(2000);
     await dom.flush();assert.equal(fetchCount, 2);
@@ -1383,7 +1578,7 @@ test('a terminal event during inFlight preserves its forced final refresh', asyn
     finishStale(timeline([['tool-1','work',undefined,1000,1400]]));
     await dom.flush();
     assert.equal(fetchCount,3);
-    assert.equal(dom.container.querySelector('[data-metrics]').textContent,'1 tool · 1.8s');
+    assert.equal(dom.container.querySelector('[data-metrics]').textContent,'1 tool');
   } finally {dom.cleanup();}
 });
 
@@ -1424,7 +1619,7 @@ test('native summary counts all 16 tools across reasoning boundaries', async () 
     nativeSummary(dom, dom.rows[0], 'Ran 16 tools');
     await dom.flush();
     const metrics = dom.container.querySelector('[data-metrics]');
-    assert.equal(metrics.textContent, '16 tools · 4.8s');
+    assert.equal(metrics.textContent, '16 tools');
     assert.equal(dom.rows[0].hasAttribute(HIDDEN), true);
     metrics.click(); await dom.flush();
     assert.equal(dom.rows[0].hasAttribute(HIDDEN), false);
@@ -1433,25 +1628,199 @@ test('native summary counts all 16 tools across reasoning boundaries', async () 
   } finally { dom.cleanup(); }
 });
 
-test('summary beginning with reasoning still collapses its complete tool membership', async () => {
-  const source = [['op:reasoning:first', 'system', 'reasoning'], ['tool-1'], ['op:reasoning:second', 'system', 'reasoning'], ['tool-2']];
-  const dom = mountDom({ rowIds: ['turn-1:work-summary:' + fullId('op:reasoning:first')], fetchTimeline: async () => timeline(source) });
-  try {
-    nativeSummary(dom, dom.rows[0], 'Ran 2 tools');
-    await dom.flush();
-    assert.equal(dom.rows[0].hasAttribute(HIDDEN), true);
-    assert.equal(dom.container.querySelector('[data-metrics]').textContent, '2 tools · 600ms');
-  } finally { dom.cleanup(); }
-});
+for (const pending of [false, true]) {
+  test('summary beginning with verified reasoning keeps its complete tool membership: pending=' + pending, async () => {
+    const source = [['op:reasoning:first', 'system', 'reasoning'], ['tool-1'],
+      ['op:reasoning:second', 'system', 'reasoning'], ['tool-2', 'work', undefined, 1000, pending ? null : 1300]];
+    const dom = mountDom({ rowIds: ['turn-1:work-summary:' + fullId('op:reasoning:first')],
+      fetchTimeline: async () => completedReasoningTimeline(source) });
+    try {
+      nativeSummary(dom, dom.rows[0], pending ? 'Running 2 commands' : 'Ran 2 tools');
+      await dom.flush();
+      const metrics = dom.container.querySelector('[data-metrics]');
+      assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
+      assert.equal(dom.rows[0].hasAttribute(HIDDEN), true);
+      assert.equal(metrics.textContent, '2 tools');
+      assert.equal(metrics.closest('[data-bb-minus-group]').getAttribute('data-tool-state'), pending ? 'pending' : 'completed');
+      metrics.click(); await dom.flush();
+      assert.equal(metrics.getAttribute('aria-expanded'), 'true');
+      assert.equal(dom.rows[0].hasAttribute(HIDDEN), false);
+      metrics.click(); await dom.flush();
+      assert.equal(metrics.getAttribute('aria-expanded'), 'false');
+      assert.equal(dom.rows[0].hasAttribute(HIDDEN), true);
+    } finally { dom.cleanup(); }
+  });
+}
 
 test('an incomplete summary API window never reports just its first five members', async () => {
   const dom = mountDom({ rowIds: ['turn-1:work-summary:' + fullId('tool-1')], fetchTimeline: async () => timeline(Array.from({ length: 5 }, (_, i) => ['tool-' + (i + 1)])) });
   try {
     nativeSummary(dom, dom.rows[0], 'Ran 16 tools');
     await dom.flush();
-    assert.equal(dom.container.querySelector('[data-metrics]').textContent, '16 tools · time unavailable');
+    assert.equal(dom.container.querySelector('[data-metrics]').textContent, '16 tools');
   } finally { dom.cleanup(); }
 });
+
+for (const position of ['before', 'between', 'after']) {
+  test('pending reasoning inside a native summary keeps completed tools active: ' + position, async () => {
+    let finished = false, notify;
+    const thought = ['op:reasoning:active', 'system', 'reasoning', 1000, null];
+    const source = position === 'before' ? [thought, ['tool-1'], ['tool-2']] :
+      position === 'between' ? [['tool-1'], thought, ['tool-2']] : [['tool-1'], ['tool-2'], thought];
+    const dom = mountDom({ rowIds: ['turn-1:work-summary:' + fullId(source[0][0])],
+      fetchTimeline: async () => completedReasoningTimeline(source).map(row => row.operationKind === 'reasoning' && finished ?
+        { ...row, status: 'completed', completedAt: 9000 } : row),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      nativeSummary(dom, dom.rows[0], 'Running 2 commands');
+      await dom.flush();
+      const marker = dom.container.querySelector('[data-bb-minus-group]');
+      const metrics = marker.querySelector('[data-metrics]');
+      assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+      assert.equal(metrics.textContent, '2 tools');
+      metrics.click(); await dom.flush();
+      finished = true; notify('thr_test', true); await dom.flush();
+      assert.equal(marker.getAttribute('data-tool-state'), 'completed');
+      assert.equal(metrics.textContent, '2 tools');
+      assert.equal(metrics.getAttribute('aria-expanded'), 'true');
+    } finally { dom.cleanup(); }
+  });
+}
+
+for (const initialSpacer of [false, true]) {
+  test('a native summary retains only previously proved Thought ownership after a spacer: initial=' + initialSpacer, async () => {
+    let finished = false, notify;
+    const dom = mountDom({
+      rowIds: ['turn-1:work-summary:' + fullId('tool-1')],
+      fetchTimeline: async () => completedReasoningTimeline([
+        ['tool-1'], ['op:reasoning:native-owned', 'system', 'reasoning', 1000, finished ? 1300 : null],
+      ]),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      nativeSummary(dom, dom.rows[0], 'Ran 1 tool');
+      const spacer = dom.window.document.createElement('div');
+      spacer.setAttribute('data-timeline-window-spacer', '');
+      if (initialSpacer) dom.container.append(spacer);
+      await dom.flush();
+      const marker = dom.container.querySelector('[data-bb-minus-group]');
+      assert.equal(marker.getAttribute('data-tool-state'), initialSpacer ? 'completed' : 'pending');
+      if (initialSpacer) {
+        spacer.remove(); await dom.flush();
+        assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+      }
+      dom.container.append(spacer); await dom.flush();
+      assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+      assert.equal(marker.querySelector('[data-metrics]').textContent, '1 tool');
+      assert.equal(spacer.hasAttribute(HIDDEN), false);
+      finished = true; notify('thr_test', true); await dom.flush();
+      assert.equal(marker.getAttribute('data-tool-state'), 'completed');
+    } finally { dom.cleanup(); }
+  });
+}
+
+test('inferred native trailing reasoning cannot replace its valid right-hand owner when a gap returns', async () => {
+  const dom = mountDom({
+    rowIds: ['turn-1:work-summary:' + fullId('tool-1'), 'op:reasoning:right', 'tool-2'],
+    fetchTimeline: async () => completedReasoningTimeline([
+      ['tool-1'], ['op:reasoning:right', 'system', 'reasoning', 1000, null], ['tool-2'],
+    ]),
+  });
+  try {
+    nativeSummary(dom, dom.rows[0], 'Ran 1 tool');
+    const spacer = dom.window.document.createElement('div');
+    spacer.setAttribute('data-timeline-window-spacer', '');
+    dom.container.insertBefore(spacer, dom.rows[1]); await dom.flush();
+    const states = () => [...dom.container.querySelectorAll('[data-bb-minus-group]')].map(row => row.getAttribute('data-tool-state'));
+    assert.deepEqual(states(), ['completed', 'pending']);
+    dom.rows[1].remove(); await dom.flush();
+    assert.deepEqual(states(), ['completed', 'pending']);
+    spacer.remove(); await dom.flush();
+    assert.deepEqual(states(), ['pending']);
+    dom.container.insertBefore(spacer, dom.rows[2]); await dom.flush();
+    assert.deepEqual(states(), ['completed', 'pending']);
+    assert.deepEqual([...dom.container.querySelectorAll('[data-metrics]')].map(row => row.textContent), ['1 tool', '1 tool']);
+  } finally { dom.cleanup(); }
+});
+
+test('native interior reasoning stays one pending cycle when a summary is replaced by raw tools', async () => {
+  const dom = mountDom({
+    rowIds: ['turn-1:work-summary:' + fullId('tool-1')],
+    fetchTimeline: async () => completedReasoningTimeline([
+      ['tool-1'], ['op:reasoning:interior', 'system', 'reasoning', 1000, null], ['tool-2'],
+    ]),
+  });
+  try {
+    nativeSummary(dom, dom.rows[0], 'Running 2 tools'); await dom.flush();
+    dom.rows[0].remove();
+    dom.container.append(dom.makeRow('tool-1'), dom.makeRow('tool-2')); await dom.flush();
+    const markers = [...dom.container.querySelectorAll('[data-bb-minus-group]')];
+    assert.equal(markers.length, 1);
+    assert.equal(markers[0].querySelector('[data-metrics]').textContent, '2 tools');
+    assert.equal(markers[0].getAttribute('data-tool-state'), 'pending');
+  } finally { dom.cleanup(); }
+});
+
+test('a pending Thought at the next mounted summary does not affect its completed neighbour', async () => {
+  const source = [['tool-1'], ['op:reasoning:next', 'system', 'reasoning', 1000, null], ['tool-2']];
+  const dom = mountDom({ rowIds: ['turn-1:work-summary:' + fullId('tool-1'),
+    'turn-1:work-summary:' + fullId('op:reasoning:next')], fetchTimeline: async () => completedReasoningTimeline(source) });
+  try {
+    nativeSummary(dom, dom.rows[0], 'Ran 1 tool');
+    nativeSummary(dom, dom.rows[1], 'Running 1 command');
+    const spacer = dom.window.document.createElement('div');
+    spacer.setAttribute('data-timeline-window-spacer', '');
+    dom.container.insertBefore(spacer, dom.rows[1]);
+    await dom.flush();
+    const markers = [...dom.container.querySelectorAll('[data-bb-minus-group]')];
+    assert.deepEqual(markers.map(row => row.getAttribute('data-tool-state')), ['completed', 'pending']);
+    assert.deepEqual(markers.map(row => row.querySelector('[data-metrics]').textContent), ['1 tool', '1 tool']);
+    assert.equal(spacer.hasAttribute(HIDDEN), false);
+  } finally { dom.cleanup(); }
+});
+
+for (const ownerSide of ['left', 'right']) {
+  test('a native summary cannot borrow virtualized trailing Thought from the ' + ownerSide + ' group', async () => {
+    let finished = false, notify;
+    const source = [['tool-1'], ['op:reasoning:owned', 'system', 'reasoning', 1000, null], ['tool-2']];
+    const dom = mountDom({
+      rowIds: ['turn-1:work-summary:' + fullId('tool-1'), 'op:reasoning:owned', 'tool-2'],
+      fetchTimeline: async () => completedReasoningTimeline(source).map(row =>
+        row.operationKind === 'reasoning' && finished ? { ...row, status: 'completed' } : row),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      nativeSummary(dom, dom.rows[0], 'Ran 1 tool');
+      const thought = dom.rows[1], spacer = dom.window.document.createElement('div');
+      spacer.setAttribute('data-timeline-window-spacer', '');
+      dom.container.insertBefore(spacer, ownerSide === 'left' ? dom.rows[2] : thought);
+      const inspect = async () => {
+        await dom.flush();
+        const markers = [...dom.container.querySelectorAll('[data-bb-minus-group]')];
+        assert.deepEqual(markers.map(row => row.getAttribute('data-tool-state')),
+          ownerSide === 'left' ? ['pending', 'completed'] : ['completed', 'pending']);
+        assert.deepEqual(markers.map(row => row.querySelector('[data-metrics]').textContent), ['1 tool', '1 tool']);
+        assert.equal(spacer.hasAttribute(HIDDEN), false);
+        return markers;
+      };
+      const markers = await inspect();
+      const metrics = markers[ownerSide === 'left' ? 0 : 1].querySelector('[data-metrics]');
+      metrics.focus(); metrics.click();
+      thought.remove(); await inspect();
+      dom.container.insertBefore(thought, ownerSide === 'left' ? spacer : dom.rows[2]);
+      await inspect();
+      thought.remove(); await inspect();
+      finished = true; notify('thr_test', true); await dom.flush();
+      assert.deepEqual([...dom.container.querySelectorAll('[data-bb-minus-group]')]
+        .map(row => row.getAttribute('data-tool-state')), ['completed', 'completed']);
+      assert.equal(metrics.getAttribute('aria-expanded'), 'true');
+      assert.equal(dom.window.document.activeElement, metrics);
+      dom.dispose();
+      assert(dom.rows.filter(row => row.isConnected).every(row => !row.hasAttribute(HIDDEN)));
+    } finally { dom.cleanup(); }
+  });
+}
 
 test('mixed summary exposes delegated work outside tool disclosures and restores its native shell', async () => {
   const source = [['tool-1'], ['tool-2'], ['delegation:child', 'work', undefined, 1000, 5000, 'delegation'], ['tool-3'], ['assistant:after', 'conversation']];
@@ -1466,7 +1835,7 @@ test('mixed summary exposes delegated work outside tool disclosures and restores
     assert.equal(dom.rows[0].hasAttribute(HIDDEN), false);
     assert.deepEqual(children.map(r => r.hasAttribute(HIDDEN)), [true, true, false, true]);
     const metrics = [...native.items.querySelectorAll('[data-metrics]')];
-    assert.deepEqual(metrics.map(e => e.textContent), ['2 tools · 600ms', '1 tool · 300ms']);
+    assert.deepEqual(metrics.map(e => e.textContent), ['2 tools', '1 tool']);
     // The bundle mounts during the first pass; metrics appear in the next.
     // Focus stays on the visible fallback rather than being stolen afterward.
     assert.equal(dom.window.document.activeElement, dom.rows[0]);
@@ -1514,8 +1883,8 @@ for (const reasoning of [false, true]) {
       nativeSummary(dom, dom.rows[1], 'Ran 2 tools');
       await dom.flush();
       const metrics = [...dom.container.querySelectorAll('[data-metrics]')].map(e => e.textContent);
-      if (reasoning) assert.deepEqual(metrics, ['3 tools · time unavailable', '2 tools · 600ms']);
-      else assert.deepEqual(metrics, ['5 tools · time unavailable']);
+      if (reasoning) assert.deepEqual(metrics, ['3 tools', '2 tools']);
+      else assert.deepEqual(metrics, ['5 tools']);
     } finally { dom.cleanup(); }
   });
 }
@@ -1574,7 +1943,7 @@ test('activity changes from working to finished after the terminal refresh', asy
     assert.equal(marker.getAttribute('data-tool-state'), 'completed');
     assert.equal(marker.querySelector('[data-activity-label]').textContent, 'Завершено');
     assert.notEqual(marker.querySelector('[data-minus-icon]').innerHTML, before);
-    assert.equal(marker.querySelector('[data-metrics]').textContent, '1 tool · 600ms');
+    assert.equal(marker.querySelector('[data-metrics]').textContent, '1 tool');
   } finally { dom.cleanup(); }
 });
 
@@ -1640,7 +2009,7 @@ test('activity animation pauses outside the viewport and in background, and disp
   }
 });
 
-test('a multi-call cycle never exposes partial seconds and publishes the final sum once finished', async () => {
+test('a multi-call cycle keeps count-only metrics and disclosure through completion', async () => {
   let notify, finished = false;
   const clock = makeClock(10000);
   const dom = mountDom({ rowIds: ['tool-1', 'tool-2'], clock,
@@ -1653,12 +2022,12 @@ test('a multi-call cycle never exposes partial seconds and publishes the final s
     assert.equal(metrics.textContent, '2 tools');
     clock.advance(2000);await dom.flush();
     assert.equal(metrics.textContent, '2 tools');
-    assert.equal(metrics.querySelector('[data-time]').textContent, '');
-    assert.equal(metrics.querySelector('[data-time-separator]').textContent, '');
+    assert.equal(metrics.querySelector('[data-time]'), null);
+    assert.equal(metrics.querySelector('[data-time-separator]'), null);
     metrics.click();await dom.flush();
     assert.equal(metrics.getAttribute('aria-expanded'), 'true');
     finished = true;notify('thr_test', true);await dom.flush();
-    assert.equal(metrics.textContent, '2 tools · 3.3s');
+    assert.equal(metrics.textContent, '2 tools');
     assert.equal(metrics.getAttribute('aria-expanded'), 'true');
     const caption = dom.container.querySelector('[data-quote-control]');
     assert.equal(caption.tagName, 'LABEL');
@@ -1667,16 +2036,6 @@ test('a multi-call cycle never exposes partial seconds and publishes the final s
     assert.equal(dom.container.querySelector('a, br'), null);
   } finally { dom.cleanup(); }
 });
-
-for (const [milliseconds, expected] of [[600, '600ms'], [42000, '42s'], [59999, '1m'], [60000, '1m'], [68000, '1m 08s'], [754000, '12m 34s'], [3599999, '1h'], [3723000, '1h 2m']]) {
-  test('formats final tool duration ' + milliseconds + ' as ' + expected, async () => {
-    const dom = mountDom({ rowIds: ['tool-1'], fetchTimeline: async () => timeline([['tool-1', 'work', undefined, 1000, 1000 + milliseconds]]) });
-    try {
-      await dom.flush();
-      assert.equal(dom.container.querySelector('[data-time]').textContent, expected);
-    } finally { dom.cleanup(); }
-  });
-}
 
 test('keeps a visible disclosure chevron after metrics and rotates it for either toggle', async () => {
   const dom = mountDom({ rowIds: ['tool-1'], fetchTimeline: async () => timeline([['tool-1']]) });
@@ -1716,7 +2075,7 @@ test('one visual tool block gets one quote across unmounted native reasoning', a
     await dom.flush();
     const markers = dom.container.querySelectorAll('[data-bb-minus-group]');
     assert.equal(markers.length, 1);
-    assert.equal(markers[0].querySelector('[data-metrics]').textContent, '3 tools · 900ms');
+    assert.equal(markers[0].querySelector('[data-metrics]').textContent, '3 tools');
     const button = markers[0].querySelector('[data-toggle=metrics]');
     button.click();await dom.flush();
     assert(dom.rows.every(row => !row.hasAttribute(HIDDEN)));
@@ -1740,7 +2099,7 @@ test('adjacent native summaries and raw tools union their API members exactly on
     nativeSummary(dom, dom.rows[3], 'Ran 1 tool');
     await dom.flush();
     const metrics = [...dom.container.querySelectorAll('[data-metrics]')];
-    assert.deepEqual(metrics.map(e => e.textContent), ['6 tools · 1.8s']);
+    assert.deepEqual(metrics.map(e => e.textContent), ['6 tools']);
   } finally { dom.cleanup(); }
 });
 
@@ -1758,15 +2117,18 @@ test('the combined visual cycle hides time until every constituent run finishes'
     assert.equal(metrics.closest('[data-bb-minus-group]').getAttribute('data-tool-state'), 'pending');
     metrics.click();await dom.flush();
     finished = true;notify('thr_test', true);await dom.flush();
-    assert.equal(metrics.textContent, '2 tools · 1m 08s');
+    assert.equal(metrics.textContent, '2 tools');
     assert.equal(metrics.getAttribute('aria-expanded'), 'true');
   } finally { dom.cleanup(); }
 });
 
-test('joining after a visible reasoning row disappears preserves the latest choice and metrics focus', async () => {
-  const dom = mountDom({ rowIds: ['tool-1', 'op:reasoning:visible', 'tool-2'], fetchTimeline: async () => completedReasoningTimeline([
-    ['tool-1'], ['op:reasoning:visible', 'system', 'reasoning'], ['tool-2'],
-  ]) });
+test('confirming a mounted Thought preserves the latest choice and metrics focus when groups join', async () => {
+  let verified = false, notify;
+  const rows = [['tool-1'], ['op:reasoning:visible', 'system', 'reasoning'], ['tool-2']];
+  const dom = mountDom({ rowIds: rows.map(row => row[0]),
+    fetchTimeline: async () => verified ? completedReasoningTimeline(rows) : timeline(rows),
+    subscribeTimeline: callback => { notify = callback; return () => {}; },
+  });
   try {
     await dom.flush();
     const controls = [...dom.container.querySelectorAll('[data-metrics]')];
@@ -1774,6 +2136,8 @@ test('joining after a visible reasoning row disappears preserves the latest choi
     controls[0].click();await dom.flush();
     controls[0].click();await dom.flush();
     controls[1].focus();controls[1].click();await dom.flush();
+    verified = true;notify('thr_test', true);await dom.flush();
+    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
     dom.rows[1].remove();await dom.flush();
     const merged = dom.container.querySelector('[data-metrics]');
     assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
@@ -1782,6 +2146,320 @@ test('joining after a visible reasoning row disappears preserves the latest choi
     merged.click();await dom.flush();
     assert.equal(merged.getAttribute('aria-expanded'), 'false');
     assert(dom.rows.filter(row => row.isConnected).every(row => row.hasAttribute(HIDDEN)));
+  } finally { dom.cleanup(); }
+});
+
+test('five tool batches separated by mounted Thoughts share one quote and only tool metrics', async () => {
+  const rows = [['assistant:before', 'conversation']];
+  let tool = 0;
+  for (const [index, count] of [2, 2, 2, 1, 1].entries()) {
+    for (let i = 0; i < count; i++) rows.push(['tool-' + ++tool]);
+    rows.push(['op:reasoning:' + index, 'system', 'reasoning', 0, 9000]);
+  }
+  rows.push(['assistant:after', 'conversation']);
+  const dom = mountDom({ rowIds: rows.map(row => row[0]), fetchTimeline: async () => completedReasoningTimeline(rows) });
+  try {
+    await dom.flush();
+    const controls = [...dom.container.querySelectorAll('[data-metrics]')];
+    assert.equal(controls.length, 1);
+    assert.equal(controls[0].textContent, '8 tools');
+    assert.equal(dom.rows[0].hasAttribute(HIDDEN), false);
+    assert.equal(dom.rows.at(-1).hasAttribute(HIDDEN), false);
+    assert(dom.rows.slice(1, -1).every(row => row.hasAttribute(HIDDEN)));
+    controls[0].click();await dom.flush();
+    assert(dom.rows.every(row => !row.hasAttribute(HIDDEN)));
+    controls[0].click();await dom.flush();
+    assert(dom.rows.slice(1, -1).every(row => row.hasAttribute(HIDDEN)));
+    dom.dispose();
+    assert(dom.rows.every(row => !row.hasAttribute(HIDDEN)));
+  } finally { dom.cleanup(); }
+});
+
+for (const position of ['before', 'between', 'after']) {
+  test('pending mounted Thought ' + position + ' the tools keeps the cycle active without a duration label', async () => {
+    let finished = false, notify;
+    const thought = ['op:reasoning:active', 'system', 'reasoning', 0, null];
+    const rows = position === 'before' ? [thought, ['tool-1'], ['tool-2']] :
+      position === 'between' ? [['tool-1'], thought, ['tool-2']] : [['tool-1'], ['tool-2'], thought];
+    const dom = mountDom({ rowIds: rows.map(row => row[0]),
+      fetchTimeline: async () => completedReasoningTimeline(rows).map(row => row.operationKind === 'reasoning' && finished ?
+        { ...row, status: 'completed', completedAt: 9000 } : row),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      await dom.flush();
+      const marker = dom.container.querySelector('[data-bb-minus-group]');
+      assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
+      assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+      assert.equal(marker.querySelector('[data-metrics]').textContent, '2 tools');
+      marker.querySelector('[data-metrics]').click();await dom.flush();
+      finished = true;notify('thr_test', true);await dom.flush();
+      assert.equal(marker.getAttribute('data-tool-state'), 'completed');
+      assert.equal(marker.querySelector('[data-metrics]').textContent, '2 tools');
+      assert.equal(marker.querySelector('[data-metrics]').getAttribute('aria-expanded'), 'true');
+      assert(dom.rows.every(row => !row.hasAttribute(HIDDEN)));
+    } finally { dom.cleanup(); }
+  });
+}
+
+test('a standalone verified Thought stays native instead of creating a zero-tool quote', async () => {
+  const dom = mountDom({ rowIds: ['op:reasoning:only'], fetchTimeline: async () => completedReasoningTimeline([
+    ['op:reasoning:only', 'system', 'reasoning'],
+  ]) });
+  try {
+    await dom.flush();
+    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 0);
+    assert.equal(dom.rows[0].hasAttribute(HIDDEN), false);
+  } finally { dom.cleanup(); }
+});
+
+for (const bothSides of [false, true]) {
+  test('virtualizing a pending Thought preserves cycle activity until terminal: both sides ' + bothSides, async () => {
+    let finished = false, notify;
+    const rows = [['tool-1'], ['op:reasoning:virtual-pending', 'system', 'reasoning', 0, null],
+      ...(bothSides ? [['tool-2']] : [])];
+    const dom = mountDom({ rowIds: rows.map(row => row[0]),
+      fetchTimeline: async () => completedReasoningTimeline(rows).map(row => row.operationKind === 'reasoning' && finished ?
+        { ...row, status: 'completed', completedAt: 9000 } : row),
+      subscribeTimeline: callback => { notify = callback;return () => {}; },
+    });
+    try {
+      await dom.flush();
+      const expectedCount = bothSides ? '2 tools' : '1 tool';
+      const thought = dom.rows[1];
+      const inspect = () => {
+        assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
+        const marker = dom.container.querySelector('[data-bb-minus-group]');
+        assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+        assert.equal(marker.querySelector('[data-metrics]').textContent, expectedCount);
+      };
+      inspect();thought.remove();await dom.flush();inspect();
+      dom.container.insertBefore(thought, bothSides ? dom.rows[2] : null);await dom.flush();inspect();
+      thought.remove();await dom.flush();
+      finished = true;notify('thr_test', true);await dom.flush();
+      const marker = dom.container.querySelector('[data-bb-minus-group]');
+      assert.equal(marker.getAttribute('data-tool-state'), 'completed');
+      assert.equal(marker.querySelector('[data-metrics]').textContent, expectedCount);
+    } finally { dom.cleanup(); }
+  });
+}
+
+for (const position of ['before', 'after']) {
+  test('an owned pending Thought is recovered past unmounted completed reasoning: ' + position, async () => {
+    let finished = false, notify;
+    const completed = ['op:reasoning:completed-gap', 'system', 'reasoning'];
+    const pending = ['op:reasoning:owned-gap', 'system', 'reasoning', 1000, null];
+    const source = position === 'after' ? [['tool-1'], completed, pending] : [pending, completed, ['tool-1']];
+    const dom = mountDom({
+      rowIds: source.filter(row => row !== completed).map(row => row[0]),
+      fetchTimeline: async () => completedReasoningTimeline(source).map(row =>
+        row.id === fullId(pending[0]) && finished ? { ...row, status: 'completed' } : row),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      await dom.flush();
+      const marker = dom.container.querySelector('[data-bb-minus-group]');
+      const metrics = marker.querySelector('[data-metrics]');
+      assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+      metrics.focus(); metrics.click();
+      dom.rows[position === 'after' ? 1 : 0].remove(); await dom.flush();
+      assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+      assert.equal(metrics.textContent, '1 tool');
+      assert.equal(metrics.getAttribute('aria-expanded'), 'true');
+      assert.equal(dom.window.document.activeElement, metrics);
+      finished = true; notify('thr_test', true); await dom.flush();
+      assert.equal(marker.getAttribute('data-tool-state'), 'completed');
+    } finally { dom.cleanup(); }
+  });
+}
+
+for (const bothSides of [false, true]) {
+  test('a pending Thought keeps its proven owners while only it remains mounted: both sides ' + bothSides, async () => {
+    let finished = false, notify;
+    const source = [['tool-1'], ['op:reasoning:alone', 'system', 'reasoning', 1000, null],
+      ...(bothSides ? [['tool-2']] : [])];
+    const dom = mountDom({
+      rowIds: source.map(row => row[0]),
+      fetchTimeline: async () => completedReasoningTimeline(source).map(row =>
+        row.operationKind === 'reasoning' && finished ? { ...row, status: 'completed' } : row),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      await dom.flush();
+      assert.equal(dom.container.querySelector('[data-bb-minus-group]').getAttribute('data-tool-state'), 'pending');
+      const thought = dom.rows[1], tools = dom.rows.filter(row => row !== thought);
+      for (const tool of tools) tool.remove();
+      await dom.flush();
+      assert.equal(dom.container.querySelectorAll('[data-bb-minus-group]').length, 0);
+      assert.equal(thought.hasAttribute(HIDDEN), false);
+      dom.container.insertBefore(tools[0], thought);
+      if (bothSides) dom.container.append(tools[1]);
+      thought.remove(); await dom.flush();
+      const marker = dom.container.querySelector('[data-bb-minus-group]');
+      assert.equal(dom.container.querySelectorAll('[data-bb-minus-group]').length, 1);
+      assert.equal(marker.getAttribute('data-tool-state'), 'pending');
+      assert.equal(marker.querySelector('[data-metrics]').textContent, bothSides ? '2 tools' : '1 tool');
+      finished = true; notify('thr_test', true); await dom.flush();
+      assert.equal(marker.getAttribute('data-tool-state'), 'completed');
+    } finally { dom.cleanup(); }
+  });
+}
+
+for (const ownerSide of ['left', 'right']) {
+  test('a known pending Thought stays with its own group across a spacer and virtualization: ' + ownerSide, async () => {
+    let finished = false, notify;
+    const source = [['tool-1'], ['op:reasoning:owned', 'system', 'reasoning', 0, null], ['tool-2']];
+    const dom = mountDom({ rowIds: source.map(row => row[0]),
+      fetchTimeline: async () => completedReasoningTimeline(source).map(row => row.operationKind === 'reasoning' && finished ?
+        { ...row, status: 'completed', completedAt: 9000 } : row),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      await dom.flush();
+      assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
+      const thought = dom.rows[1];
+      const spacer = dom.window.document.createElement('div');
+      spacer.setAttribute('data-timeline-window-spacer', '');
+      dom.container.insertBefore(spacer, ownerSide === 'left' ? dom.rows[2] : thought);
+      const inspect = async () => {
+        await dom.flush();
+        const markers = [...dom.container.querySelectorAll('[data-bb-minus-group]')];
+        assert.deepEqual(markers.map(row => row.getAttribute('data-tool-state')),
+          ownerSide === 'left' ? ['pending', 'completed'] : ['completed', 'pending']);
+        assert.deepEqual(markers.map(row => row.querySelector('[data-metrics]').textContent),
+          ownerSide === 'left' ? ['1 tool', '1 tool'] : ['1 tool', '1 tool']);
+        assert.equal(spacer.hasAttribute(HIDDEN), false);
+        return markers;
+      };
+      const markers = await inspect();
+      const metrics = markers[ownerSide === 'left' ? 0 : 1].querySelector('[data-metrics]');
+      metrics.focus(); metrics.click();
+      thought.remove(); await inspect();
+      dom.container.insertBefore(thought, ownerSide === 'left' ? spacer : dom.rows[2]);
+      await inspect();
+      thought.remove(); await inspect();
+      finished = true; notify('thr_test', true); await dom.flush();
+      assert.deepEqual([...dom.container.querySelectorAll('[data-metrics]')].map(row => row.textContent),
+        ['1 tool', '1 tool']);
+      assert.equal(metrics.getAttribute('aria-expanded'), 'true');
+      assert.equal(dom.window.document.activeElement, metrics);
+    } finally { dom.cleanup(); }
+  });
+}
+
+for (const ownerSide of ['left', 'right']) for (const resolution of ['mount', 'terminal', 'join']) {
+  test('simultaneous spacer and Thought virtualization waits for ' + resolution + ': ' + ownerSide, async () => {
+    let finished = false, notify;
+    const source = [['tool-1'], ['op:reasoning:ambiguous', 'system', 'reasoning', 0, null], ['tool-2']];
+    const dom = mountDom({ rowIds: source.map(row => row[0]),
+      fetchTimeline: async () => completedReasoningTimeline(source).map(row => row.operationKind === 'reasoning' && finished ?
+        { ...row, status: 'completed', completedAt: 9000 } : row),
+      subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      await dom.flush();
+      const thought = dom.rows[1], spacer = dom.window.document.createElement('div');
+      spacer.setAttribute('data-timeline-window-spacer', '');
+      dom.container.insertBefore(spacer, ownerSide === 'left' ? dom.rows[2] : thought);
+      thought.remove(); await dom.flush();
+      const markers = () => [...dom.container.querySelectorAll('[data-bb-minus-group]')];
+      assert.deepEqual(markers().map(row => row.getAttribute('data-tool-state')), ['unknown', 'unknown']);
+      assert.deepEqual(markers().map(row => row.querySelector('[data-metrics]').textContent),
+        ['1 tool', '1 tool']);
+      if (resolution === 'mount') {
+        dom.container.insertBefore(thought, ownerSide === 'left' ? spacer : dom.rows[2]);
+        await dom.flush();
+        assert.deepEqual(markers().map(row => row.getAttribute('data-tool-state')),
+          ownerSide === 'left' ? ['pending', 'completed'] : ['completed', 'pending']);
+        thought.remove(); await dom.flush();
+      } else if (resolution === 'join') {
+        spacer.remove(); await dom.flush();
+        assert.deepEqual(markers().map(row => row.getAttribute('data-tool-state')), ['pending']);
+        assert.equal(markers()[0].querySelector('[data-metrics]').textContent, '2 tools');
+      }
+      finished = true; notify('thr_test', true); await dom.flush();
+      assert(markers().every(row => row.getAttribute('data-tool-state') === 'completed'));
+      assert.deepEqual(markers().map(row => row.querySelector('[data-metrics]').textContent),
+        resolution === 'join' ? ['2 tools'] : ['1 tool', '1 tool']);
+    } finally { dom.cleanup(); }
+  });
+}
+
+for (const boundary of ['conversation', 'nested-source']) {
+  test('virtualized Thought ownership follows a new API boundary: ' + boundary, async () => {
+    let separated = false, notify;
+    const source = [['tool-1'], ['op:reasoning:moved', 'system', 'reasoning', 0, null], ['tool-2']];
+    const dom = mountDom({ rowIds: source.map(row => row[0]),
+      fetchTimeline: async () => {
+        const rows = completedReasoningTimeline(source);
+        if (!separated) return rows;
+        return boundary === 'conversation' ? [rows[0], { id: fullId('assistant:boundary'), kind: 'conversation' }, ...rows.slice(1)] :
+          [rows[0], { id: fullId('nested:turn'), kind: 'turn', children: rows.slice(1) }];
+      }, subscribeTimeline: callback => { notify = callback; return () => {}; },
+    });
+    try {
+      await dom.flush();
+      const spacer = dom.window.document.createElement('div');
+      spacer.setAttribute('data-timeline-window-spacer', '');
+      dom.container.insertBefore(spacer, dom.rows[1]);
+      dom.rows[1].remove(); separated = true; notify('thr_test', true); await dom.flush();
+      const markers = [...dom.container.querySelectorAll('[data-bb-minus-group]')];
+      assert.deepEqual(markers.map(row => row.getAttribute('data-tool-state')), ['completed', 'pending']);
+      assert.deepEqual(markers.map(row => row.querySelector('[data-metrics]').textContent),
+        ['1 tool', '1 tool']);
+    } finally { dom.cleanup(); }
+  });
+}
+
+for (const status of ['error', 'cancelled', 'unknown-state']) {
+  test('mounted reasoning with ' + status + ' status remains an independent visible boundary', async () => {
+    const dom = mountDom({ rowIds: ['tool-1', 'op:reasoning:boundary', 'tool-2'], fetchTimeline: async () =>
+      completedReasoningTimeline([['tool-1'], ['op:reasoning:boundary', 'system', 'reasoning'], ['tool-2']])
+        .map(row => row.operationKind === 'reasoning' ? { ...row, status } : row),
+    });
+    try {
+      await dom.flush();
+      assert.equal(dom.rows[1].hasAttribute(HIDDEN), false);
+      assert.deepEqual([...dom.container.querySelectorAll('[data-metrics]')].map(e => e.textContent), ['1 tool', '1 tool']);
+    } finally { dom.cleanup(); }
+  });
+}
+
+test('a grouped Thought gaining a message becomes a protected boundary even after virtualization', async () => {
+  const dom = mountDom({ rowIds: ['tool-1', 'op:reasoning:stream', 'tool-2'], fetchTimeline: async () =>
+    completedReasoningTimeline([['tool-1'], ['op:reasoning:stream', 'system', 'reasoning'], ['tool-2']]),
+  });
+  try {
+    await dom.flush();
+    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
+    const message = dom.window.document.createElement('div');
+    message.className = 'group/message';message.textContent = 'Полезный промежуточный результат';
+    dom.rows[1].append(message);await dom.flush();
+    assert.equal(dom.rows[1].hasAttribute(HIDDEN), false);
+    assert.equal(message.closest('[data-bb-minus-hidden]'), null);
+    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 2);
+    dom.rows[1].remove();await dom.flush();
+    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 2);
+  } finally { dom.cleanup(); }
+});
+
+test('Thought grouping recovers from a failed API refresh without reviving an older disclosure', async () => {
+  let fail = false, notify;
+  const dom = mountDom({ rowIds: ['tool-1', 'op:reasoning:refresh', 'tool-2'], fetchTimeline: async () => {
+    if (fail) throw Error('temporary API failure');
+    return completedReasoningTimeline([['tool-1'], ['op:reasoning:refresh', 'system', 'reasoning'], ['tool-2']]);
+  }, subscribeTimeline: callback => { notify = callback;return () => {}; } });
+  try {
+    await dom.flush();
+    const metrics = dom.container.querySelector('[data-metrics]');
+    metrics.click();await dom.flush();metrics.click();await dom.flush();
+    fail = true;notify('thr_test', true);await dom.flush();
+    assert.equal(dom.rows[1].hasAttribute(HIDDEN), false);
+    fail = false;notify('thr_test', true);await dom.flush();
+    const restored = dom.container.querySelector('[data-metrics]');
+    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
+    assert.equal(restored.getAttribute('aria-expanded'), 'false');
+    assert.equal(restored.textContent, '2 tools');
   } finally { dom.cleanup(); }
 });
 
@@ -1846,7 +2524,7 @@ test("Dalio attribution stays compact and stable while rows are virtualized", as
   try {
     await dom.flush();
     const inspect = () => dom.container.querySelector("[data-quote-control]").textContent;
-    assert.equal(inspect(), "Боль + анализ = прогресс. → Рэй Далио → Примите реальность и работайте с ней");
+    assert.equal(inspect(), "Боль + анализ = прогресс. · Рэй Далио → Примите реальность и работайте с ней");
     const before = inspect();
     const row = dom.makeRow("tool-2");dom.container.append(row);await dom.flush();
     assert.equal(inspect(), before);assert.equal(picks, 1);

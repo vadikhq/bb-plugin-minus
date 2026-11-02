@@ -1,0 +1,82 @@
+{
+  "reviewer": "/root/summary_ownership_review",
+  "sourceSha256": "cd66cccd444d6e7df89376e76f70fbb5953f597a12530750124fe1ab6dbce88f",
+  "testSha256": "c79af733feb6b49348cc360f54d23acdc938ec3f3e1baf182b82cc621595b42c",
+  "at": "2026-11-01T17:27:28.922Z",
+  "verdict": "PASS: all four reported GitHub P2 findings plus independently found v4 owner-priority regression and native-interior recomposition edge are closed on these exact candidate bytes; no open P0/P1/P2 in the targeted reviewed scope",
+  "openFindings": [],
+  "resolvedFindings": [
+    {
+      "thread": "PRRT_kwDOVaTjmM6yafTK",
+      "severity": "P2",
+      "cause": "native summary borrowed trailing Thought across a virtualization spacer",
+      "status": "closed; both ownership sides rechecked"
+    },
+    {
+      "thread": "PRRT_kwDOVaTjmM6ycSOC",
+      "severity": "P2",
+      "cause": "zero-tool DOM part erased proven tool anchors",
+      "status": "closed; one/two-tool remount and current API boundary controls rechecked"
+    },
+    {
+      "thread": "PRRT_kwDOVaTjmM6ycYmV",
+      "severity": "P2",
+      "cause": "redundant tool walk lost a proven pending endpoint behind unmounted completed reasoning",
+      "status": "closed; direct uniquely recovered-id consumption, both directions and unowned/visible/error controls rechecked"
+    },
+    {
+      "thread": "PRRT_kwDOVaTjmM6ycl38",
+      "severity": "P2",
+      "cause": "reasoning proved only by native summary lost its owner when a spacer later appeared",
+      "baselineSourceSha256": "b848c432c00766f7069e8c1a52f83560a817187e6099b20cc15818369c834206",
+      "status": "closed; initial unknown gap stays unproved, subsequent proved span survives renewed gap until API terminal"
+    },
+    {
+      "severity": "P2",
+      "origin": "independent v4 review",
+      "baselineSourceSha256": "07efed8b56182f367c3cabba883a8ce3baef4e98cf8d3c269eba8b9310fef87c",
+      "cause": "inferred native trailing span overwrote a still-valid right owner during spacer remove/restore",
+      "status": "closed; earlier valid anchors take precedence over weaker inferred trailing proof"
+    },
+    {
+      "origin": "independent conditional composition fixture",
+      "cause": "native interior identity was forgotten when native summary was recomposed into raw tool rows",
+      "status": "closed; proven native reasoning identity is retained, one two-tool pending summary survives recomposition"
+    }
+  ],
+  "proofAudit": {
+    "nativeAnchors": "Only work ids from the particular proven native summary span are captured; unrelated tools in the visual part are not anchors.",
+    "identity": "Only service reasoning from a proven native span is added as known; an initial trailing gap still prevents proof.",
+    "priority": "Explicit leading/interior membership can renew anchors. Inferred trailing membership retains prior anchors while the shared current-API connection check remains valid.",
+    "currentRevalidation": "Recovered membership still requires current part tool anchor, same API source, service/non-visible intermediate path and unique matching part. The storage validity check is intentionally independent of temporary DOM availability.",
+    "validatedRenewal": "Conversation and nested-source invalidation of the old owner allow the new native trailing proof; explicit native interior proof can renew anchors and survive a later source split."
+  },
+  "independentChecks": {
+    "jsdomTargetedCases": 44,
+    "nativeProofCases": 13,
+    "chromiumContexts": 16,
+    "chromiumWidths": [
+      390,
+      1280
+    ],
+    "browserPageErrors": 0,
+    "savedPng": 32,
+    "reviewedPng": 10,
+    "allFixtureCleanup": true
+  },
+  "harnessCorrection": {
+    "file": "summary-owner-regap-browser-old-pointer-assert.json",
+    "reason": "Initial reviewer assert incorrectly required the same DOM button identity after a merged/recreated group. The exact module migrates focus to a live disclosure button. Corrected fixture explicitly asserts activeDisclosure for join/regap and records old-pointer identity separately.",
+    "final": "Four regap contexts pass with focused live disclosure; no module code was changed for the correction."
+  },
+  "cleanup": "Every reviewer JSDOM window, HTTP server, browser context and browser completed its finally cleanup. Small frozen baseline files/scripts and evidence remain for reproduction; no copied or changed dependency trees.",
+  "writer": {
+    "fullTests": 126,
+    "failures": 0,
+    "typeScript": "PASS",
+    "build": "PASS",
+    "sdkPin": "0.6.79",
+    "installed": false,
+    "rejectedCandidatePublished": false
+  }
+}

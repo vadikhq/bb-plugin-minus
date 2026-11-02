@@ -1,0 +1,12 @@
+{
+  "sourceSha256": "e170b1ad5dbd6d142e46c15682f809b4a69a48dab89fce042e2c462a4e72a41d",
+  "referenceSourceSha256": "94cd59245e9379e9da994f7ff5f0031949ee909f1ef7a0daa97aa66a11035672",
+  "templateChange": "only data-quote italic to not-italic; all other template bytes identical",
+  "styleLiteralBytesEqual": true,
+  "logicChangesFromReference": [
+    "reasoningDetail excludes work-summary wrappers",
+    "summaryEntries preserves reasoning in a verified native summary span for activity; work alone contributes count/time"
+  ],
+  "generatedCssBytesEqualToInstalled": false,
+  "generatedCssScope": "Tailwind artifact differs from installed; final generated CSS validated by browser matrix, no byte-equivalence claim"
+}

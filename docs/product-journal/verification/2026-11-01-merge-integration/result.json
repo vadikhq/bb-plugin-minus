@@ -1,0 +1,242 @@
+{
+  "sourceSha256": "1aaa646af8d77e96d14c6ef7feef705216c5aeb0541b3f1557f2e49252dc83bd",
+  "testsSha256": "eeb299c615a32c4bd8267bbc0da4f0e0f91698f8aaf334b5ef372d336ff04034",
+  "approvedPr3": {
+    "head": "59428a64e8775038609b39d31f43fe5261b8420c",
+    "base": "9bf014f9c594f79d6d95734152f755fd03bfb666",
+    "mergeCommit": "d2918768c998192b892931e1fce910282bae9ac6",
+    "method": "merge",
+    "branchPreserved": true
+  },
+  "integrationParents": [
+    "c8da12f3ba2e5f27505ec43bcd8429f1e2c7ca76",
+    "d2918768c998192b892931e1fce910282bae9ac6"
+  ],
+  "tests": {
+    "total": 132,
+    "failures": 0,
+    "typeScript": "PASS",
+    "build": "PASS",
+    "initialFailure": "Imported dictionary expectation used superseded arrow; expected separator updated to owner-approved middle dot. Quote text unchanged."
+  },
+  "independentReview": {
+    "reviewer": "/root/summary_ownership_review",
+    "verdict": "PASS: combined candidate preserves dictionary functionality and all four reviewed grouping P2 fixes; no open P0/P1/P2 in this integration review",
+    "openFindings": [],
+    "corePreservation": {
+      "wholeNormalizedModuleEqualsPr2Reference": true,
+      "normalizedSourceSha256": "cd66cccd444d6e7df89376e76f70fbb5953f597a12530750124fe1ab6dbce88f",
+      "allowedAdapterChanges": [
+        "dictionary-builtins import",
+        "GroupQuote type/default/cache annotations",
+        "strictly verified quoteAttribution byline/detail block"
+      ],
+      "allFourGithubP2FixesPreserved": true,
+      "nativeOwnerPriorityAndRawRecompositionFixesPreserved": true,
+      "nativeBoundaryMarkupCssAndCountOnlyLogicUnchanged": true
+    },
+    "dictionaryPreservation": [
+      {
+        "path": "app.tsx",
+        "sha256": "0085a9171ccdaf6d2f25196a2f806910f0abaa783781a4df3ded0b66cdb07890",
+        "exactMergedMain": true,
+        "exactPr3Head": true
+      },
+      {
+        "path": "server.ts",
+        "sha256": "cbf0bd085a06ab057a99f4bb3cc5aeaac753e8190c98abacd64cfeb2358ab6d3",
+        "exactMergedMain": true,
+        "exactPr3Head": true
+      },
+      {
+        "path": "dalio-quotes.ts",
+        "sha256": "ef16d7407c5a7e54353c74579234f6ff9306a098a57469e46ea7542fded16f6a",
+        "exactMergedMain": true,
+        "exactPr3Head": true
+      },
+      {
+        "path": "dictionary-builtins.ts",
+        "sha256": "84263e395cb322f23931c60680f078e264dd5403b649edc819b9131c53889b1c",
+        "exactMergedMain": true,
+        "exactPr3Head": true
+      },
+      {
+        "path": "dictionary-contract.ts",
+        "sha256": "505008155dc34289a078d11c6cd4df3bd06776195a26b4a67ea2418c37eaeba7",
+        "exactMergedMain": true,
+        "exactPr3Head": true
+      },
+      {
+        "path": "dictionary-model.ts",
+        "sha256": "b837eaa71315c24781ca20a045c05c07bd565898aa642add1151f1ebfc8ff348",
+        "exactMergedMain": true,
+        "exactPr3Head": true
+      },
+      {
+        "path": "dictionary-store.ts",
+        "sha256": "34ccc86d667d62e7fe64ad4cf036add0369db6ab21f917f1d65dffcc1211fe99",
+        "exactMergedMain": true,
+        "exactPr3Head": true
+      },
+      {
+        "path": "dictionaries.test.mjs",
+        "sha256": "f774ef9b984928da2bce5223ac536889ed72cf24f7de1ae525ae2182287c51b0",
+        "exactMergedMain": true,
+        "exactPr3Head": true
+      },
+      {
+        "path": "package.json",
+        "sha256": "14e86cd34db041bb10b783a34f236b2188c84830020693f595b06cd82c0b6186",
+        "exactMergedMain": true,
+        "exactPr3Head": true
+      },
+      {
+        "path": "package-lock.json",
+        "sha256": "233cb823d5097f4619b9194874ce18ebe64ac709bfd33f0d66be32102110c4a8",
+        "exactMergedMain": true,
+        "exactPr3Head": true
+      }
+    ],
+    "independentChecks": {
+      "currentModuleJsdomCases": 44,
+      "captionVariants": [
+        "legacy QuoteEntry",
+        "Dalio Citation",
+        "custom Citation"
+      ],
+      "captionDotNormalTypeNoLinkNoForcedBreakNoTime": true,
+      "captionStableAcrossVirtualization": true,
+      "rpcAgentImportParity": true,
+      "importDoesNotActivate": true,
+      "importIdempotentAndAtomic": true,
+      "builtinReplacementProtected": true,
+      "revisionCasPreserved": true,
+      "explicitActivationAndDisposableReloadPreserveData": true,
+      "original73Dalio452ExactData": true
+    },
+    "docs": [
+      {
+        "path": "README.md",
+        "sha256": "82bc60c43157dc7e2b86026b4d7367ef001ba4638a425051751a4e7d0dc0b830",
+        "dictionarySectionsPreserved": true,
+        "currentNoTimeThoughtAndDotWording": true
+      },
+      {
+        "path": "PLUGIN_OVERVIEW.md",
+        "sha256": "83b1fa15a0ec4f0577beea5a6222d0c3a876fafaef9f2925f10342144279c8ba",
+        "dictionarySectionsPreserved": true,
+        "currentNoTimeThoughtAndDotWording": true
+      },
+      {
+        "path": "skills/minus/SKILL.md",
+        "sha256": "1b432792e37d6b4fbbe67b1e8d9cd1c7364f1ece6e07686beec0459c8e9f1209",
+        "dictionarySectionsPreserved": true,
+        "currentNoTimeThoughtAndDotWording": true
+      }
+    ],
+    "limits": [
+      "Exact current working-tree source/test-byte review, not approval of merge, installation or final published Git HEAD.",
+      "Reviewer did not rerun the complete132-test suite; executed44 targeted independent cases plus a separate disposable official fake-host lifecycle/caption probe.",
+      "Prior Chromium evidence applies only to unchanged normalized grouping/markup/CSS; new combined native UI verification is the writer separate evidence, not an independent installed/live check by this reviewer.",
+      "Review binds final working-tree Dalio test expectation to accepted middle dot; writer must stage identical reviewed bytes before commit if the index differs.",
+      "No writer source/tests/index/refs/PR/SDK/runtime/foreign-checkout or live plugin/database changes by reviewer."
+    ],
+    "cleanup": "Reviewer JSDOM windows and official SDK fake host/disposable database disposed. Only reviewer-owned fixtures and JSON evidence were written to thread storage."
+  },
+  "native": {
+    "method": "isolated headless Chromium; actual frontend, exact real screenshot API pages pinned in disposable clients; full verified candidate frontend responses only, no installed writes",
+    "candidateJsSha256": "69e2631012ad26b9f0e8bf985f0f2d80a7115f5f10b258e7b715a779adce4539",
+    "runtimeSourceAndBundleUnchanged": true,
+    "captureNotes": [
+      "Initial detached scroll call failed; own browser cleanup completed.",
+      "Four DOM scenarios passed but one narrow PNG captured stale viewport contents and was not accepted.",
+      "Narrow second case recaptured after same-element/same-rect consecutive-frame stability; all four final quote PNG reviewed."
+    ],
+    "allQuotePngViewed": true,
+    "contexts": [
+      {
+        "width": 390,
+        "case": "first",
+        "flat": true,
+        "metrics": [
+          "17 tools"
+        ],
+        "timeNodes": 0,
+        "protectedMessagesVisible": true,
+        "delegationVisible": true,
+        "geometry": {
+          "nowrap": "nowrap",
+          "countHeight": 20,
+          "arrowHeight": 12,
+          "aligned": true
+        },
+        "errors": [],
+        "overflow": false,
+        "passed": true
+      },
+      {
+        "width": 390,
+        "case": "second",
+        "flat": true,
+        "metrics": [
+          "2 tools"
+        ],
+        "timeNodes": 0,
+        "protectedMessagesVisible": true,
+        "delegationVisible": true,
+        "geometry": {
+          "nowrap": "nowrap",
+          "countHeight": 20,
+          "arrowHeight": 12,
+          "aligned": true
+        },
+        "errors": [],
+        "overflow": false,
+        "passed": true
+      },
+      {
+        "width": 1280,
+        "case": "first",
+        "flat": true,
+        "metrics": [
+          "17 tools"
+        ],
+        "timeNodes": 0,
+        "protectedMessagesVisible": true,
+        "delegationVisible": true,
+        "geometry": {
+          "nowrap": "nowrap",
+          "countHeight": 20,
+          "arrowHeight": 12,
+          "aligned": true
+        },
+        "errors": [],
+        "overflow": false,
+        "passed": true
+      },
+      {
+        "width": 1280,
+        "case": "second",
+        "flat": true,
+        "metrics": [
+          "2 tools"
+        ],
+        "timeNodes": 0,
+        "protectedMessagesVisible": true,
+        "delegationVisible": true,
+        "geometry": {
+          "nowrap": "nowrap",
+          "countHeight": 20,
+          "arrowHeight": 12,
+          "aligned": true
+        },
+        "errors": [],
+        "overflow": false,
+        "passed": true
+      }
+    ]
+  },
+  "installedUpdatePerformed": false,
+  "pr2Merged": false,
+  "sdkPin": "0.6.79"
+}

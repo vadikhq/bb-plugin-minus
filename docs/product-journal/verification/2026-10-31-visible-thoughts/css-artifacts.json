@@ -1,0 +1,20 @@
+{
+  "bundle": "a673068fb2c4b5dd",
+  "cssBytesEqual": false,
+  "installedCssSha256": "c78e87d8bc2627574c3e43b7575f8c711d043b51e7d719ce812706f25e8322a5",
+  "candidateCssSha256": "cab7a4fe7e40ebc4f985d4af67198676edca9905cda5c01a115ba0dbb09d03f2",
+  "sourceStyleLiteralAndTemplateUnchanged": true,
+  "generatedAdditionalUtilities": [
+    "static",
+    "transform"
+  ],
+  "additionalPropertyRegistrations": [
+    "--tw-rotate-x",
+    "--tw-rotate-y",
+    "--tw-rotate-z",
+    "--tw-skew-x",
+    "--tw-skew-y"
+  ],
+  "allOtherGeneratedBlocksEqual": true,
+  "scope": "generated CSS is not byte-equal; manual styles/template and inspected geometry are unchanged"
+}

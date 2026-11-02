@@ -1,0 +1,433 @@
+{
+  "method": "isolated headless Chromium; current module and native BB CSS; synthetic five-batch Thought fixture; no shared runtime mutation",
+  "hashes": {
+    "group-tools.ts": "94cd59245e9379e9da994f7ff5f0031949ee909f1ef7a0daa97aa66a11035672",
+    "group-tools.test.mjs": "dbbea172c581eb4807c243e689d792bb49a0932bd135429c36ab3b77d765e0d4",
+    "app.tsx": "cc064c58a98d29dd42b602aba55fa63d685845d143569389f9088669637486ec",
+    "quotes.ts": "f0602bcffd488c315c68af1a0ab4adce84dccd4cfa35bbfae68f67744bd8806a"
+  },
+  "observations": [
+    {
+      "width": 320,
+      "zoom": 1,
+      "theme": "light",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.987485, 0.157713, -0.157713, 0.987485, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.5 0 0)",
+        "iconColor": "oklch(0.5 0 0)",
+        "paddingTop": "16px",
+        "paddingBottom": "16px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 320,
+      "zoom": 1,
+      "theme": "dark",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.966613, 0.256241, -0.256241, 0.966613, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.68 0 0)",
+        "iconColor": "oklch(0.68 0 0)",
+        "paddingTop": "16px",
+        "paddingBottom": "16px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 320,
+      "zoom": 2,
+      "theme": "light",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.994854, 0.101318, -0.101318, 0.994854, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.5 0 0)",
+        "iconColor": "oklch(0.5 0 0)",
+        "paddingTop": "32px",
+        "paddingBottom": "32px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 320,
+      "zoom": 2,
+      "theme": "dark",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.977165, 0.21248, -0.21248, 0.977165, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.68 0 0)",
+        "iconColor": "oklch(0.68 0 0)",
+        "paddingTop": "32px",
+        "paddingBottom": "32px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "zoom": 1,
+      "theme": "light",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.994748, 0.102356, -0.102356, 0.994748, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.5 0 0)",
+        "iconColor": "oklch(0.5 0 0)",
+        "paddingTop": "16px",
+        "paddingBottom": "16px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "zoom": 1,
+      "theme": "dark",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.994169, 0.107829, -0.107829, 0.994169, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.68 0 0)",
+        "iconColor": "oklch(0.68 0 0)",
+        "paddingTop": "16px",
+        "paddingBottom": "16px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "zoom": 2,
+      "theme": "light",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.994583, 0.103943, -0.103943, 0.994583, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.5 0 0)",
+        "iconColor": "oklch(0.5 0 0)",
+        "paddingTop": "32px",
+        "paddingBottom": "32px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "zoom": 2,
+      "theme": "dark",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.995068, 0.0991989, -0.0991989, 0.995068, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.68 0 0)",
+        "iconColor": "oklch(0.68 0 0)",
+        "paddingTop": "32px",
+        "paddingBottom": "32px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "zoom": 1,
+      "theme": "light",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.995138, 0.0984861, -0.0984861, 0.995138, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.5 0 0)",
+        "iconColor": "oklch(0.5 0 0)",
+        "paddingTop": "16px",
+        "paddingBottom": "16px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "zoom": 1,
+      "theme": "dark",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.995086, 0.0990176, -0.0990176, 0.995086, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.68 0 0)",
+        "iconColor": "oklch(0.68 0 0)",
+        "paddingTop": "16px",
+        "paddingBottom": "16px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "zoom": 2,
+      "theme": "light",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.994148, 0.108023, -0.108023, 0.994148, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.5 0 0)",
+        "iconColor": "oklch(0.5 0 0)",
+        "paddingTop": "32px",
+        "paddingBottom": "32px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "zoom": 2,
+      "theme": "dark",
+      "before": {
+        "animation": "spin",
+        "transform": "matrix(0.98832, 0.152393, -0.152393, 0.98832, 0, 0)"
+      },
+      "geometry": {
+        "overflow": false,
+        "count": "8 tools",
+        "quoteColor": "oklch(0.68 0 0)",
+        "iconColor": "oklch(0.68 0 0)",
+        "paddingTop": "32px",
+        "paddingBottom": "32px",
+        "borderTop": "1px",
+        "borderBottom": "1px",
+        "completedAnimation": "none",
+        "messagesVisible": true
+      },
+      "errors": [],
+      "passed": true
+    }
+  ],
+  "captures": [
+    {
+      "theme": "light",
+      "variant": "pending",
+      "receipt": {
+        "url": "isolated local fixture; ephemeral loopback URL omitted",
+        "method": "isolated headless Chromium",
+        "browser": "Chromium 143.0.7499.4",
+        "deviceScaleFactor": 1,
+        "captures": [
+          {
+            "file": "light-pending-760x420.png",
+            "viewport": "760x420",
+            "bytes": 18129,
+            "sha256": "bb5872068e0f9604e822ced89bdb81c1603bc400a5da6846f83c6c03f6a46671"
+          },
+          {
+            "file": "light-pending-390x840.png",
+            "viewport": "390x840",
+            "bytes": 19261,
+            "sha256": "3fd9e1f7e8ae6f4ff27e104255ac7e08e0b1c4ee7c1a5c116f339e66314bc9cd"
+          }
+        ]
+      }
+    },
+    {
+      "theme": "light",
+      "variant": "closed",
+      "receipt": {
+        "url": "isolated local fixture; ephemeral loopback URL omitted",
+        "method": "isolated headless Chromium",
+        "browser": "Chromium 143.0.7499.4",
+        "deviceScaleFactor": 1,
+        "captures": [
+          {
+            "file": "light-closed-760x420.png",
+            "viewport": "760x420",
+            "bytes": 18542,
+            "sha256": "8f0cd94ba7a9a53168a039ea050999003072653255de0d93b51b08219ef10b97"
+          },
+          {
+            "file": "light-closed-390x840.png",
+            "viewport": "390x840",
+            "bytes": 19568,
+            "sha256": "840265027fab6efcdc18606c648a7472b166ef2d9670431ed1b786b28d3da777"
+          }
+        ]
+      }
+    },
+    {
+      "theme": "light",
+      "variant": "open",
+      "receipt": {
+        "url": "isolated local fixture; ephemeral loopback URL omitted",
+        "method": "isolated headless Chromium",
+        "browser": "Chromium 143.0.7499.4",
+        "deviceScaleFactor": 1,
+        "captures": [
+          {
+            "file": "light-open-760x420.png",
+            "viewport": "760x420",
+            "bytes": 34053,
+            "sha256": "1237ff85ed2c49e7896ee428b6335b71c3856cfefd153c76659ccd2352e9ae23"
+          },
+          {
+            "file": "light-open-390x840.png",
+            "viewport": "390x840",
+            "bytes": 39356,
+            "sha256": "2081df682a1a2ed96deb5457b3431d6e30d52f20615cac62be4c85bc7a2264ad"
+          }
+        ]
+      }
+    },
+    {
+      "theme": "dark",
+      "variant": "pending",
+      "receipt": {
+        "url": "isolated local fixture; ephemeral loopback URL omitted",
+        "method": "isolated headless Chromium",
+        "browser": "Chromium 143.0.7499.4",
+        "deviceScaleFactor": 1,
+        "captures": [
+          {
+            "file": "dark-pending-760x420.png",
+            "viewport": "760x420",
+            "bytes": 18004,
+            "sha256": "153804cf681f525bafc3999383723e14a656d6533f163bc6f392510fbf2067d0"
+          },
+          {
+            "file": "dark-pending-390x840.png",
+            "viewport": "390x840",
+            "bytes": 18984,
+            "sha256": "fe81e6afc8f41ed0055cd4bb844ca61e3212689890205c65464e03ca73883bb2"
+          }
+        ]
+      }
+    },
+    {
+      "theme": "dark",
+      "variant": "closed",
+      "receipt": {
+        "url": "isolated local fixture; ephemeral loopback URL omitted",
+        "method": "isolated headless Chromium",
+        "browser": "Chromium 143.0.7499.4",
+        "deviceScaleFactor": 1,
+        "captures": [
+          {
+            "file": "dark-closed-760x420.png",
+            "viewport": "760x420",
+            "bytes": 18415,
+            "sha256": "b27fb6267b41ef0e6ab7eb84104d6095cc02f1e0d148330c80d0448b09673574"
+          },
+          {
+            "file": "dark-closed-390x840.png",
+            "viewport": "390x840",
+            "bytes": 19285,
+            "sha256": "e4dc49a7d7dc3473a11313c6a8d2d1b82ed5c6a40350a1ad40ef484f848ae93b"
+          }
+        ]
+      }
+    },
+    {
+      "theme": "dark",
+      "variant": "open",
+      "receipt": {
+        "url": "isolated local fixture; ephemeral loopback URL omitted",
+        "method": "isolated headless Chromium",
+        "browser": "Chromium 143.0.7499.4",
+        "deviceScaleFactor": 1,
+        "captures": [
+          {
+            "file": "dark-open-760x420.png",
+            "viewport": "760x420",
+            "bytes": 33465,
+            "sha256": "52c54c8f3937cec95b54a99b45adec12f6afba7862b0ba4e85d5ed116396a542"
+          },
+          {
+            "file": "dark-open-390x840.png",
+            "viewport": "390x840",
+            "bytes": 38948,
+            "sha256": "14615631b768bfe9ac91b1aab372a2c582a6cc793dbfa03ee73b066dbbed5f57"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,447 @@
+{
+  "method": "isolated headless Chromium; current mounted native t18 and unmodified API; candidate JS/CSS only in disposable client",
+  "url": "private local native thread; URL retained only in private raw evidence",
+  "source": "git:https://github.com/vadikhq/bb-plugin-minus.git@eb5f9157786c412ebf2a26fa48641617a6b53400",
+  "bundle": "a673068fb2c4b5dd",
+  "hashes": {
+    "group-tools.ts": "94cd59245e9379e9da994f7ff5f0031949ee909f1ef7a0daa97aa66a11035672",
+    "group-tools.test.mjs": "dbbea172c581eb4807c243e689d792bb49a0932bd135429c36ab3b77d765e0d4",
+    "app.tsx": "cc064c58a98d29dd42b602aba55fa63d685845d143569389f9088669637486ec",
+    "quotes.ts": "f0602bcffd488c315c68af1a0ab4adce84dccd4cfa35bbfae68f67744bd8806a"
+  },
+  "apiGroups": [
+    {
+      "count": 5,
+      "durations": [
+        334,
+        215,
+        29,
+        115,
+        283
+      ],
+      "durationMs": 976
+    },
+    {
+      "count": 1,
+      "durations": [
+        30
+      ],
+      "durationMs": 30
+    }
+  ],
+  "observations": [
+    {
+      "width": 1280,
+      "candidate": false,
+      "served": [],
+      "data": {
+        "quotes": [
+          {
+            "key": "group-1",
+            "metrics": "1 tool · 334ms",
+            "state": "completed"
+          },
+          {
+            "key": "group-2",
+            "metrics": "1 tool · 215ms",
+            "state": "completed"
+          },
+          {
+            "key": "group-3",
+            "metrics": "2 tools · 144ms",
+            "state": "completed"
+          },
+          {
+            "key": "group-4",
+            "metrics": "1 tool · 283ms",
+            "state": "completed"
+          },
+          {
+            "key": "group-5",
+            "metrics": "1 tool · 30ms",
+            "state": "completed"
+          }
+        ],
+        "thoughts": [
+          {
+            "id": "thought-1",
+            "hidden": false
+          },
+          {
+            "id": "thought-2",
+            "hidden": false
+          },
+          {
+            "id": "thought-3",
+            "hidden": false
+          },
+          {
+            "id": "thought-4",
+            "hidden": false
+          },
+          {
+            "id": "thought-5",
+            "hidden": false
+          },
+          {
+            "id": "thought-6",
+            "hidden": false
+          }
+        ],
+        "messagesVisible": true,
+        "delegationVisible": true,
+        "overflow": false
+      },
+      "open": null,
+      "recollapsed": null,
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "candidate": true,
+      "served": [
+        "app.js",
+        "app.css"
+      ],
+      "data": {
+        "quotes": [
+          {
+            "key": "group-1",
+            "metrics": "5 tools · 976ms",
+            "state": "completed"
+          },
+          {
+            "key": "group-5",
+            "metrics": "1 tool · 30ms",
+            "state": "completed"
+          }
+        ],
+        "thoughts": [
+          {
+            "id": "thought-1",
+            "hidden": true
+          },
+          {
+            "id": "thought-2",
+            "hidden": true
+          },
+          {
+            "id": "thought-3",
+            "hidden": true
+          },
+          {
+            "id": "thought-4",
+            "hidden": true
+          },
+          {
+            "id": "thought-5",
+            "hidden": true
+          },
+          {
+            "id": "thought-6",
+            "hidden": true
+          }
+        ],
+        "messagesVisible": true,
+        "delegationVisible": true,
+        "overflow": false
+      },
+      "open": {
+        "quotes": [
+          {
+            "key": "group-1",
+            "metrics": "5 tools · 976ms",
+            "state": "completed"
+          },
+          {
+            "key": "group-5",
+            "metrics": "1 tool · 30ms",
+            "state": "completed"
+          }
+        ],
+        "thoughts": [
+          {
+            "id": "thought-1",
+            "hidden": false
+          },
+          {
+            "id": "thought-2",
+            "hidden": false
+          },
+          {
+            "id": "thought-3",
+            "hidden": false
+          },
+          {
+            "id": "thought-4",
+            "hidden": false
+          },
+          {
+            "id": "thought-5",
+            "hidden": false
+          },
+          {
+            "id": "thought-6",
+            "hidden": false
+          }
+        ],
+        "messagesVisible": true,
+        "delegationVisible": true,
+        "overflow": false
+      },
+      "recollapsed": {
+        "quotes": [
+          {
+            "key": "group-1",
+            "metrics": "5 tools · 976ms",
+            "state": "completed"
+          },
+          {
+            "key": "group-5",
+            "metrics": "1 tool · 30ms",
+            "state": "completed"
+          }
+        ],
+        "thoughts": [
+          {
+            "id": "thought-1",
+            "hidden": true
+          },
+          {
+            "id": "thought-2",
+            "hidden": true
+          },
+          {
+            "id": "thought-3",
+            "hidden": true
+          },
+          {
+            "id": "thought-4",
+            "hidden": true
+          },
+          {
+            "id": "thought-5",
+            "hidden": true
+          },
+          {
+            "id": "thought-6",
+            "hidden": true
+          }
+        ],
+        "messagesVisible": true,
+        "delegationVisible": true,
+        "overflow": false
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "candidate": false,
+      "served": [],
+      "data": {
+        "quotes": [
+          {
+            "key": "group-1",
+            "metrics": "1 tool · 334ms",
+            "state": "completed"
+          },
+          {
+            "key": "group-2",
+            "metrics": "1 tool · 215ms",
+            "state": "completed"
+          },
+          {
+            "key": "group-3",
+            "metrics": "2 tools · 144ms",
+            "state": "completed"
+          },
+          {
+            "key": "group-4",
+            "metrics": "1 tool · 283ms",
+            "state": "completed"
+          },
+          {
+            "key": "group-5",
+            "metrics": "1 tool · 30ms",
+            "state": "completed"
+          }
+        ],
+        "thoughts": [
+          {
+            "id": "thought-1",
+            "hidden": false
+          },
+          {
+            "id": "thought-2",
+            "hidden": false
+          },
+          {
+            "id": "thought-3",
+            "hidden": false
+          },
+          {
+            "id": "thought-4",
+            "hidden": false
+          },
+          {
+            "id": "thought-5",
+            "hidden": false
+          },
+          {
+            "id": "thought-6",
+            "hidden": false
+          }
+        ],
+        "messagesVisible": true,
+        "delegationVisible": true,
+        "overflow": false
+      },
+      "open": null,
+      "recollapsed": null,
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "candidate": true,
+      "served": [
+        "app.js",
+        "app.css"
+      ],
+      "data": {
+        "quotes": [
+          {
+            "key": "group-1",
+            "metrics": "5 tools · 976ms",
+            "state": "completed"
+          },
+          {
+            "key": "group-5",
+            "metrics": "1 tool · 30ms",
+            "state": "completed"
+          }
+        ],
+        "thoughts": [
+          {
+            "id": "thought-1",
+            "hidden": true
+          },
+          {
+            "id": "thought-2",
+            "hidden": true
+          },
+          {
+            "id": "thought-3",
+            "hidden": true
+          },
+          {
+            "id": "thought-4",
+            "hidden": true
+          },
+          {
+            "id": "thought-5",
+            "hidden": true
+          },
+          {
+            "id": "thought-6",
+            "hidden": true
+          }
+        ],
+        "messagesVisible": true,
+        "delegationVisible": true,
+        "overflow": false
+      },
+      "open": {
+        "quotes": [
+          {
+            "key": "group-1",
+            "metrics": "5 tools · 976ms",
+            "state": "completed"
+          },
+          {
+            "key": "group-5",
+            "metrics": "1 tool · 30ms",
+            "state": "completed"
+          }
+        ],
+        "thoughts": [
+          {
+            "id": "thought-1",
+            "hidden": false
+          },
+          {
+            "id": "thought-2",
+            "hidden": false
+          },
+          {
+            "id": "thought-3",
+            "hidden": false
+          },
+          {
+            "id": "thought-4",
+            "hidden": false
+          },
+          {
+            "id": "thought-5",
+            "hidden": false
+          },
+          {
+            "id": "thought-6",
+            "hidden": false
+          }
+        ],
+        "messagesVisible": true,
+        "delegationVisible": true,
+        "overflow": false
+      },
+      "recollapsed": {
+        "quotes": [
+          {
+            "key": "group-1",
+            "metrics": "5 tools · 976ms",
+            "state": "completed"
+          },
+          {
+            "key": "group-5",
+            "metrics": "1 tool · 30ms",
+            "state": "completed"
+          }
+        ],
+        "thoughts": [
+          {
+            "id": "thought-1",
+            "hidden": true
+          },
+          {
+            "id": "thought-2",
+            "hidden": true
+          },
+          {
+            "id": "thought-3",
+            "hidden": true
+          },
+          {
+            "id": "thought-4",
+            "hidden": true
+          },
+          {
+            "id": "thought-5",
+            "hidden": true
+          },
+          {
+            "id": "thought-6",
+            "hidden": true
+          }
+        ],
+        "messagesVisible": true,
+        "delegationVisible": true,
+        "overflow": false
+      },
+      "errors": [],
+      "passed": true
+    }
+  ],
+  "privateIdentifiersRedacted": true
+}

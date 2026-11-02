@@ -1,0 +1,17 @@
+{
+  "codeCommit": "7e4e57d10510103981698a08bf4bed03ad0dee5b",
+  "localSha": "7e4e57d10510103981698a08bf4bed03ad0dee5b",
+  "remoteSha": "7e4e57d10510103981698a08bf4bed03ad0dee5b",
+  "trackingSha": "7e4e57d10510103981698a08bf4bed03ad0dee5b",
+  "repo": "vadikhq/bb-plugin-minus",
+  "branch": "bb/minus-visible-thoughts",
+  "pullRequestCreated": false,
+  "installed": false,
+  "gitConfigChange": {
+    "before": [
+      "+refs/heads/bb/minus-tool-call-quotes:refs/remotes/origin/bb/minus-tool-call-quotes"
+    ],
+    "added": "+refs/heads/bb/minus-visible-thoughts:refs/remotes/origin/bb/minus-visible-thoughts",
+    "reason": "single-branch clone did not store the new branch as a remote-tracking ref; added active branch only, URL/auth unchanged"
+  }
+}

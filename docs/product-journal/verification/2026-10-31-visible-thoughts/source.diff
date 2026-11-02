@@ -1,0 +1,386 @@
+diff --git a/group-tools.test.mjs b/group-tools.test.mjs
+index 49d8490..4aef377 100644
+--- a/group-tools.test.mjs
++++ b/group-tools.test.mjs
+@@ -1762,10 +1762,13 @@ test('the combined visual cycle hides time until every constituent run finishes'
+   } finally { dom.cleanup(); }
+ });
+ 
+-test('joining after a visible reasoning row disappears preserves the latest choice and metrics focus', async () => {
+-  const dom = mountDom({ rowIds: ['tool-1', 'op:reasoning:visible', 'tool-2'], fetchTimeline: async () => completedReasoningTimeline([
+-    ['tool-1'], ['op:reasoning:visible', 'system', 'reasoning'], ['tool-2'],
+-  ]) });
++test('confirming a mounted Thought preserves the latest choice and metrics focus when groups join', async () => {
++  let verified = false, notify;
++  const rows = [['tool-1'], ['op:reasoning:visible', 'system', 'reasoning'], ['tool-2']];
++  const dom = mountDom({ rowIds: rows.map(row => row[0]),
++    fetchTimeline: async () => verified ? completedReasoningTimeline(rows) : timeline(rows),
++    subscribeTimeline: callback => { notify = callback; return () => {}; },
++  });
+   try {
+     await dom.flush();
+     const controls = [...dom.container.querySelectorAll('[data-metrics]')];
+@@ -1773,6 +1776,8 @@ test('joining after a visible reasoning row disappears preserves the latest choi
+     controls[0].click();await dom.flush();
+     controls[0].click();await dom.flush();
+     controls[1].focus();controls[1].click();await dom.flush();
++    verified = true;notify('thr_test', true);await dom.flush();
++    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
+     dom.rows[1].remove();await dom.flush();
+     const merged = dom.container.querySelector('[data-metrics]');
+     assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
+@@ -1784,6 +1789,153 @@ test('joining after a visible reasoning row disappears preserves the latest choi
+   } finally { dom.cleanup(); }
+ });
+ 
++test('five tool batches separated by mounted Thoughts share one quote and only tool metrics', async () => {
++  const rows = [['assistant:before', 'conversation']];
++  let tool = 0;
++  for (const [index, count] of [2, 2, 2, 1, 1].entries()) {
++    for (let i = 0; i < count; i++) rows.push(['tool-' + ++tool]);
++    rows.push(['op:reasoning:' + index, 'system', 'reasoning', 0, 9000]);
++  }
++  rows.push(['assistant:after', 'conversation']);
++  const dom = mountDom({ rowIds: rows.map(row => row[0]), fetchTimeline: async () => completedReasoningTimeline(rows) });
++  try {
++    await dom.flush();
++    const controls = [...dom.container.querySelectorAll('[data-metrics]')];
++    assert.equal(controls.length, 1);
++    assert.equal(controls[0].textContent, '8 tools · 2.4s');
++    assert.equal(dom.rows[0].hasAttribute(HIDDEN), false);
++    assert.equal(dom.rows.at(-1).hasAttribute(HIDDEN), false);
++    assert(dom.rows.slice(1, -1).every(row => row.hasAttribute(HIDDEN)));
++    controls[0].click();await dom.flush();
++    assert(dom.rows.every(row => !row.hasAttribute(HIDDEN)));
++    controls[0].click();await dom.flush();
++    assert(dom.rows.slice(1, -1).every(row => row.hasAttribute(HIDDEN)));
++    dom.dispose();
++    assert(dom.rows.every(row => !row.hasAttribute(HIDDEN)));
++  } finally { dom.cleanup(); }
++});
++
++for (const position of ['before', 'between', 'after']) {
++  test('pending mounted Thought ' + position + ' the tools keeps the cycle active without counting its time', async () => {
++    let finished = false, notify;
++    const thought = ['op:reasoning:active', 'system', 'reasoning', 0, null];
++    const rows = position === 'before' ? [thought, ['tool-1'], ['tool-2']] :
++      position === 'between' ? [['tool-1'], thought, ['tool-2']] : [['tool-1'], ['tool-2'], thought];
++    const dom = mountDom({ rowIds: rows.map(row => row[0]),
++      fetchTimeline: async () => completedReasoningTimeline(rows).map(row => row.operationKind === 'reasoning' && finished ?
++        { ...row, status: 'completed', completedAt: 9000 } : row),
++      subscribeTimeline: callback => { notify = callback; return () => {}; },
++    });
++    try {
++      await dom.flush();
++      const marker = dom.container.querySelector('[data-bb-minus-group]');
++      assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
++      assert.equal(marker.getAttribute('data-tool-state'), 'pending');
++      assert.equal(marker.querySelector('[data-metrics]').textContent, '2 tools');
++      marker.querySelector('[data-metrics]').click();await dom.flush();
++      finished = true;notify('thr_test', true);await dom.flush();
++      assert.equal(marker.getAttribute('data-tool-state'), 'completed');
++      assert.equal(marker.querySelector('[data-metrics]').textContent, '2 tools · 600ms');
++      assert.equal(marker.querySelector('[data-metrics]').getAttribute('aria-expanded'), 'true');
++      assert(dom.rows.every(row => !row.hasAttribute(HIDDEN)));
++    } finally { dom.cleanup(); }
++  });
++}
++
++test('a standalone verified Thought stays native instead of creating a zero-tool quote', async () => {
++  const dom = mountDom({ rowIds: ['op:reasoning:only'], fetchTimeline: async () => completedReasoningTimeline([
++    ['op:reasoning:only', 'system', 'reasoning'],
++  ]) });
++  try {
++    await dom.flush();
++    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 0);
++    assert.equal(dom.rows[0].hasAttribute(HIDDEN), false);
++  } finally { dom.cleanup(); }
++});
++
++for (const bothSides of [false, true]) {
++  test('virtualizing a pending Thought preserves cycle activity until terminal: both sides ' + bothSides, async () => {
++    let finished = false, notify;
++    const rows = [['tool-1'], ['op:reasoning:virtual-pending', 'system', 'reasoning', 0, null],
++      ...(bothSides ? [['tool-2']] : [])];
++    const dom = mountDom({ rowIds: rows.map(row => row[0]),
++      fetchTimeline: async () => completedReasoningTimeline(rows).map(row => row.operationKind === 'reasoning' && finished ?
++        { ...row, status: 'completed', completedAt: 9000 } : row),
++      subscribeTimeline: callback => { notify = callback;return () => {}; },
++    });
++    try {
++      await dom.flush();
++      const expectedCount = bothSides ? '2 tools' : '1 tool';
++      const thought = dom.rows[1];
++      const inspect = () => {
++        assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
++        const marker = dom.container.querySelector('[data-bb-minus-group]');
++        assert.equal(marker.getAttribute('data-tool-state'), 'pending');
++        assert.equal(marker.querySelector('[data-metrics]').textContent, expectedCount);
++      };
++      inspect();thought.remove();await dom.flush();inspect();
++      dom.container.insertBefore(thought, bothSides ? dom.rows[2] : null);await dom.flush();inspect();
++      thought.remove();await dom.flush();
++      finished = true;notify('thr_test', true);await dom.flush();
++      const marker = dom.container.querySelector('[data-bb-minus-group]');
++      assert.equal(marker.getAttribute('data-tool-state'), 'completed');
++      assert.equal(marker.querySelector('[data-metrics]').textContent, expectedCount + (bothSides ? ' · 600ms' : ' · 300ms'));
++    } finally { dom.cleanup(); }
++  });
++}
++
++for (const status of ['error', 'cancelled', 'unknown-state']) {
++  test('mounted reasoning with ' + status + ' status remains an independent visible boundary', async () => {
++    const dom = mountDom({ rowIds: ['tool-1', 'op:reasoning:boundary', 'tool-2'], fetchTimeline: async () =>
++      completedReasoningTimeline([['tool-1'], ['op:reasoning:boundary', 'system', 'reasoning'], ['tool-2']])
++        .map(row => row.operationKind === 'reasoning' ? { ...row, status } : row),
++    });
++    try {
++      await dom.flush();
++      assert.equal(dom.rows[1].hasAttribute(HIDDEN), false);
++      assert.deepEqual([...dom.container.querySelectorAll('[data-metrics]')].map(e => e.textContent), ['1 tool · 300ms', '1 tool · 300ms']);
++    } finally { dom.cleanup(); }
++  });
++}
++
++test('a grouped Thought gaining a message becomes a protected boundary even after virtualization', async () => {
++  const dom = mountDom({ rowIds: ['tool-1', 'op:reasoning:stream', 'tool-2'], fetchTimeline: async () =>
++    completedReasoningTimeline([['tool-1'], ['op:reasoning:stream', 'system', 'reasoning'], ['tool-2']]),
++  });
++  try {
++    await dom.flush();
++    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
++    const message = dom.window.document.createElement('div');
++    message.className = 'group/message';message.textContent = 'Полезный промежуточный результат';
++    dom.rows[1].append(message);await dom.flush();
++    assert.equal(dom.rows[1].hasAttribute(HIDDEN), false);
++    assert.equal(message.closest('[data-bb-minus-hidden]'), null);
++    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 2);
++    dom.rows[1].remove();await dom.flush();
++    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 2);
++  } finally { dom.cleanup(); }
++});
++
++test('Thought grouping recovers from a failed API refresh without reviving an older disclosure', async () => {
++  let fail = false, notify;
++  const dom = mountDom({ rowIds: ['tool-1', 'op:reasoning:refresh', 'tool-2'], fetchTimeline: async () => {
++    if (fail) throw Error('temporary API failure');
++    return completedReasoningTimeline([['tool-1'], ['op:reasoning:refresh', 'system', 'reasoning'], ['tool-2']]);
++  }, subscribeTimeline: callback => { notify = callback;return () => {}; } });
++  try {
++    await dom.flush();
++    const metrics = dom.container.querySelector('[data-metrics]');
++    metrics.click();await dom.flush();metrics.click();await dom.flush();
++    fail = true;notify('thr_test', true);await dom.flush();
++    assert.equal(dom.rows[1].hasAttribute(HIDDEN), false);
++    fail = false;notify('thr_test', true);await dom.flush();
++    const restored = dom.container.querySelector('[data-metrics]');
++    assert.equal(dom.container.querySelectorAll('[data-metrics]').length, 1);
++    assert.equal(restored.getAttribute('aria-expanded'), 'false');
++    assert.equal(restored.textContent, '2 tools · 600ms');
++  } finally { dom.cleanup(); }
++});
++
+ for (const [kind, operationKind, workKind] of [['conversation'], ['system', 'thread-interrupted'], ['system', 'unknown'], ['work', undefined, 'delegation']]) {
+   test('a missing meaningful API boundary still separates quotes: ' + (workKind ?? operationKind ?? kind), async () => {
+     const dom = mountDom({ rowIds: ['tool-1', 'tool-2'], fetchTimeline: async () => completedReasoningTimeline([
+diff --git a/group-tools.ts b/group-tools.ts
+index d360e33..d14cd7b 100644
+--- a/group-tools.ts
++++ b/group-tools.ts
+@@ -121,6 +121,20 @@ function isToolRow(row: HTMLElement, runs?: ThreadRuns, visibleRows?: ReadonlySe
+   return TOOL_ROW.test(key) || key.includes(":work-summary:");
+ }
+ 
++// Only API-confirmed service reasoning belongs to the tool disclosure. Unknown
++// rows, errors, and rows carrying an agent message or child stream stay visible.
++function isServiceReasoning(entry: TimelineRow | undefined): entry is TimelineRow {
++  return entry?.kind === "system" && entry.operationKind === "reasoning" &&
++    (entry.status === "completed" || entry.status === "pending");
++}
++
++function reasoningDetail(row: HTMLElement, runs?: ThreadRuns, visibleRows?: ReadonlySet<string>): TimelineRow | undefined {
++  if (hasAgentContent(row) || visibleRows?.has(apiId(row))) return undefined;
++  const location = runs?.sourceOf.get(apiId(row));
++  const entry = location?.source[location.index];
++  return isServiceReasoning(entry) ? entry : undefined;
++}
++
+ // A work summary's DOM id ends with the id of the first API row it covers.
+ function apiId(row: HTMLElement): string {
+   const id = row.dataset.timelineRowId ?? "";
+@@ -290,6 +304,9 @@ export function mountToolGrouping(
+   const quoteByRow = new Map<string, QuoteEntry>();
+   const threads = new Map<string, ThreadRuns>();
+   const visibleRows = new Set<string>();
++  // Identity survives virtualization; state is always read from the current
++  // API snapshot. A returning Thought must not restart or finish its cycle.
++  const knownThoughtIds = new Set<string>();
+   const lastFetch = new Map<string, number>();
+   const inFlight = new Set<string>();
+   const queuedRefreshes = new Map<string, boolean>();
+@@ -465,16 +482,17 @@ export function mountToolGrouping(
+     turnChoices.set(row.dataset.timelineRowId!, button.getAttribute("aria-expanded") !== "true");
+   }
+ 
+-  // API reasoning can live inside native tool bundles without a visible row.
+-  // Only DOM-adjacent tools may share a disclosure across that hidden detail;
+-  // source boundaries and virtualization spacers remain independent.
+-  function canJoinAdjacentApiRows(left: HTMLElement, right: HTMLElement, runs: ThreadRuns): boolean {
++  // Completed hidden reasoning and verified mounted Thought details may share
++  // a disclosure with adjacent tools. Source boundaries and spacers remain
++  // independent; an unmounted pending/unknown reasoning row is not proof.
++  function canJoinAdjacentApiRows(left: HTMLElement, right: HTMLElement, runs: ThreadRuns, details?: ReadonlySet<string>): boolean {
+     const a = runs.sourceOf.get(apiId(left));
+     const b = runs.sourceOf.get(apiId(right));
+     if (a === undefined || b === undefined || a.source !== b.source || a.index >= b.index) return false;
+     return a.source.slice(a.index, b.index + 1).every(row =>
+       runs.collapsible.get(row.id) === true ||
+-      (row.kind === "system" && row.operationKind === "reasoning" && row.status === "completed"));
++      (row.kind === "system" && row.operationKind === "reasoning" && !visibleRows.has(row.id) &&
++        (row.status === "completed" || (row.status === "pending" && details?.has(row.id)))));
+   }
+ 
+   function apiRun(rows: HTMLElement[]): {
+@@ -493,17 +511,39 @@ export function mountToolGrouping(
+       return null;
+     }
+     const summaries = rows.map(row => summaryMembers(row, runs));
++    const detailsById = new Map(rows.map(row => reasoningDetail(row, runs, visibleRows))
++      .filter((row): row is TimelineRow => row !== undefined).map(row => [row.id, row]));
+     if (rows.some((row, index) => rowKey(row).includes(":work-summary:") &&
+       turnButton(row) !== null && summaries[index] === undefined)) {
+       refresh(threadId);
+       return null;
+     }
+     const runIds = new Set(rows.map(row => runs.runOf.get(apiId(row))).filter(id => id !== undefined));
+-    if (summaries.some(members => members !== undefined) || runIds.size > 1) {
++    const toolIds = new Set([...runIds].flatMap(run => runs.memberIds[run])
++      .concat(summaries.flatMap(members => members?.map(row => row.id) ?? [])));
++    // A mounted Thought can be virtualized while the same cycle is pending.
++    // Recover only its proven neighbouring identity in the same sibling list,
++    // stopping at any work, conversation, error, or unknown system boundary.
++    for (const id of toolIds) {
++      const location = runs.sourceOf.get(id);
++      if (location === undefined) continue;
++      for (const direction of [-1, 1]) {
++        let index = location.index + direction;
++        let entry = location.source[index];
++        while (isServiceReasoning(entry) && knownThoughtIds.has(entry.id) && !visibleRows.has(entry.id)) {
++          detailsById.set(entry.id, entry);
++          index += direction;
++          entry = location.source[index];
++        }
++      }
++    }
++    const details = [...detailsById.values()];
++    if (summaries.some(members => members !== undefined) || runIds.size > 1 || details.length > 0) {
+       const members = new Map<string, TimelineRow>();
+       let unknownCount = 0;
+       for (const [index, row] of rows.entries()) {
+         if (row.dataset.timelineRowId === undefined) continue;
++        if (reasoningDetail(row, runs, visibleRows) !== undefined) continue;
+         const summary = summaries[index];
+         const run = runs.runOf.get(apiId(row));
+         if (summary === undefined && rowKey(row).includes(":work-summary:")) {
+@@ -518,7 +558,7 @@ export function mountToolGrouping(
+         }
+       }
+       let durationMs: number | null = unknownCount > 0 ? null : 0;
+-      let pending = false;
++      let pending = details.some(row => row.status === "pending");
+       for (const member of members.values()) {
+         if (VISIBLE_WORK.has(member.workKind ?? "")) return null;
+         const end = member.status === "pending" ? undefined : member.completedAt ?? undefined;
+@@ -529,7 +569,8 @@ export function mountToolGrouping(
+       if (pending || unknownCount > 0) refresh(threadId);
+       const ids = [...members.keys()];
+       if (ids.length === 0) return null;
+-      const activity = combinedActivity([...members.values()].map(toolActivity).concat(unknownCount > 0 ? ["unknown"] : []));
++      const activity = combinedActivity([...members.values(), ...details].map(toolActivity)
++        .concat(unknownCount > 0 ? ["unknown"] : []));
+       return { key: "timeline:" + threadId + ":" + ids[0], count: ids.length + unknownCount, durationMs, pending, activity, memberIds: ids };
+     }
+     const ids = rows.filter((row) => row.dataset.timelineRowId !== undefined).map(apiId);
+@@ -569,8 +610,10 @@ export function mountToolGrouping(
+     // Native summaries may start at reasoning rather than their first tool.
+     // A fully verified adjacent span does not need one quote per API run.
+     const mounted = rows.filter(row => row.dataset.timelineRowId !== undefined);
++    const details = new Set([...knownThoughtIds,
++      ...mounted.filter(row => reasoningDetail(row, api, visibleRows) !== undefined).map(apiId)]);
+     if (!rows.some(row => row.hasAttribute("data-timeline-window-spacer")) &&
+-      mounted.length > 1 && mounted.slice(1).every((row, index) => canJoinAdjacentApiRows(mounted[index], row, api))) {
++      mounted.length > 1 && mounted.slice(1).every((row, index) => canJoinAdjacentApiRows(mounted[index], row, api, details))) {
+       return [rows];
+     }
+     const groups: HTMLElement[][] = [];
+@@ -586,6 +629,19 @@ export function mountToolGrouping(
+       }
+       const id = row.dataset.timelineRowId;
+       const run = id === undefined ? undefined : api.runOf.get(apiId(row));
++      if (details.has(apiId(row))) {
++        if (group.length > 0 && (pendingSpacers.length > 0 ||
++          (previousApiRow !== undefined && !canJoinAdjacentApiRows(previousApiRow, row, api, details)))) {
++          groups.push(group);
++          group = [];
++          openRun = undefined;
++        }
++        for (const spacer of pendingSpacers) spacer.removeAttribute(HIDDEN);
++        pendingSpacers = [];
++        group.push(row);
++        previousApiRow = row;
++        continue;
++      }
+       if (run === undefined) {
+         let nextRun: number | undefined;
+         for (let next = i + 1; next < rows.length; next++) {
+@@ -627,8 +683,14 @@ export function mountToolGrouping(
+         }
+         continue;
+       }
++      if (previousApiRow !== undefined && details.has(apiId(previousApiRow)) &&
++        (pendingSpacers.length > 0 || !canJoinAdjacentApiRows(previousApiRow, row, api, details))) {
++        if (group.length > 0) groups.push(group);
++        group = [];
++        openRun = undefined;
++      }
+       if (openRun !== undefined && run !== openRun &&
+-        !(pendingSpacers.length === 0 && previousApiRow !== undefined && canJoinAdjacentApiRows(previousApiRow, row, api))) {
++        !(pendingSpacers.length === 0 && previousApiRow !== undefined && canJoinAdjacentApiRows(previousApiRow, row, api, details))) {
+         for (const spacer of pendingSpacers) spacer.removeAttribute(HIDDEN);
+         pendingSpacers = [];
+         if (group.length > 0) groups.push(group);
+@@ -747,7 +809,11 @@ export function mountToolGrouping(
+         }
+         const threadId = child.dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0];
+         if (threadId !== undefined && !threads.has(threadId)) refresh(threadId);
+-        if (child.dataset.timelineRowId !== undefined && isToolRow(child, threads.get(threadId ?? ""), visibleRows)) {
++        const api = threads.get(threadId ?? "");
++        const thought = reasoningDetail(child, api, visibleRows);
++        if (thought !== undefined) knownThoughtIds.add(thought.id);
++        if (child.dataset.timelineRowId !== undefined &&
++          (isToolRow(child, api, visibleRows) || thought !== undefined)) {
+           if (
+             run.length > 0 &&
+             spacers.length > 0 &&
+@@ -791,18 +857,19 @@ export function mountToolGrouping(
+       }
+       for (const part of parts) {
+         const { rows, api: candidate } = part;
++        const threadId = rows[0].dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0] ?? "unknown";
+         // A pending/stale API run can span separate visible DOM parts. Give each
+         // part its row fallback identity rather than moving one header/end
+         // between them on every observer pass. Full-run metrics are ambiguous.
+         const api = candidate !== null && apiParts.get(candidate.key) === 1 && !ambiguousParts.has(part) ? candidate : null;
+         const calls =
+           api?.count ??
+-          rows.reduce((sum, row) => sum + (row.dataset.timelineRowId === undefined ? 0 : domCount(row)), 0);
++          rows.reduce((sum, row) => sum + (row.dataset.timelineRowId === undefined ||
++            reasoningDetail(row, threads.get(threadId), visibleRows) !== undefined ? 0 : domCount(row)), 0);
+         if (calls === 0) {
+           for (const row of rows) row.removeAttribute(HIDDEN);
+           continue;
+         }
+-        const threadId = rows[0].dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0] ?? "unknown";
+         const fallbackKey = `row:${threadId}:${rowKey(rows[0])}`;
+         const key = api?.key ?? fallbackKey;
+         const mountedIds = rows

@@ -1,0 +1,251 @@
+{
+  "genericSourceSha256": "9f78539a47b12cb807a2e93e0a3cd731345565d6503ef7aa7a1a5bcef6146559",
+  "releaseSourceSha256": "b81ff3ed758b74bd5cfd9336ae81a7c33d5df51a08e6ffc442627d681efb107a",
+  "testsSha256": "1ea84a809fa8ee69fe4480e7bd47d2556419d488dda1a7e291fb8a36ac92d1e4",
+  "baseDictionaryCommit": "59428a64e8775038609b39d31f43fe5261b8420c",
+  "unit": {
+    "generic": 116,
+    "combined": 121,
+    "failures": 0,
+    "errors": 0
+  },
+  "typeScript": "passed",
+  "build": "passed",
+  "independentReview": {
+    "thread": "thr_bik4dfgafw",
+    "receiptSha256": "22af53719a882e5d7e7c461ba6affaf5ccf05ba5717196266d5325062b6105fd",
+    "openP0P1P2": 0
+  },
+  "candidateUi": {
+    "passed": true,
+    "method": "isolated headless Chromium; actual frontend, exact real screenshot API pages pinned in disposable clients; full verified candidate frontend responses only, no installed writes",
+    "contexts": [
+      {
+        "width": 390,
+        "case": "first",
+        "candidate": false,
+        "counts": [
+          "3 tools · 4.3s",
+          "5 tools · 9.7s",
+          "5 tools · 15.1s",
+          "4 tools · 7.4s"
+        ],
+        "flat": true,
+        "errors": [],
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "case": "first",
+        "candidate": true,
+        "counts": [
+          "17 tools"
+        ],
+        "flat": true,
+        "errors": [],
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "case": "second",
+        "candidate": false,
+        "counts": [
+          "1 tool · 627ms",
+          "1 tool · 18ms"
+        ],
+        "flat": false,
+        "errors": [],
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "case": "second",
+        "candidate": true,
+        "counts": [
+          "2 tools"
+        ],
+        "flat": true,
+        "errors": [],
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "case": "first",
+        "candidate": false,
+        "counts": [
+          "3 tools · 4.3s",
+          "5 tools · 9.7s",
+          "5 tools · 15.1s",
+          "4 tools · 7.4s"
+        ],
+        "flat": true,
+        "errors": [],
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "case": "first",
+        "candidate": true,
+        "counts": [
+          "17 tools"
+        ],
+        "flat": true,
+        "errors": [],
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "case": "second",
+        "candidate": false,
+        "counts": [
+          "1 tool · 627ms",
+          "1 tool · 18ms"
+        ],
+        "flat": false,
+        "errors": [],
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "case": "second",
+        "candidate": true,
+        "counts": [
+          "2 tools"
+        ],
+        "flat": true,
+        "errors": [],
+        "overflow": false
+      }
+    ]
+  },
+  "installed": {
+    "sourceType": "verified local path artifact",
+    "bundle": "8a72ad3bac7b9afb",
+    "jsSha256": "b250bbfdc556fc789281ae524857a557780304e7756dc72fd0c7c1b6c87899a7",
+    "status": "running",
+    "statusDetail": null,
+    "settingsPreserved": 32,
+    "dictionaryCounts": [
+      {
+        "id": "original",
+        "count": 73,
+        "revision": "f0602bcffd488c315c68af1a0ab4adce84dccd4cfa35bbfae68f67744bd8806a"
+      },
+      {
+        "id": "dalio",
+        "count": 452,
+        "revision": "dalio-ru-accepted-2026-10-31"
+      }
+    ],
+    "activeDictionary": "dalio",
+    "dbRetainedSameInode": true,
+    "dbIntegrity": "ok",
+    "jobs": [
+      {
+        "id": "13145932-c294-496f-9231-25d0df276ab8",
+        "state": "failed",
+        "error": "plugin id \"minus\" is already installed from git:https://github.com/vadikhq/bb-plugin-minus.git@48d3ffb1de14f725a9b5cbacdc74ba0d2224ed22; remove it first"
+      },
+      {
+        "id": "da1a0b18-0966-43df-b2f1-578a7c97a1fd",
+        "state": "succeeded"
+      }
+    ],
+    "liveUi": {
+      "passed": true,
+      "contexts": [
+        {
+          "width": 390,
+          "case": "second-live",
+          "apiReplayed": false,
+          "geometry": {
+            "listDisplay": "flex",
+            "listPaddingStart": "0px",
+            "listPaddingEnd": "0px",
+            "listGap": "8px",
+            "listBefore": "none",
+            "listHeight": 127,
+            "measureDisplay": "block",
+            "measureHeight": 127,
+            "metrics": "2 tools",
+            "timeNodes": 0,
+            "nowrap": "nowrap",
+            "byline": true,
+            "visibleMessages": true,
+            "visibleWorkflows": true
+          },
+          "errors": []
+        },
+        {
+          "width": 390,
+          "case": "first-historical",
+          "apiReplayed": true,
+          "geometry": {
+            "listDisplay": "flex",
+            "listPaddingStart": "0px",
+            "listPaddingEnd": "0px",
+            "listGap": "8px",
+            "listBefore": "none",
+            "listHeight": 268.375,
+            "measureDisplay": "block",
+            "measureHeight": 268.375,
+            "metrics": "17 tools",
+            "timeNodes": 0,
+            "nowrap": "nowrap",
+            "byline": true,
+            "visibleMessages": true,
+            "visibleWorkflows": true
+          },
+          "errors": []
+        },
+        {
+          "width": 1280,
+          "case": "second-live",
+          "apiReplayed": false,
+          "geometry": {
+            "listDisplay": "flex",
+            "listPaddingStart": "0px",
+            "listPaddingEnd": "0px",
+            "listGap": "8px",
+            "listBefore": "none",
+            "listHeight": 85,
+            "measureDisplay": "block",
+            "measureHeight": 85,
+            "metrics": "2 tools",
+            "timeNodes": 0,
+            "nowrap": "nowrap",
+            "byline": true,
+            "visibleMessages": true,
+            "visibleWorkflows": true
+          },
+          "errors": []
+        },
+        {
+          "width": 1280,
+          "case": "first-historical",
+          "apiReplayed": true,
+          "geometry": {
+            "listDisplay": "flex",
+            "listPaddingStart": "0px",
+            "listPaddingEnd": "0px",
+            "listGap": "8px",
+            "listBefore": "none",
+            "listHeight": 186.25,
+            "measureDisplay": "block",
+            "measureHeight": 186.25,
+            "metrics": "17 tools",
+            "timeNodes": 0,
+            "nowrap": "nowrap",
+            "byline": true,
+            "visibleMessages": true,
+            "visibleWorkflows": true
+          },
+          "errors": []
+        }
+      ]
+    },
+    "documentationPreserved": true,
+    "errorCount": 0
+  },
+  "privacy": "Raw API pages, conversation screenshots, database backup and settings values remain in local thread storage; not committed."
+}

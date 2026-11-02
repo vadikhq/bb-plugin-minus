@@ -1,0 +1,358 @@
+{
+  "sourceSha256": "683aa8b135de1698a6d45d55bc628e096e636918427beb979ed5dc42b3fe1e8f",
+  "testsSha256": "4f18e85a90d5b82f094683c557e955ffb53e55498054b26105cc1656d78d8c81",
+  "beforeSourceSha256": "9f78539a47b12cb807a2e93e0a3cd731345565d6503ef7aa7a1a5bcef6146559",
+  "regressionBefore": {
+    "tests": 2,
+    "failures": 1,
+    "wrongStates": [
+      "pending",
+      "pending"
+    ]
+  },
+  "focused": {
+    "tests": 7,
+    "failures": 0
+  },
+  "full": {
+    "tests": 118,
+    "failures": 0
+  },
+  "typeScript": "PASS",
+  "build": "PASS",
+  "sdkPin": "0.6.79",
+  "hostSdkWarning": "0.6.94",
+  "installed": false,
+  "rendererMarkupAndStyleChanged": false,
+  "scope": "Native-summary trailing Thought ownership across sibling virtualization spacer; no dictionary, SDK, runtime or UI layout changes",
+  "independentReview": {
+    "reviewer": "/root/summary_ownership_review",
+    "verdict": "PASS: identified native-summary trailing-reasoning ownership P2 closed on these exact candidate bytes; no open P0/P1/P2 in the reviewed scope",
+    "openFindings": [],
+    "checks": {
+      "independentJsdomActualModule": true,
+      "rightOwnerMountVirtualizeRemountTerminal": true,
+      "leftOwnerControlPreserved": true,
+      "countOneEach": true,
+      "focusAndDisclosurePreserved": true,
+      "spacerVisible": true,
+      "reasoningAtStartAndBetweenToolsPreserved": true,
+      "nativeTrailingWithoutSpacerPreserved": true,
+      "headlessChromiumFixture": true,
+      "browserWidths": [
+        390,
+        1280
+      ],
+      "browserContexts": 4,
+      "browserPageErrors": 0,
+      "browserDisposeGroupsAndHiddenAttrsZero": true,
+      "pngsViewed": 8
+    },
+    "minimality": "Unconditionally stopping at the tool count would remove the existing no-spacer native-after activity scenario covered by group-tools.test.mjs pending reasoning inside a native summary: after. Restricting the guard to a proven virtualization gap fixes the demonstrated path without redefining that accepted scenario."
+  },
+  "browser": {
+    "method": "isolated headless Chromium; disposable local HTTP synthetic nativeSummary DOM/API fixture; actual candidate module transpiled by TypeScript without body substitution; not installed or native-live evidence",
+    "sourceSha256": "683aa8b135de1698a6d45d55bc628e096e636918427beb979ed5dc42b3fe1e8f",
+    "browserVersion": "143.0.7499.4",
+    "contexts": [
+      {
+        "width": 390,
+        "owner": "right",
+        "mounted": {
+          "states": [
+            "completed",
+            "pending"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "false",
+            "false"
+          ],
+          "spacerVisible": true,
+          "focused": null
+        },
+        "virtualized": {
+          "states": [
+            "completed",
+            "pending"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "false",
+            "true"
+          ],
+          "spacerVisible": true,
+          "focused": true
+        },
+        "remounted": {
+          "states": [
+            "completed",
+            "pending"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "false",
+            "true"
+          ],
+          "spacerVisible": true,
+          "focused": true
+        },
+        "completed": {
+          "states": [
+            "completed",
+            "completed"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "false",
+            "true"
+          ],
+          "spacerVisible": true,
+          "focused": true
+        },
+        "cleanup": {
+          "groups": 0,
+          "hidden": 0
+        },
+        "errors": [],
+        "passed": true
+      },
+      {
+        "width": 390,
+        "owner": "left",
+        "mounted": {
+          "states": [
+            "pending",
+            "completed"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "false",
+            "false"
+          ],
+          "spacerVisible": true,
+          "focused": null
+        },
+        "virtualized": {
+          "states": [
+            "pending",
+            "completed"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "true",
+            "false"
+          ],
+          "spacerVisible": true,
+          "focused": true
+        },
+        "remounted": {
+          "states": [
+            "pending",
+            "completed"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "true",
+            "false"
+          ],
+          "spacerVisible": true,
+          "focused": true
+        },
+        "completed": {
+          "states": [
+            "completed",
+            "completed"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "true",
+            "false"
+          ],
+          "spacerVisible": true,
+          "focused": true
+        },
+        "cleanup": {
+          "groups": 0,
+          "hidden": 0
+        },
+        "errors": [],
+        "passed": true
+      },
+      {
+        "width": 1280,
+        "owner": "right",
+        "mounted": {
+          "states": [
+            "completed",
+            "pending"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "false",
+            "false"
+          ],
+          "spacerVisible": true,
+          "focused": null
+        },
+        "virtualized": {
+          "states": [
+            "completed",
+            "pending"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "false",
+            "true"
+          ],
+          "spacerVisible": true,
+          "focused": true
+        },
+        "remounted": {
+          "states": [
+            "completed",
+            "pending"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "false",
+            "true"
+          ],
+          "spacerVisible": true,
+          "focused": true
+        },
+        "completed": {
+          "states": [
+            "completed",
+            "completed"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "false",
+            "true"
+          ],
+          "spacerVisible": true,
+          "focused": true
+        },
+        "cleanup": {
+          "groups": 0,
+          "hidden": 0
+        },
+        "errors": [],
+        "passed": true
+      },
+      {
+        "width": 1280,
+        "owner": "left",
+        "mounted": {
+          "states": [
+            "pending",
+            "completed"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "false",
+            "false"
+          ],
+          "spacerVisible": true,
+          "focused": null
+        },
+        "virtualized": {
+          "states": [
+            "pending",
+            "completed"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "true",
+            "false"
+          ],
+          "spacerVisible": true,
+          "focused": true
+        },
+        "remounted": {
+          "states": [
+            "pending",
+            "completed"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "true",
+            "false"
+          ],
+          "spacerVisible": true,
+          "focused": true
+        },
+        "completed": {
+          "states": [
+            "completed",
+            "completed"
+          ],
+          "counts": [
+            "1 tool",
+            "1 tool"
+          ],
+          "expanded": [
+            "true",
+            "false"
+          ],
+          "spacerVisible": true,
+          "focused": true
+        },
+        "cleanup": {
+          "groups": 0,
+          "hidden": 0
+        },
+        "errors": [],
+        "passed": true
+      }
+    ],
+    "passed": true,
+    "cleanup": true
+  }
+}
