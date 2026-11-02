@@ -3,6 +3,8 @@
 // so this only sets an attribute on them and inserts its own sibling markers.
 // The timeline is virtualized, so counts come from the timeline API, not mounted rows.
 import { defaultQuote, quoteAttribution, type GroupQuote } from "./dictionary-builtins.ts";
+import { QUOTE_HTML, QUOTE_CSS, type QuoteControls } from "./quote-controls.ts";
+import { quoteStrings, toolCount } from "./quote-i18n.ts";
 
 // DOM observers receive same-value attribute writes too. Publish only a changed presentation.
 function setPresentationAttribute(element: Element, name: string, value: string) {
@@ -21,18 +23,6 @@ type FetchTimeline = (threadId: string) => Promise<TimelineRow[]>;
 type SubscribeTimeline = (notify: (threadId: string | undefined, finished: boolean) => void) => () => void;
 type DisclosureChoice = { revision: number; open: boolean };
 type ToolActivity = "pending" | "completed" | "error" | "cancelled" | "unknown";
-const ACTIVITY_LABELS: Record<ToolActivity, string> = {
-  pending: "Выполняется", completed: "Завершено", error: "Завершено с ошибкой",
-  cancelled: "Остановлено", unknown: "Статус выполнения уточняется",
-};
-// Native-sized, currentColor SVG geometry; the spinner uses BB's animate-spin token.
-const ACTIVITY_ICONS: Record<ToolActivity, string> = {
-  pending: '<path d="M12 2a10 10 0 1 0 10 10"/>',
-  completed: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>',
-  error: '<circle cx="12" cy="12" r="9"/><path d="m8 8 8 8m0-8-8 8"/>',
-  cancelled: '<path d="M7 7h10v10H7z"/>',
-  unknown: '<circle cx="12" cy="12" r="10" stroke-dasharray="2 3"/>',
-};
 function toolActivity(row: TimelineRow): ToolActivity {
   if (row.status === "pending" || row.status === "completed" || row.status === "error" || row.status === "cancelled") return row.status;
   return "unknown";
@@ -69,12 +59,6 @@ const VISIBLE_WORK_ROW = /^(delegation|workflow|approval|question|form):/;
 // Keep the existing active-stream cadence; terminal realtime events bypass it.
 const REFETCH_MS = 2000;
 
-const TOGGLE_HTML = `<div class="rounded-md text-subtle-foreground w-full">
-  <div data-row class="group/timeline-row min-w-0 px-2 text-sm leading-5">
-    <button data-toggle="quote" type="button" aria-expanded="false" class="inline px-0 py-0 align-baseline text-sm leading-5 text-subtle-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 inline-block size-3.5 align-text-bottom text-subtle-foreground" aria-hidden="true" data-minus-icon="activity"></svg><span data-activity-label class="sr-only"></span></button><label data-quote-control class="group/toggle inline whitespace-normal break-words cursor-pointer"><span data-quote class="whitespace-normal break-words text-sm not-italic leading-5 text-subtle-foreground"></span> · <span data-source class="mr-1.5 break-words text-xs not-italic leading-5 text-subtle-foreground"></span></label>
-    <button data-metrics data-toggle="metrics" type="button" aria-expanded="false" class="inline-flex max-w-full items-center whitespace-nowrap px-0 py-0 text-left align-baseline text-xs leading-5 text-subtle-foreground underline underline-offset-2 hover:decoration-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"><span data-count class="whitespace-nowrap"></span><svg data-minus-chevron viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="bb-icon-stroke pointer-events-none ml-1.5 inline-block size-3 align-text-bottom origin-center text-subtle-foreground transition-[rotate] duration-200 ease-out" aria-hidden="true"><path d="M6 4l4 4-4 4"></path></svg></button>
-  </div>
-</div>`;
 
 function rowKey(row: HTMLElement): string {
   return (row.dataset.timelineRowId ?? "").replace(/^thr_[a-z0-9]+:/, "");
@@ -280,6 +264,7 @@ export function mountToolGrouping(
   chooseQuote: () => GroupQuote = defaultQuote,
   clock: Clock = systemClock,
   subscribeTimeline?: SubscribeTimeline,
+  controls?: QuoteControls,
 ): () => void {
   const expanded = new Set<string>();
   const groupKeyByRow = new Map<string, string>();
@@ -325,24 +310,22 @@ export function mountToolGrouping(
 [${FLAT_LIST}]{padding-inline:0;margin-block:0}
 [${FLAT_LIST}]::before,[${FLAT_LIST}]::after{display:none}
 [${STREAM_FOCUS}]:focus-visible{outline:1px solid var(--ring)}`;
-  style.textContent += `
-[${MARKER}][data-tool-state="pending"] [data-minus-icon]{animation:var(--animate-spin);opacity:1}
-@media(prefers-reduced-motion:reduce){[${MARKER}][data-tool-state="pending"] [data-minus-icon]{animation:none}}`;
+  style.textContent += QUOTE_CSS;
   document.head.append(style);
 
   const iconInView = new WeakMap<Element, boolean>();
-  const updateIconMotion = (icon: SVGElement) => {
+  const updateIconMotion = (icon: HTMLElement) => {
     const animationState = document.hidden || iconInView.get(icon) === false ? "paused" : "";
     if (icon.style.animationPlayState !== animationState) icon.style.animationPlayState = animationState;
   };
   const iconObserver = typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver(entries => {
     for (const entry of entries) {
       iconInView.set(entry.target, entry.isIntersecting);
-      updateIconMotion(entry.target as SVGElement);
+      updateIconMotion(entry.target as HTMLElement);
     }
   });
   const updateVisibleIcons = () => {
-    for (const icon of document.querySelectorAll<SVGElement>(`[${MARKER}] [data-minus-icon]`)) updateIconMotion(icon);
+    for (const icon of document.querySelectorAll<HTMLElement>(`[${MARKER}] [data-minus-icon]`)) updateIconMotion(icon);
   };
   document.addEventListener("visibilitychange", updateVisibleIcons);
 
@@ -736,11 +719,18 @@ export function mountToolGrouping(
     if (existing !== undefined) return existing;
     const el = document.createElement("div");
     el.setAttribute(MARKER, key);
-    el.innerHTML = TOGGLE_HTML;
+    el.innerHTML = QUOTE_HTML;
     markerIndex.get(container)!.set(key, el);
-    const icon = el.querySelector<SVGElement>("[data-minus-icon]")!;
+    const icon = el.querySelector<HTMLElement>("[data-minus-icon]")!;
     iconObserver?.observe(icon);
     updateIconMotion(icon);
+    const like = el.querySelector<HTMLButtonElement>("[data-like]")!;
+    like.addEventListener("click", () => {
+      if (like.getAttribute("aria-disabled") === "true") return;
+      controls?.click(el);
+      if (!like.hasAttribute("data-feedback")) like.setAttribute("data-feedback", "");
+    });
+    like.addEventListener("animationend", () => like.removeAttribute("data-feedback"));
     const toggle = () => {
       if (!expanded.delete(key)) expanded.add(key);
       const choice = { revision: ++disclosureRevision, open: expanded.has(key) };
@@ -811,7 +801,8 @@ export function mountToolGrouping(
     const focused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const focusedMarker = focused?.closest<HTMLElement>(`[${MARKER}]`) ?? null;
     const focusedKey = focusedMarker?.getAttribute(MARKER);
-    const focusSelector = focused?.matches('[data-toggle="quote"]') ? '[data-toggle="quote"]' :
+    const focusSelector = focused?.matches('[data-like]') ? '[data-like]' :
+      focused?.matches('[data-settings]') ? '[data-settings]' :
       focused?.matches('[data-toggle="metrics"]') ? '[data-toggle="metrics"]' :
       null;
     let migratedFocus: HTMLElement | null = null;
@@ -1040,32 +1031,33 @@ export function mountToolGrouping(
         if (quoteText.title !== quote.text) quoteText.title = quote.text;
         const quoteId = "bb-minus-quote-" + encodeURIComponent(key);
         if (quoteText.id !== quoteId) quoteText.id = quoteId;
-        const quoteButton = el.querySelector<HTMLButtonElement>('[data-toggle="quote"]')!;
+        const quoteButton = el.querySelector<HTMLButtonElement>("[data-metrics]")!;
         setPresentationAttribute(quoteButton, "id", quoteId + "-toggle");
         setPresentationAttribute(el.querySelector<HTMLLabelElement>("[data-quote-control]")!, "for", quoteButton.id);
         const activity = api?.activity ?? "unknown";
-        const icon = el.querySelector<SVGElement>("[data-minus-icon]")!;
+        const icon = el.querySelector<HTMLElement>("[data-minus-icon]")!;
         if (el.getAttribute("data-tool-state") !== activity) {
           el.setAttribute("data-tool-state", activity);
-          icon.innerHTML = ACTIVITY_ICONS[activity];
         }
-        setPresentationAttribute(icon, "title", ACTIVITY_LABELS[activity]);
+        const language = controls?.language ?? "en", t = quoteStrings(language);
+        controls?.render(el, quote);
+        setPresentationAttribute(icon, "title", t[activity]);
         const activityLabel = el.querySelector<HTMLElement>("[data-activity-label]")!;
         setPresentationAttribute(activityLabel, "id", quoteId + "-activity");
-        if (activityLabel.textContent !== ACTIVITY_LABELS[activity]) activityLabel.textContent = ACTIVITY_LABELS[activity];
+        if (activityLabel.textContent !== t[activity]) activityLabel.textContent = t[activity];
         const source = quoteAttribution(quote);
         const sourceLink = el.querySelector<HTMLElement>("[data-source]")!;
         setPresentationAttribute(sourceLink, "id", quoteId + "-source");
-        setPresentationAttribute(quoteButton, "aria-labelledby", quoteId + " " + sourceLink.id);
         if (sourceLink.textContent !== source.byline) sourceLink.textContent = source.byline;
         setPresentationAttribute(sourceLink, "aria-label", source.detail);
         setPresentationAttribute(sourceLink, "title", source.detail);
         const metrics = el.querySelector<HTMLElement>("[data-metrics]")!;
-        const visibleCount = calls + " tool" + (calls === 1 ? "" : "s");
+        const visibleCount = toolCount(calls, language);
         const count = metrics.querySelector("[data-count]")!;
         if (count.textContent !== visibleCount) count.textContent = visibleCount;
-        setPresentationAttribute(metrics, "title", "Show or hide tool calls.");
+        setPresentationAttribute(metrics, "title", open ? t.collapse : t.expand);
         const accessibleLabel =
+          language === "ru" ? `${open ? "Свернуть" : "Раскрыть"} ${visibleCount}.` :
           (open ? "Hide " : "Show ") + calls + " tool call" + (calls === 1 ? "" : "s") + ".";
         for (const button of el.querySelectorAll<HTMLButtonElement>("[data-toggle]")) {
           setPresentationAttribute(button, "aria-label", accessibleLabel);
@@ -1152,11 +1144,13 @@ export function mountToolGrouping(
       invalidate(threadId, finished);
     }
   });
+  const unsubscribeControls = controls?.subscribe(schedule);
   pass();
 
   return () => {
     if (disposed) return;
     disposed = true;
+    unsubscribeControls?.();
     unsubscribe?.();
     observer.disconnect();
     iconObserver?.disconnect();

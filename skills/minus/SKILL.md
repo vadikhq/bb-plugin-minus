@@ -5,6 +5,12 @@ description: Hide or show bb UI elements (back/forward buttons, sidebar and righ
 
 # Minus
 
+## Liked quotes
+
+The heart beside a grouped quote toggles a persistent like; filled red means liked. It does not disclose tools. The gear opens `/settings/plugins/minus#minus-favorites`, where **Liked quotes / Понравившиеся цитаты** contains snapshots from all dictionaries. Changing the active dictionary does not filter or clear favorites. Unlike there updates repeated hearts in open chat surfaces. Loading and save errors have an explicit retry; do not report a request as saved without read-back.
+
+Favorites use the plugin database, separately from settings and dictionary selection. Preserve `data.db` before removal and verify restoration; never replace newer likes or imports with an old backup. The discoverable read RPC is `favoritesList(null)`; `favoriteSet` takes `{ snapshot: { dictionaryId, dictionaryTitle, citation }, liked: boolean }`, validates the full snapshot and sets an explicit idempotent state. Quote identity includes its exact content and source, so reusing an ID for new text does not transfer a like. Agent changes to favorites require the owner's instruction.
+
 Each visibility setting is a boolean; `true` hides the element in every open bb window, live.
 
 ```

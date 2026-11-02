@@ -1,10 +1,34 @@
-import { useEffect, useState } from "react";
-import { definePluginApp, experimental_usePluginId, experimental_useRpcQuery, experimental_useRpcMutation, useSdk, useSettings } from "@get-bb/plugin-sdk/app";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { definePluginApp, experimental_usePluginId, experimental_useRpcQuery, experimental_useRpcMutation, useRpc, useSdk, useSettings } from "@get-bb/plugin-sdk/app";
 import { mountQueueCollapse } from "./collapse-queue";
 import { mountToolGrouping } from "./group-tools";
 import { AREAS, buildCss } from "./rules";
 import { dictionaryContract } from "./dictionary-contract.ts";
 import { pickDictionaryQuote } from "./dictionary-builtins.ts";
+import { schema, object } from "./dictionary-model.ts";
+import { favoritesContract, type FavoriteSnapshot } from "./favorites-model.ts";
+import { createFavoritesClient, type FavoritesClient } from "./favorites-client.ts";
+import { createQuoteControls, HEART_PATH, QUOTE_CSS } from "./quote-controls.ts";
+import { quoteLanguage, quoteStrings, type QuoteLanguage } from "./quote-i18n.ts";
+
+const languageContract = { get: { input: schema(() => null), output: schema(value => ({ language: object(value).language })) } };
+function useQuoteLanguage(): QuoteLanguage {
+  const selection = experimental_useRpcQuery({ pluginId: "localization", contract: languageContract, method: "get", input: null });
+  return quoteLanguage(selection.data, !!selection.error);
+}
+let favoriteClient: FavoritesClient | undefined;
+function useFavorites() {
+  const rpc = useRpc<typeof favoritesContract>();
+  // One client per loaded plugin module/window. Both settings and the overlay
+  // share writes, errors and pending guards; server invalidation refreshes peers.
+  const client = useMemo(() => favoriteClient ??= createFavoritesClient(
+    () => rpc.call("favoritesList", null), (snapshot, liked) => rpc.call("favoriteSet", { snapshot, liked }),
+  ), [rpc]);
+  const query = experimental_useRpcQuery({ contract: favoritesContract, method: "favoritesList", input: null });
+  useEffect(() => { if (query.data) client.accept(query.data); }, [client, query.data]);
+  const state = useSyncExternalStore(client.subscribe, client.getSnapshot);
+  return { client, state, query };
+}
 
 // Mounted once per window; re-renders when settings change, so toggles apply live.
 function HideStyles() {
@@ -13,6 +37,10 @@ function HideStyles() {
   const css = buildCss(pluginId, (key) => values?.[key] === true);
   const collapseToolCalls = values?.collapseToolCalls === true;
   const sdk = useSdk();
+  const favorites = useFavorites();
+  const language = useQuoteLanguage();
+  const controls = useMemo(() => createQuoteControls(favorites.client), [favorites.client]);
+  useEffect(() => { controls.context(language, !!favorites.query.error, favorites.query.refetch); }, [controls, language, favorites.query.error, favorites.query.refetch]);
   const active = experimental_useRpcQuery({ contract: dictionaryContract, method: "dictionaryActive", input: null, enabled: collapseToolCalls });
   const dictionary = active.data;
   useEffect(() => {
@@ -21,7 +49,7 @@ function HideStyles() {
     if (!collapseToolCalls || !dictionary) return;
     return mountToolGrouping(
       async (threadId) => (await sdk.threads.timeline({ threadId, deferContent: "true", includeNestedRows: "true" })).rows,
-      () => pickDictionaryQuote(dictionary.quotes),
+      () => ({ ...pickDictionaryQuote(dictionary.quotes), dictionaryId: dictionary.id, dictionaryTitle: dictionary.title }),
       undefined,
       (notify) => {
         const unsubscribeThread = sdk.subscribe({
@@ -42,11 +70,56 @@ function HideStyles() {
         });
         return () => { unsubscribeThread(); unsubscribeConnection(); };
       },
+      controls,
     );
-  }, [collapseToolCalls, sdk, dictionary?.id, dictionary?.revision]);
+  }, [collapseToolCalls, sdk, controls, dictionary?.id, dictionary?.revision]);
   const collapseQueue = values?.collapseQueue === true;
   useEffect(() => (collapseQueue ? mountQueueCollapse() : undefined), [collapseQueue]);
-  return <style data-bb-minus="">{css}</style>;
+  return <style data-bb-minus="">{css + QUOTE_CSS}</style>;
+}
+
+function FavoritesSettings() {
+  const { client, state, query } = useFavorites();
+  const language = useQuoteLanguage(), t = quoteStrings(language);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const removing = useRef<{ key: string; button: HTMLButtonElement } | null>(null);
+  useEffect(() => { if (location.hash === "#minus-favorites") heading.current?.focus(); }, []);
+  useEffect(() => {
+    const removal = removing.current, key = removal?.key;
+    if (removal && key && state.data && !state.pending.has(key) && !state.errors.has(key) && !state.data.items.some(item => item.key === key)) {
+      removing.current = null;
+      const active = document.activeElement;
+      if (active === removal.button || (!removal.button.isConnected && (active === document.body || active === null))) heading.current?.focus({ preventScroll: true });
+    }
+  }, [state]);
+  return <section aria-labelledby="minus-favorites" className="space-y-3">
+    <h2 id="minus-favorites" ref={heading} tabIndex={-1} className="flex min-h-6 items-baseline gap-2 text-sm font-medium text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring">
+      {t.favorites}{state.data ? <span className="text-xs font-normal text-muted-foreground">{new Intl.NumberFormat(language).format(state.data.items.length)}</span> : null}
+    </h2>
+    {!state.data ? <p role="status" className="text-sm text-muted-foreground">{query.error ? t.loadError : t.loading}</p> : null}
+    {query.error ? <div role="alert" className="text-sm text-destructive">
+      {state.data ? <p>{t.loadError}</p> : null}
+      <button type="button" className="underline underline-offset-2 outline-none focus-visible:ring-1 focus-visible:ring-ring" onClick={() => { void query.refetch(); }}>{t.reload}</button>
+    </div> : null}
+    {state.data?.items.length === 0 ? <div className="space-y-1 border-t border-border py-4 text-sm text-muted-foreground"><p>{t.empty}</p><p className="text-xs">{t.hint}</p></div> : null}
+    {state.data?.items.map(item => {
+      const pending = state.pending.has(item.key), error = state.errors.get(item.key);
+      const snapshot: FavoriteSnapshot = item;
+      return <article key={item.key} className="min-w-0 border-t border-border py-4 text-subtle-foreground" data-favorite-item>
+        <span className="flex h-5 items-center justify-center"><button data-like type="button" aria-pressed="true" aria-busy={pending} aria-disabled={pending}
+          aria-label={error ? t.retry : t.unlike} title={error ? t.retry : t.unlike}
+          className="outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          onClick={(event) => { removing.current = { key: item.key, button: event.currentTarget }; void client.set(snapshot, false); }}>
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={HEART_PATH}/></svg>
+        </button></span>
+        <div className="min-w-0 break-words text-sm leading-5"><p>{item.citation.text} ·&nbsp;<span className="text-xs">{item.citation.author}{item.citation.section ? " → " + item.citation.section : ""}</span></p>
+          <p className="mt-1 text-xs text-muted-foreground">{item.dictionaryTitle}</p>
+          {pending ? <span role="status" className="sr-only">{t.saving}</span> : null}
+          {error ? <p role="alert" className="mt-1 text-xs text-destructive">{t.saveError}</p> : null}
+        </div>
+      </article>;
+    })}
+  </section>;
 }
 
 function DictionarySettings() {
@@ -133,6 +206,7 @@ function GroupedSettings() {
   return (
     <div className="space-y-6">
       <DictionarySettings />
+      <FavoritesSettings />
       {error === null ? null : (
         <p role="alert" className="text-sm text-destructive">
           {error}

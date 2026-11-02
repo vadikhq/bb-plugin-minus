@@ -1,0 +1,84 @@
+{
+  "status": "PASS",
+  "openFindings": 0,
+  "sourceHashesReviewed": {
+    "app.tsx": "ceee21b5c30601124229c50b9156dd72939735c7f2485f4082f1a578da976291",
+    "group-tools.ts": "5489febe0751810b37fcb1f9aa6c16dc11e204509e7bcceaa52b9ccd2d296ce3",
+    "server.ts": "d6b20e49ed332d4c654bd17709b8c33ebb165366cd81f20656c7e98b3cb0c515",
+    "dictionary-builtins.ts": "2ab822fca10bdc4786c55a97871e0e3dda82fdd6ac89697177cafcf7a9f66afc",
+    "favorites-model.ts": "ae11d185cc61bdef559a67d4e7e1e834949184645e6c6a41c7c0a8418f68957e",
+    "favorites-store.ts": "5bdbe5dc9c00ba54aed1139f2413976790135618e06c7f3864af642c15556537",
+    "favorites-client.ts": "99a0ebda971b1d7bb44a2e7bdd2c7183f29f3158ccef4a75701a28ad2e7eba76",
+    "quote-controls.ts": "63e9d32641eb7e9e2e8dc1fdb9de20762be983ee3a10314af276c865d32825c0",
+    "quote-i18n.ts": "4f93bb0b57ae4730b70cd2ab566f61cf4f9372eddf2c992e79cc041050ddfe88",
+    "group-tools.test.mjs": "772d4d597e9a253948574185bfc71e42bed16510488ddfab298659dd18958413",
+    "favorites.test.mjs": "9f04a5b092e1f980972c0ef28156efd9063e6131ff497ce85e8d71bcd6742705",
+    "package.json": "2c0dfb0d60078969957e9940364dcd20b410c03908439ea34d540c8a6820f509",
+    "dist/app.js": "2784578c52aead417a34ddf250b0efb4e27e3fabbe092df81fb0d05edaea3b00",
+    "dist/app.css": "e4e4ac5a405859fa628ca3ab910b64feb20f569b12578e5e0540acca993d1387",
+    "dist/server.js": "d8016832804a23a41a62ac614c473cbe529b03793b2f992c765a6462cb8e7afa"
+  },
+  "findings": [
+    {
+      "id": "likes-reconciliation",
+      "severity": "P2",
+      "status": "fixed-in-source",
+      "file": "favorites-client.ts",
+      "line": 9,
+      "problem": "A lost-response error survived a later authoritative confirmation; the next filled-heart click retried true rather than removing the like.",
+      "fixReviewed": "accept clears only errors whose desired state is confirmed by a fresh accepted revision; catch does not resurrect an error after concurrent confirmation. Dedicated reconnect regression added."
+    },
+    {
+      "id": "favorites-touch-hitbox",
+      "severity": "P2",
+      "status": "fixed-in-source-and-measured",
+      "file": "quote-controls.ts",
+      "line": 47,
+      "problem": "Settings hearts inherited only the desktop 28px fallback on coarse pointers, although the accepted prototype uses 36px.",
+      "fixReviewed": "The coarse selector now also sets the control token on data-favorite-item. Saved candidate UI checks settings hitbox."
+    },
+    {
+      "id": "async-removal-focus",
+      "severity": "P2",
+      "status": "fixed-in-source-and-measured",
+      "file": "app.tsx",
+      "line": 85,
+      "problem": "An asynchronous unlike completion always focused the heading, stealing focus after the user had already moved to another connected control.",
+      "fixReviewed": "The originating button is retained; heading fallback applies only to its focus or genuinely lost focus after removal. Saved UI case checks delayed removal while SELECT keeps focus."
+    },
+    {
+      "id": "language-unavailable-fallback",
+      "severity": "P2",
+      "status": "fixed-in-source",
+      "file": "app.tsx",
+      "line": 15,
+      "problem": "A query error after a successful Russian language read reused stale ru data instead of the promised English fallback.",
+      "fixReviewed": "quoteLanguage takes failure into account and returns English for unavailable or unsupported language data."
+    },
+    {
+      "id": "favorites-missing-grid-columns",
+      "severity": "P2",
+      "status": "fixed-in-source-and-rendered-evidence",
+      "file": "app.tsx",
+      "line": 108,
+      "problem": "Both final candidate settings PNGs show each heart centered on a separate row above full-width text, rather than in the accepted first-line left icon column. The arbitrary grid-cols class is not reflected in the rendered style.",
+      "requiredFix": "Use explicit scoped grid-template-columns on data-favorite-item from accepted native spacing, measure the actual columns and first-line heart alignment, and recapture settings. Keep product assertions rather than accepting the existing screenshots.",
+      "fixReviewed": "Explicit scoped data-favorite-item columns replace the unsupported arbitrary class. New settings PNGs read; measured columns 20px 700px / 20px 330px, plus 40px 200px at 320px/200% zoom. Heart/first-text-line center deltas 0 / 0.5px / 0.",
+      "historicalEvidence": "Private historical failing captures omitted; corrected public images are linked by the product journal."
+    }
+  ],
+  "positiveChecks": [
+    "Snapshot key includes dictionary and exact meaningful citation content; title-only rename keeps identity; ID reuse with new text does not inherit a like.",
+    "Additive SQL migration leaves prior dictionary migration bytes and settings intact; writes and revision changes are transactional and idempotent.",
+    "Client guards duplicate writes, keeps confirmed state until read-back, ignores lower revisions, and caches favorite membership per snapshot rather than scanning all favorites per DOM row.",
+    "Native ownership, delegation boundaries, API cadence and observer mutation filtering are preserved by the scoped group-tools diff.",
+    "The new control is separate from tool disclosure; the gear uses the existing settings route and adds no rail.",
+    "Dots reserve geometry after the count and pause outside view/background; reduced motion and the accepted gray/red palette are represented in code.",
+    "No elapsed tool-time calculation was reintroduced."
+  ],
+  "originalReceiptSha256": "084539a2f4d1d169d662d44a33cb9916355a64f71989ead3403aa5af029fb06c",
+  "uiScope": [
+    "320px with CSS root font-size 200% is functional/geometry evidence; native composer clips the full quote in that frame. Full visual review uses 1280/390.",
+    "Candidate frontend and RPC fixtures; not installed UI verification."
+  ]
+}
