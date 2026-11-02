@@ -4,6 +4,8 @@ import { dictionaryContract } from "./dictionary-contract.ts";
 import { createDictionaryStore, DICTIONARY_MIGRATIONS } from "./dictionary-store.ts";
 import { DEFAULT_DICTIONARY_ID } from "./dictionary-builtins.ts";
 import { dictionaryId, object, parseDictionary } from "./dictionary-model.ts";
+import { favoritesContract } from "./favorites-model.ts";
+import { createFavoritesStore, FAVORITES_MIGRATIONS } from "./favorites-store.ts";
 
 // Descriptors keep `bb plugin config minus` working; the settings page shows the grouped section from app.tsx.
 export default async function plugin(bb: BbPluginApi) {
@@ -16,8 +18,17 @@ export default async function plugin(bb: BbPluginApi) {
     quoteDictionary: { type: "string", label: "Словарь цитат", default: DEFAULT_DICTIONARY_ID },
   });
   const db = bb.storage.database();
-  bb.storage.migrate(db, DICTIONARY_MIGRATIONS);
+  bb.storage.migrate(db, [...DICTIONARY_MIGRATIONS, ...FAVORITES_MIGRATIONS]);
   const store = createDictionaryStore(db);
+  const favorites = createFavoritesStore(db);
+  bb.rpc.register(favoritesContract, {
+    favoritesList: async () => favorites.list(),
+    favoriteSet: async ({ snapshot, liked }) => {
+      const result = favorites.set(snapshot, liked);
+      bb.rpc.experimental_invalidateAll();
+      return result;
+    },
+  });
   const activeId = async () => (await settings.get()).quoteDictionary as string;
   const activate = async (id: string) => {
     store.get(id);

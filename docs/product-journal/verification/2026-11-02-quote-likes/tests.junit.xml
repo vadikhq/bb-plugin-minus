@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+	<testcase name="original dictionary bytes and accepted Dalio text/order remain intact" time="0.001385" classname="test" file="repository/dictionaries.test.mjs"/>
+	<testcase name="invalid or duplicate imports leave storage unchanged; conflicting replacements are explicit" time="0.032922" classname="test" file="repository/dictionaries.test.mjs"/>
+	<testcase name="imports larger than one KV value persist atomically in the database" time="0.040577" classname="test" file="repository/dictionaries.test.mjs"/>
+	<testcase name="agent import preserves active selection; explicit activation and reload preserve dictionaries" time="0.036509" classname="test" file="repository/dictionaries.test.mjs"/>
+	<testcase name="import parser keeps text intact and rejects unsafe references" time="0.000280" classname="test" file="repository/dictionaries.test.mjs"/>
+	<testcase name="quote UI uses English fallback for unavailable language API even with retained Russian data" time="0.015556" classname="test" file="repository/favorites.test.mjs"/>
+	<testcase name="likes persist across plugin reload without changing settings, active dictionary or custom imports" time="0.157119" classname="test" file="repository/favorites.test.mjs"/>
+	<testcase name="a code rollback using the older dictionary-only migration list preserves favorite data for re-upgrade" time="0.022706" classname="test" file="repository/favorites.test.mjs"/>
+	<testcase name="content snapshots survive replacement; a reused quote ID never inherits a like" time="0.000510" classname="test" file="repository/favorites.test.mjs"/>
+	<testcase name="favorite RPC validates booleans, snapshots and references before any write" time="0.003026" classname="test" file="repository/favorites.test.mjs"/>
+	<testcase name="duplicate clicks share one write; only a read-back confirms the red heart" time="0.000294" classname="test" file="repository/favorites.test.mjs"/>
+	<testcase name="lost write response retries the same desired value, never inverts the saved like" time="0.000173" classname="test" file="repository/favorites.test.mjs"/>
+	<testcase name="read-back failure preserves the confirmed state and offers an idempotent retry" time="0.000099" classname="test" file="repository/favorites.test.mjs"/>
+	<testcase name="a reconnect confirmation resolves a lost response; the next heart click removes the confirmed like" time="0.000117" classname="test" file="repository/favorites.test.mjs"/>
+	<testcase name="hearts share durable state across groups without opening tools; retry and language preserve the marker" time="0.399118" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="observer filters unrelated mutations while preserving pane lifecycle and first-marker focus" time="0.044596" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="an unproven new spacer stays visible during revalidation" time="0.123332" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="an unproven resized spacer stays visible during revalidation" time="0.133630" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a completed virtualized run stays joined while an unrelated run is pending" time="0.053481" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="revalidation does not split a proven virtualized run or replace its quote" time="0.122598" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="completed turn flattens its protected mixed summary without flattening delegated timelines" time="0.131600" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="tool-only completed turn has no outer Worked for frame and keeps delegation visible" time="0.083193" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="screenshot tool batches and service Thoughts share one count-only quote before delegation" time="0.140545" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="tool grouping never reads call timestamps for counts, activity or disclosure" time="0.081050" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="renders and toggles every mounted row for 1 tool call(s)" time="0.199026" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="renders and toggles every mounted row for 2 tool call(s)" time="0.186375" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="renders and toggles every mounted row for 3 tool call(s)" time="0.188631" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="uses the full timeline count when only one tool row is mounted" time="0.078301" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="counts overlapping calls without a time label" time="0.041857" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps the call count stable when the tool cycle finishes" time="0.078192" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps a manual stop visible and outside collapsed tool-call groups" time="0.153061" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="splits a virtualized tool run at an API interruption boundary" time="0.193161" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps an expanded API group open after refresh rejection and recovery" time="0.227589" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps an expanded right fallback part open when the API joins both parts" time="0.156991" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="does not revive a stale fallback choice when an unmounted row returns" time="0.228688" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps all split groups expanded when the API resolves after fallback expansion" time="0.163097" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="preserves a known API boundary when one mounted tool id is missing" time="0.049369" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="counts an uncached mounted tool row without duplicating its run toggle" time="0.080080" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="does not reopen a collapsed API group when virtualization replaces its first row" time="0.219610" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="does not expand a newly visible API group when virtualization shifts the mounted range" time="0.125419" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="transfers an expanded fallback row once so it can still be collapsed" time="0.156992" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps the quote stable when virtualization mounts another row in the same run" time="0.079704" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps separate tool runs independently expandable" time="0.083709" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps reasoning and unknown live rows visible before, during and after the API response" time="0.159834" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="does not join tool runs across virtualized reasoning" time="0.103961" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="an uncached tool cannot bridge a spacer containing an agent stream" time="0.047471" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a work row acquiring nested agent content becomes a visible independent boundary" time="0.190028" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="native running tool bundles collapse while agent messages remain visible" time="0.162224" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="agent stream work and user interactions stay visible with their own API boundaries" time="0.235388" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps the end divider after the last mounted call as calls appear and disappear" time="0.184979" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps independent dividers outside the agent stream through virtualization" time="0.158844" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="settles independent headers and dividers for pending-spacer parts sharing an API run" time="0.152152" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="settles independent headers and dividers for stale-reasoning parts sharing an API run" time="0.163461" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a returning fallback part keeps the latest API collapse" time="0.199216" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a returning fallback part keeps the latest API collapse after API failure" time="0.231196" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps the rendered API membership when collapse happens after rejection but before its RAF" time="0.196494" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps focus on [data-metrics] when an expanded fallback becomes an API group" time="0.115810" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps focus on [data-like] when an expanded fallback becomes an API group" time="0.114176" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps focus on [data-settings] when an expanded fallback becomes an API group" time="0.113894" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="dispose restores rows and removes injected DOM" time="0.078472" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="all quotes have unique excerpts and a source with a line locator" time="0.000273" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="quote selection covers the first and last entries at random bounds" time="0.000058" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="reviewed translations preserve every clause from their source excerpts" time="0.000096" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps completed-turn commentary visible while hiding its tools with final timings" time="0.118603" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="respects a native turn manually closed by the user through DOM updates and remounting" time="0.150020" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="presents completed commentary outside the native disclosure without moving React rows" time="0.196554" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="stream presentation cannot escape its measure row when a sibling precedes the native root" time="0.047040" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="an unexpected nested list outside the native root receives no stream shell styling" time="0.042985" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="commentary without mounted metrics has a visible reversible focus target; tabindex=null" time="0.116013" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="commentary without mounted metrics has a visible reversible focus target; tabindex=0" time="0.121938" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="commentary without mounted metrics has a visible reversible focus target; tabindex=-1" time="0.116829" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="cleanup restores only native turns auto-opened by Minus; initiallyOpen=false" time="0.040584" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="cleanup restores only native turns auto-opened by Minus; initiallyOpen=true" time="0.043862" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="does not open completed turns inside a delegated agent timeline" time="0.041253" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a terminal realtime event refreshes completion without a DOM change or throttle delay" time="0.148570" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a terminal event during inFlight preserves its forced final refresh" time="0.080548" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="native summary counts all 16 tools across reasoning boundaries" time="0.121937" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="summary beginning with verified reasoning keeps its complete tool membership: pending=false" time="0.123237" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="summary beginning with verified reasoning keeps its complete tool membership: pending=true" time="0.115917" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="an incomplete summary API window never reports just its first five members" time="0.041590" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="pending reasoning inside a native summary keeps completed tools active: before" time="0.117576" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="pending reasoning inside a native summary keeps completed tools active: between" time="0.117439" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="pending reasoning inside a native summary keeps completed tools active: after" time="0.119491" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a native summary retains only previously proved Thought ownership after a spacer: initial=false" time="0.113589" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a native summary retains only previously proved Thought ownership after a spacer: initial=true" time="0.151617" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="inferred native trailing reasoning cannot replace its valid right-hand owner when a gap returns" time="0.159888" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="native interior reasoning stays one pending cycle when a summary is replaced by raw tools" time="0.080534" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a pending Thought at the next mounted summary does not affect its completed neighbour" time="0.044286" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a native summary cannot borrow virtualized trailing Thought from the left group" time="0.199512" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a native summary cannot borrow virtualized trailing Thought from the right group" time="0.199130" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="mixed summary exposes delegated work outside tool disclosures and restores its native shell" time="0.122237" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="manually closed mixed summary stays closed and cleanup respects that choice" time="0.114010" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="stale summary membership cannot borrow the next summary first call" time="0.047628" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="stale summary membership cannot borrow the next summary first call across reasoning" time="0.047005" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="native subagent evidence preserves mixed streams even when the API still reports tools only" time="0.043642" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="known agent content survives repacking into a closed native summary" time="0.117088" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="known agent content survives repacking into a closed native summary with API unavailable" time="0.160532" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="activity changes from working to finished after the terminal refresh" time="0.082368" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="activity never announces success for error" time="0.046309" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="activity never announces success for cancelled" time="0.042999" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="activity never announces success for unknown-provider-state" time="0.042563" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a lost API snapshot removes the finished state until recovery" time="0.118788" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="activity animation pauses outside the viewport and in background, and disposes its observers" time="0.045171" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a multi-call cycle keeps count-only metrics and disclosure through completion" time="0.153832" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="keeps a visible disclosure chevron after metrics and rotates it for either toggle" time="0.115070" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="one visual tool block gets one quote across unmounted native reasoning" time="0.121367" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="adjacent native summaries and raw tools union their API members exactly once" time="0.047637" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="the combined visual cycle hides time until every constituent run finishes" time="0.118085" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="confirming a mounted Thought preserves the latest choice and metrics focus when groups join" time="0.266924" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="five tool batches separated by mounted Thoughts share one quote and only tool metrics" time="0.128744" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="pending mounted Thought before the tools keeps the cycle active without a duration label" time="0.113487" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="pending mounted Thought between the tools keeps the cycle active without a duration label" time="0.120790" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="pending mounted Thought after the tools keeps the cycle active without a duration label" time="0.119221" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a standalone verified Thought stays native instead of creating a zero-tool quote" time="0.040750" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="virtualizing a pending Thought preserves cycle activity until terminal: both sides false" time="0.192273" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="virtualizing a pending Thought preserves cycle activity until terminal: both sides true" time="0.196444" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="an owned pending Thought is recovered past unmounted completed reasoning: before" time="0.119668" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="an owned pending Thought is recovered past unmounted completed reasoning: after" time="0.120070" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a pending Thought keeps its proven owners while only it remains mounted: both sides false" time="0.155737" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a pending Thought keeps its proven owners while only it remains mounted: both sides true" time="0.152584" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a known pending Thought stays with its own group across a spacer and virtualization: left" time="0.240059" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a known pending Thought stays with its own group across a spacer and virtualization: right" time="0.231318" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="simultaneous spacer and Thought virtualization waits for mount: left" time="0.189591" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="simultaneous spacer and Thought virtualization waits for terminal: left" time="0.117477" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="simultaneous spacer and Thought virtualization waits for join: left" time="0.154621" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="simultaneous spacer and Thought virtualization waits for mount: right" time="0.193436" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="simultaneous spacer and Thought virtualization waits for terminal: right" time="0.120751" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="simultaneous spacer and Thought virtualization waits for join: right" time="0.150978" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="virtualized Thought ownership follows a new API boundary: conversation" time="0.080999" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="virtualized Thought ownership follows a new API boundary: nested-source" time="0.079774" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="mounted reasoning with error status remains an independent visible boundary" time="0.046125" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="mounted reasoning with cancelled status remains an independent visible boundary" time="0.045922" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="mounted reasoning with unknown-state status remains an independent visible boundary" time="0.046150" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a grouped Thought gaining a message becomes a protected boundary even after virtualization" time="0.119943" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="Thought grouping recovers from a failed API refresh without reviving an older disclosure" time="0.191648" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a missing meaningful API boundary still separates quotes: conversation" time="0.046365" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a missing meaningful API boundary still separates quotes: thread-interrupted" time="0.044908" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a missing meaningful API boundary still separates quotes: unknown" time="0.046246" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a missing meaningful API boundary still separates quotes: delegation" time="0.044080" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="merged runs cannot duplicate a partly virtualized pending run behind a spacer" time="0.045183" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="unverified or active unmounted reasoning cannot join tool groups: false" time="0.044164" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="unverified or active unmounted reasoning cannot join tool groups: true" time="0.043002" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="a late agent message splits a combined visual block and stays outside its tools" time="0.077208" classname="test" file="repository/group-tools.test.mjs"/>
+	<testcase name="Dalio attribution stays compact and stable while rows are virtualized" time="0.112217" classname="test" file="repository/group-tools.test.mjs"/>
+	<!-- tests 144 -->
+	<!-- suites 0 -->
+	<!-- pass 144 -->
+	<!-- fail 0 -->
+	<!-- cancelled 0 -->
+	<!-- skipped 0 -->
+	<!-- todo 0 -->
+	<!-- duration_ms 17130.710041 -->
+</testsuites>

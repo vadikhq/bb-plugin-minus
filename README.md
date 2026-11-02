@@ -46,9 +46,10 @@ A manual "Stopped manually" row stays visible outside the group. Adjacent API
 runs share one quote when no useful message or other meaningful boundary separates them.
 
 The summary shows the call count and disclosure arrow. Tool runtimes are neither
-calculated nor displayed. A native spinning ring indicates activity; after the
-cycle completes it becomes a static circle with a dot. Reduced-motion preferences
-are respected; offscreen and background animations pause.
+calculated nor displayed. Sequential dots after the count indicate activity and
+keep their reserved space after completion. Reduced-motion preferences are
+respected; offscreen and background animations pause. The heart beside a quote
+is an independent like button and never opens the tool disclosure.
 
 ## License
 
@@ -58,12 +59,16 @@ Collapsing tools keeps useful messages, unknown streaming rows, nested agent tim
 
 ## Quote dictionaries
 
+The heart saves or removes a quote from **Liked quotes** in Settings → Plugins → Minus. Filled red hearts share the saved state across repetitions. The small settings gear beside a quote opens that same page and focuses the list; it appears on hover or keyboard focus and stays available on touch screens. Favorites contain snapshots from every dictionary, independently of the active selection, and survive reloads and dictionary updates. Reusing a quote ID for different text does not inherit its like.
+
+Likes are confirmed by a separate read after saving. A failed or lost response keeps the last confirmed state and offers an idempotent retry. The new controls use English or Russian through the existing Localization plugin, with English fallback when its API is unavailable. Quote text remains unchanged. Back up the plugin database as well as settings before removal: it now stores favorites alongside custom dictionaries. [Implementation and verification](docs/product-journal/2026-11-02-quote-likes.md).
+
 Settings → Plugins → Minus → **Словари цитат** selects the active dictionary. This release starts with **Рэй Далио — Принципы** (452 accepted quotes); **Философская подборка** keeps all 73 previous entries unchanged. The selection persists. Each summary reads quote · author → section in ordinary muted text. Dalio summaries show the exact chapter name, without the book title or principle number.
 
 Agents can use `minus_dictionaries` to list, import and explicitly activate dictionaries. Import validates the whole set atomically, stores it in the plugin database and leaves the active selection unchanged. An identical repeated import is safe; replacing different data requires the current `expectedRevision` from `list`. Built-in dictionaries cannot be replaced. See the [agent skill](skills/minus/SKILL.md) for the input format.
 
 Imports require checked attribution and source locators; structural validation alone does not verify a quotation. Research candidates are not imported automatically. Back up custom dictionaries and settings before removing the plugin. The accepted UI amendment and verification are recorded in the [quote dictionaries journal](docs/product-journal/2026-10-31-quote-dictionaries.md), extending the current visual reference below. The [installation journal](docs/product-journal/2026-10-31-quote-dictionaries-installation.md) records the exact installed source and direct live UI checks.
 
-The current UI reference is the owner's [count-only summary amendment, 2026-11-01](docs/product-journal/2026-11-01-count-only.md), extending the approved [Thought-grouping amendment](docs/product-journal/2026-10-31-visible-thoughts.md) and [one-summary visual reference](docs/product-journal/2026-10-31-quote-flood.md) (“Теперь без флуда, оставляем”). It retains the accepted ring, dot, disclosure arrow and divider/spacing decisions while removing tool-time calculation. Agent streams remain outside the dividers; quote and Russian attribution flow together without a link or forced line break. The [motion check and fork integration decision](docs/product-journal/2026-10-31-motion-pr.md) remain applicable.
+The current UI reference is the owner's accepted [quote-likes amendment](docs/product-journal/2026-11-02-quote-likes.md), identified there by the approved prototype SHA256. It extends the [count-only summary amendment, 2026-11-01](docs/product-journal/2026-11-01-count-only.md), [Thought-grouping amendment](docs/product-journal/2026-10-31-visible-thoughts.md) and [one-summary reference](docs/product-journal/2026-10-31-quote-flood.md) (“Теперь без флуда, оставляем”). The heart replaces the activity icon; dots move after the count, with no tool timing. Accepted dividers, spacing and useful streams remain. Quote and attribution flow together around a middle dot, without a forced line break. The [motion and fork integration decision](docs/product-journal/2026-10-31-motion-pr.md) remains applicable where not superseded by this amendment.
 
 The owner’s [1 November count-only amendment](docs/product-journal/2026-11-01-count-only.md) removes tool-time calculation and the duplicate Worked for frame around grouped calls. It supersedes the earlier duration behaviour; all other accepted visual decisions remain.

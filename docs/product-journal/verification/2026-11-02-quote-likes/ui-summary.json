@@ -1,0 +1,109 @@
+{
+  "method": "isolated headless Chromium; actual BB native UI and candidate JS/CSS in disposable client; every Minus RPC intercepted into official SDK fake host with real isolated SQLite; no candidate installed, no live writes",
+  "candidateJsSha256": "2784578c52aead417a34ddf250b0efb4e27e3fabbe092df81fb0d05edaea3b00",
+  "installed": false,
+  "liveSourceUnchanged": true,
+  "contexts": [
+    {
+      "width": 1280,
+      "theme": "light",
+      "language": "en",
+      "touch": false,
+      "geometry": {
+        "heartWidth": 28,
+        "heartCenter": 131.9375,
+        "textFirstCenter": 131.9375,
+        "metricsNowrap": "nowrap",
+        "overflow": false,
+        "timeNodes": 0,
+        "gearWidth": 28,
+        "reducedMotion": false
+      },
+      "settingsGeometry": {
+        "width": 28,
+        "height": 28,
+        "columns": "20px 700px",
+        "heartX": 432,
+        "heartCenter": 110.5625,
+        "textX": 464,
+        "textCenter": 110.5625,
+        "overflow": false
+      },
+      "errors": [],
+      "passed": true,
+      "rootFontScale": 1
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "language": "ru",
+      "touch": true,
+      "geometry": {
+        "heartWidth": 36,
+        "heartCenter": 581.9375,
+        "textFirstCenter": 581.4375,
+        "metricsNowrap": "nowrap",
+        "overflow": false,
+        "timeNodes": 0,
+        "gearWidth": 36,
+        "reducedMotion": true
+      },
+      "settingsGeometry": {
+        "width": 36,
+        "height": 36,
+        "columns": "20px 330px",
+        "heartX": 8,
+        "heartCenter": 111,
+        "textX": 44,
+        "textCenter": 110.5,
+        "overflow": false
+      },
+      "errors": [],
+      "passed": true,
+      "rootFontScale": 1
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "language": "en",
+      "touch": true,
+      "geometry": {
+        "heartWidth": 72,
+        "heartCenter": 613.78125,
+        "textFirstCenter": 613.78125,
+        "metricsNowrap": "nowrap",
+        "overflow": false,
+        "timeNodes": 0,
+        "gearWidth": 72,
+        "reducedMotion": true
+      },
+      "settingsGeometry": {
+        "width": 72,
+        "height": 72,
+        "columns": "40px 200px",
+        "heartX": 16,
+        "heartCenter": 221,
+        "textX": 88,
+        "textCenter": 221,
+        "overflow": false
+      },
+      "errors": [],
+      "passed": true,
+      "rootFontScale": 2
+    }
+  ],
+  "checks": [
+    "read-back and duplicate guard",
+    "error and retry in EN/RU",
+    "mixed favorites persist after reload",
+    "delayed unlike does not steal SELECT focus",
+    "focused removal falls back to heading",
+    "real storage through official SDK fake host",
+    "original and Dalio data remain available"
+  ],
+  "limits": [
+    "320px with CSS root font-size 200% is functional/geometry evidence; native composer clips the full quote in that frame. Full visual review uses 1280/390.",
+    "Candidate frontend and RPC fixtures; not installed UI verification."
+  ],
+  "cleanup": true
+}

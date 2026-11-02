@@ -9,7 +9,7 @@ export const BUILTIN_DICTIONARIES: readonly DictionarySnapshot[] = [
       section: "", sourceTitle: QUOTE_SOURCES[q.source].title, locator: q.locator, sourceUrl: QUOTE_SOURCES[q.source].url })) },
   { id: "dalio", title: "Рэй Далио — Принципы", revision: "dalio-ru-accepted-2026-10-31", quotes: [...DALIO_QUOTES] },
 ];
-export type GroupQuote = Citation | QuoteEntry;
+export type GroupQuote = (Citation & { dictionaryId?: string; dictionaryTitle?: string }) | QuoteEntry;
 export function pickDictionaryQuote(quotes: readonly Citation[], random = Math.random): Citation {
   if (quotes.length === 0) throw new Error("Выбранный словарь пуст.");
   return quotes[Math.floor(random() * quotes.length)]!;

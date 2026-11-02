@@ -1,0 +1,17 @@
+{
+  "app.tsx": "ceee21b5c30601124229c50b9156dd72939735c7f2485f4082f1a578da976291",
+  "group-tools.ts": "5489febe0751810b37fcb1f9aa6c16dc11e204509e7bcceaa52b9ccd2d296ce3",
+  "server.ts": "d6b20e49ed332d4c654bd17709b8c33ebb165366cd81f20656c7e98b3cb0c515",
+  "dictionary-builtins.ts": "2ab822fca10bdc4786c55a97871e0e3dda82fdd6ac89697177cafcf7a9f66afc",
+  "favorites-model.ts": "ae11d185cc61bdef559a67d4e7e1e834949184645e6c6a41c7c0a8418f68957e",
+  "favorites-store.ts": "5bdbe5dc9c00ba54aed1139f2413976790135618e06c7f3864af642c15556537",
+  "favorites-client.ts": "99a0ebda971b1d7bb44a2e7bdd2c7183f29f3158ccef4a75701a28ad2e7eba76",
+  "quote-controls.ts": "63e9d32641eb7e9e2e8dc1fdb9de20762be983ee3a10314af276c865d32825c0",
+  "quote-i18n.ts": "4f93bb0b57ae4730b70cd2ab566f61cf4f9372eddf2c992e79cc041050ddfe88",
+  "group-tools.test.mjs": "772d4d597e9a253948574185bfc71e42bed16510488ddfab298659dd18958413",
+  "favorites.test.mjs": "9f04a5b092e1f980972c0ef28156efd9063e6131ff497ce85e8d71bcd6742705",
+  "package.json": "2c0dfb0d60078969957e9940364dcd20b410c03908439ea34d540c8a6820f509",
+  "dist/app.js": "2784578c52aead417a34ddf250b0efb4e27e3fabbe092df81fb0d05edaea3b00",
+  "dist/app.css": "e4e4ac5a405859fa628ca3ab910b64feb20f569b12578e5e0540acca993d1387",
+  "dist/server.js": "d8016832804a23a41a62ac614c473cbe529b03793b2f992c765a6462cb8e7afa"
+}
