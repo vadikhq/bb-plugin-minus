@@ -4,6 +4,118 @@ import { JSDOM } from "jsdom";
 import { mountToolGrouping } from "./group-tools.ts";
 import { QUOTE_SOURCES, QUOTES, pickRandomQuote } from "./quotes.ts";
 
+test("observer filters unrelated mutations while preserving pane lifecycle and first-marker focus", async () => {
+  const dom = new JSDOM("<!doctype html><html><head></head><body><aside><span>sidebar</span></aside><main></main></body></html>", {
+    pretendToBeVisual: true, url: "https://bb.local/",
+  });
+  const { window } = dom, document = window.document, frames = new Map(), api = new Map();
+  const previous = new Map();
+  let sequence = 0, passes = 0, fetches = 0, notify, dispose;
+  const query = document.querySelectorAll.bind(document);
+  document.querySelectorAll = (selector) => {
+    if (selector === "[data-timeline-items]") passes++;
+    return query(selector);
+  };
+  for (const [name, value] of Object.entries({ document, Element: window.Element, HTMLElement: window.HTMLElement,
+    MutationObserver: window.MutationObserver,
+    requestAnimationFrame: callback => { frames.set(++sequence, callback); return sequence; },
+    cancelAnimationFrame: id => frames.delete(id),
+  })) {
+    previous.set(name, Object.getOwnPropertyDescriptor(globalThis, name));
+    Object.defineProperty(globalThis, name, { configurable: true, writable: true, value });
+  }
+  const tick = () => new Promise(resolve => setImmediate(resolve));
+  async function drain() {
+    await tick();
+    // Ten two-frame lifecycle transitions form the finite test budget. This
+    // bounds the fixture independently of the observer, not the product.
+    for (let index = 0; index < 20 && frames.size; index++) {
+      const callbacks = [...frames.values()];
+      frames.clear();
+      for (const callback of callbacks) callback(performance.now());
+      await tick();
+    }
+    assert.equal(frames.size, 0, "observer settles within the finite fixture");
+  }
+  function pane(id) {
+    const shell = document.createElement("section"), list = document.createElement("div"), items = document.createElement("div");
+    list.dataset.timelineRowList = "top-level";
+    items.dataset.timelineItems = "";
+    const row = document.createElement("div");
+    row.dataset.timelineRowId = id + ":tool:first";
+    row.textContent = "tool";
+    items.append(row); list.append(items); shell.append(list);
+    api.set(id, [{ id: row.dataset.timelineRowId, kind: "work", status: "completed" }]);
+    return { shell, items, row };
+  }
+  try {
+    dispose = mountToolGrouping(async id => { fetches++; return api.get(id) ?? []; }, () => QUOTES[0], undefined,
+      callback => { notify = callback; return () => {}; });
+    await drain();
+    const first = pane("thr_alpha");
+    document.querySelector("main").append(first.shell);
+    await drain();
+    assert.equal(first.items.querySelectorAll("[data-bb-minus-group]").length, 1);
+    for (const mutate of [
+      () => { document.querySelector("aside span").firstChild.data = "changed sidebar"; },
+      () => document.querySelector("aside").append(document.createElement("span")),
+      () => document.body.append(document.createElement("footer")),
+      () => { document.querySelector("aside").style.color = "red"; },
+    ]) {
+      const before = passes, fetchBefore = fetches;
+      mutate(); await drain();
+      assert.equal(passes, before, "outside changes do not rescan conversations");
+      assert.equal(fetches, fetchBefore, "outside changes do not change API cadence");
+    }
+    const before = passes;
+    first.row.firstChild.data = "streamed native tool title";
+    await drain();
+    assert(passes > before, "timeline characterData remains observed");
+    const second = pane("thr_beta");
+    document.querySelector("main").append(second.shell); await drain();
+    assert.equal(second.items.querySelectorAll("[data-bb-minus-group]").length, 1);
+    const fetched = fetches;
+    second.shell.remove(); await drain();
+    assert.equal(query("[data-bb-minus-group]").length, 1);
+    document.querySelector("main").append(second.shell); await drain();
+    assert.equal(second.items.querySelectorAll("[data-bb-minus-group]").length, 1);
+    assert.equal(fetches, fetched, "completed pane remount reuses its API snapshot");
+    const added = document.createElement("div");
+    added.dataset.timelineRowId = "thr_alpha:tool:second";
+    added.textContent = "second tool";
+    api.set("thr_alpha", [...api.get("thr_alpha"), { id: added.dataset.timelineRowId, kind: "work", status: "completed" }]);
+    first.items.append(added); notify("thr_alpha", true); await drain();
+    assert.equal(first.items.querySelector("[data-count]").textContent, "2 tools");
+    const marker = first.items.querySelector("[data-bb-minus-group]"), metrics = marker.querySelector("[data-metrics]");
+    metrics.focus(); metrics.click(); await drain();
+    const end = first.items.querySelector("[data-bb-minus-group-end]");
+    assert(end);
+    first.items.append(marker.cloneNode(true), end.cloneNode(true)); await drain();
+    assert.equal(first.items.querySelector("[data-bb-minus-group]"), marker);
+    assert.equal(first.items.querySelectorAll("[data-bb-minus-group]").length, 1);
+    assert.equal(first.items.querySelector("[data-bb-minus-group-end]"), end);
+    assert.equal(document.activeElement, metrics);
+    assert.equal(metrics.getAttribute("aria-expanded"), "true");
+    first.items.removeAttribute("data-timeline-items"); await drain();
+    assert.equal(first.items.querySelector("[data-bb-minus-group]"), null);
+    assert.equal(first.row.hasAttribute("data-bb-minus-hidden"), false);
+    first.items.setAttribute("data-timeline-items", ""); await drain();
+    assert.equal(first.items.querySelectorAll("[data-bb-minus-group]").length, 1);
+  } finally {
+    try {
+      dispose?.();
+      assert.equal(frames.size, 0);
+      assert.equal(document.querySelector("[data-bb-minus-group]"), null);
+    } finally {
+      for (const [name, descriptor] of previous) {
+        if (descriptor) Object.defineProperty(globalThis, name, descriptor);
+        else delete globalThis[name];
+      }
+      window.close();
+    }
+  }
+});
+
 for (const change of ["new", "resized"]) {
   test("an unproven " + change + " spacer stays visible during revalidation", async () => {
     const rows = timeline([["tool-1"], ["tool-2"]]);

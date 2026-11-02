@@ -1,0 +1,49 @@
+{
+  "candidateSourceSha256": "b5eab1887227359601fa00d4243c5530daf95b7201e3356381f3e0b9e804818f",
+  "reviewerThread": "thr_dn7m635per",
+  "writerThread": "thr_bza87x5nhg",
+  "scope": "Minimal performance fix; accepted count-only UI and user data unchanged",
+  "codeVerdict": "pass",
+  "resolved": [
+    {
+      "finding": "Unrelated body/sidebar mutations trigger timeline pass",
+      "evidence": "observer-evidence.json",
+      "status": "fixed in isolated candidate; not applied to live"
+    },
+    {
+      "finding": "Repeated direct-child lookup within each group",
+      "evidence": "source.patch",
+      "status": "per-pass indexes reset synchronously; first duplicate retained"
+    },
+    {
+      "finding": "Same-value presentation writes notify observers",
+      "status": "conditional writes preserve existing values and ARIA/disclosure contract"
+    }
+  ],
+  "checks": [
+    {
+      "file": "grouping.junit.xml",
+      "testCases": 127
+    },
+    {
+      "file": "comparison.junit.xml",
+      "testCases": 2
+    }
+  ],
+  "sourceReview": [
+    "Mutation relevance follows target ancestry and added/removed subtrees; no full-body query in observer callback",
+    "Timeline identity changes remain observed; same-value attribute writes ignored",
+    "Spacer style changes explicitly invalidate join geometry",
+    "Streaming, pane mount/unmount/remount, API cadence, duplicate focus and disposal pass new regression assertions"
+  ],
+  "designMode": "Operate",
+  "currentUiReference": "README.md → docs/product-journal/2026-11-01-count-only.md, accepted 2026-11-01",
+  "visualSourceReview": "No CSS, text, palette, typography or native ownership changes; installed screenshot is incumbent reference only",
+  "artifactPreparationVerdict": "pass; independent COW dependencies, same byte/link manifests, no links/common writable inode to live; fresh build/typecheck successful",
+  "liveRuntimeChanged": false,
+  "rootCauseOfOriginalFreeze": "unproven",
+  "verifiedArtifact": "independent COW artifact, retained by writer; not installed",
+  "sharedRuntimeChanged": false,
+  "originalReceiptSha256": "61a428114863a6e51d8712f99ff43a076d21c18a2460b2e319de032a88da5143",
+  "branchApprovalSource": "owner permission verified; transition executed in original checkout"
+}

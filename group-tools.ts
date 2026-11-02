@@ -4,6 +4,11 @@
 // The timeline is virtualized, so counts come from the timeline API, not mounted rows.
 import { defaultQuote, quoteAttribution, type GroupQuote } from "./dictionary-builtins.ts";
 
+// DOM observers receive same-value attribute writes too. Publish only a changed presentation.
+function setPresentationAttribute(element: Element, name: string, value: string) {
+  if (element.getAttribute(name) !== value) element.setAttribute(name, value);
+}
+
 type TimelineRow = {
   id: string;
   kind: string;
@@ -327,7 +332,8 @@ export function mountToolGrouping(
 
   const iconInView = new WeakMap<Element, boolean>();
   const updateIconMotion = (icon: SVGElement) => {
-    icon.style.animationPlayState = document.hidden || iconInView.get(icon) === false ? "paused" : "";
+    const animationState = document.hidden || iconInView.get(icon) === false ? "paused" : "";
+    if (icon.style.animationPlayState !== animationState) icon.style.animationPlayState = animationState;
   };
   const iconObserver = typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver(entries => {
     for (const entry of entries) {
@@ -341,6 +347,24 @@ export function mountToolGrouping(
   document.addEventListener("visibilitychange", updateVisibleIcons);
 
   let frame = 0;
+
+  // Index each direct-child marker set once per synchronous pass; preserve native rows.
+  let markerIndex = new WeakMap<Element, Map<string, HTMLElement>>();
+  let endIndex = new WeakMap<Element, Map<string, HTMLElement>>();
+  function lookupOwned(container: Element, key: string, attribute: string, indexes: WeakMap<Element, Map<string, HTMLElement>>) {
+    let entries = indexes.get(container);
+    if (entries === undefined) {
+      entries = new Map();
+      for (const el of container.querySelectorAll<HTMLElement>(`:scope > [${attribute}]`)) {
+        const id = el.getAttribute(attribute)!;
+        // Match the previous linear lookup: keep the first sibling, including its focus.
+        if (!entries.has(id)) entries.set(id, el);
+      }
+      indexes.set(container, entries);
+    }
+    return entries.get(key);
+  }
+
   const schedule = () => {
     if (frame === 0 && !disposed) frame = requestAnimationFrame(pass);
   };
@@ -452,14 +476,14 @@ export function mountToolGrouping(
       // Keep React's rows and virtualization measure box in place. Only remove
       // the enclosing disclosure's visual nesting: commentary is ordinary chat,
       // and each quote continues to control only its own work rows.
-      row.setAttribute(isTurn ? FLAT_TURN : FLAT_SUMMARY, "");
+      setPresentationAttribute(row, isTurn ? FLAT_TURN : FLAT_SUMMARY, "");
       presentation.add(row);
       // The owned native list carries its own indent and pseudo divider.
       // Keep its layout/measurement box; remove only that duplicate framing.
-      list.setAttribute(FLAT_LIST, "");
+      setPresentationAttribute(list, FLAT_LIST, "");
       presentation.add(list);
       for (const shell of shells) {
-        shell.setAttribute(TURN_SHELL, "");
+        setPresentationAttribute(shell, TURN_SHELL, "");
         presentation.add(shell);
       }
     }
@@ -708,11 +732,12 @@ export function mountToolGrouping(
   }
 
   function marker(container: Element, key: string): HTMLElement {
-    for (const el of container.querySelectorAll<HTMLElement>(`:scope > [${MARKER}]`))
-      if (el.getAttribute(MARKER) === key) return el;
+    const existing = lookupOwned(container, key, MARKER, markerIndex);
+    if (existing !== undefined) return existing;
     const el = document.createElement("div");
     el.setAttribute(MARKER, key);
     el.innerHTML = TOGGLE_HTML;
+    markerIndex.get(container)!.set(key, el);
     const icon = el.querySelector<SVGElement>("[data-minus-icon]")!;
     iconObserver?.observe(icon);
     updateIconMotion(icon);
@@ -736,11 +761,12 @@ export function mountToolGrouping(
   }
 
   function groupEnd(container: Element, key: string): HTMLElement {
-    for (const el of container.querySelectorAll<HTMLElement>(`:scope > [${GROUP_END}]`))
-      if (el.getAttribute(GROUP_END) === key) return el;
+    const existing = lookupOwned(container, key, GROUP_END, endIndex);
+    if (existing !== undefined) return existing;
     const el = document.createElement("div");
     el.setAttribute(GROUP_END, key);
     el.setAttribute("aria-hidden", "true");
+    endIndex.get(container)!.set(key, el);
     return el;
   }
 
@@ -779,6 +805,8 @@ export function mountToolGrouping(
 
   function pass() {
     frame = 0;
+    markerIndex = new WeakMap();
+    endIndex = new WeakMap();
     mountedThreads.clear();
     const focused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const focusedMarker = focused?.closest<HTMLElement>(`[${MARKER}]`) ?? null;
@@ -1013,41 +1041,40 @@ export function mountToolGrouping(
         const quoteId = "bb-minus-quote-" + encodeURIComponent(key);
         if (quoteText.id !== quoteId) quoteText.id = quoteId;
         const quoteButton = el.querySelector<HTMLButtonElement>('[data-toggle="quote"]')!;
-        quoteButton.id = quoteId + "-toggle";
-        el.querySelector<HTMLLabelElement>("[data-quote-control]")!.htmlFor = quoteButton.id;
+        setPresentationAttribute(quoteButton, "id", quoteId + "-toggle");
+        setPresentationAttribute(el.querySelector<HTMLLabelElement>("[data-quote-control]")!, "for", quoteButton.id);
         const activity = api?.activity ?? "unknown";
         const icon = el.querySelector<SVGElement>("[data-minus-icon]")!;
         if (el.getAttribute("data-tool-state") !== activity) {
           el.setAttribute("data-tool-state", activity);
           icon.innerHTML = ACTIVITY_ICONS[activity];
         }
-        icon.setAttribute("title", ACTIVITY_LABELS[activity]);
+        setPresentationAttribute(icon, "title", ACTIVITY_LABELS[activity]);
         const activityLabel = el.querySelector<HTMLElement>("[data-activity-label]")!;
-        activityLabel.id = quoteId + "-activity";
+        setPresentationAttribute(activityLabel, "id", quoteId + "-activity");
         if (activityLabel.textContent !== ACTIVITY_LABELS[activity]) activityLabel.textContent = ACTIVITY_LABELS[activity];
         const source = quoteAttribution(quote);
         const sourceLink = el.querySelector<HTMLElement>("[data-source]")!;
-        sourceLink.id = quoteId + "-source";
-        quoteButton.setAttribute("aria-labelledby", quoteId + " " + sourceLink.id);
+        setPresentationAttribute(sourceLink, "id", quoteId + "-source");
+        setPresentationAttribute(quoteButton, "aria-labelledby", quoteId + " " + sourceLink.id);
         if (sourceLink.textContent !== source.byline) sourceLink.textContent = source.byline;
-        sourceLink.setAttribute(
-          "aria-label",
-          source.detail,
-        );
-        sourceLink.title = source.detail;
+        setPresentationAttribute(sourceLink, "aria-label", source.detail);
+        setPresentationAttribute(sourceLink, "title", source.detail);
         const metrics = el.querySelector<HTMLElement>("[data-metrics]")!;
         const visibleCount = calls + " tool" + (calls === 1 ? "" : "s");
         const count = metrics.querySelector("[data-count]")!;
         if (count.textContent !== visibleCount) count.textContent = visibleCount;
-        metrics.title = "Show or hide tool calls.";
+        setPresentationAttribute(metrics, "title", "Show or hide tool calls.");
         const accessibleLabel =
           (open ? "Hide " : "Show ") + calls + " tool call" + (calls === 1 ? "" : "s") + ".";
         for (const button of el.querySelectorAll<HTMLButtonElement>("[data-toggle]")) {
-          button.setAttribute("aria-label", accessibleLabel);
-          button.setAttribute("aria-describedby", quoteId + " " + activityLabel.id);
-          button.setAttribute("aria-expanded", String(open));
+          setPresentationAttribute(button, "aria-label", accessibleLabel);
+          setPresentationAttribute(button, "aria-describedby", quoteId + " " + activityLabel.id);
+          setPresentationAttribute(button, "aria-expanded", String(open));
         }
-        el.querySelector<SVGElement>("svg.bb-icon-stroke")!.style.rotate = open ? "90deg" : "";
+        const chevron = el.querySelector<SVGElement>("svg.bb-icon-stroke")!.style;
+        const rotation = open ? "90deg" : "";
+        if (chevron.rotate !== rotation) chevron.rotate = rotation;
         if (el.nextElementSibling !== rows[0]) container.insertBefore(el, rows[0]);
         for (const row of rows) {
           if (open) row.removeAttribute(HIDDEN);
@@ -1090,8 +1117,33 @@ export function mountToolGrouping(
     }
   }
 
-  const observer = new MutationObserver(schedule);
-  observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+  // Keep one body observer to discover mounted/replaced panes, but unrelated
+  // sidebar/plugin text must not rescan every conversation. Inspect only the
+  // mutation's ancestry and added/removed subtrees, never the entire body here.
+  const timelineScope = "[data-timeline-items], [data-timeline-row-list], [data-timeline-row-id]";
+  const containsTimeline = (node: Node) => node instanceof Element &&
+    (node.matches(timelineScope) || node.querySelector(timelineScope) !== null);
+  const observer = new MutationObserver(records => {
+    const relevant = records.some(record => {
+      const target = record.target instanceof Element ? record.target : record.target.parentElement;
+      if (record.type === "attributes") {
+        if (target === null || record.oldValue === target.getAttribute(record.attributeName!)) return false;
+        if (record.attributeName !== "style") return true; // Native timeline identity added, removed or changed.
+        // Spacer geometry is read by stableSpacerJoins. Observe it directly
+        // rather than relying on an unrelated body mutation to revalidate it.
+        return target.hasAttribute("data-timeline-window-spacer") && target.closest(timelineScope) !== null;
+      }
+      if (target?.closest(timelineScope) !== null && target !== null) return true;
+      return record.type === "childList" &&
+        ([...record.addedNodes].some(containsTimeline) || [...record.removedNodes].some(containsTimeline));
+    });
+    if (relevant) schedule();
+  });
+  observer.observe(document.body, {
+    childList: true, subtree: true, characterData: true,
+    attributes: true, attributeOldValue: true,
+    attributeFilter: ["data-timeline-items", "data-timeline-row-list", "data-timeline-row-id", "style"],
+  });
   document.addEventListener("click", trackTurnChoice, true);
   const unsubscribe = subscribeTimeline?.((threadId, finished) => {
     if (threadId === undefined) {
