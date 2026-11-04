@@ -1,0 +1,57 @@
+{
+  "sourceSha256": {
+    "app.tsx": "6369b0b6af6a3a479f51473087b9e00d1b3adaeffb16cacf1f58ea944e4f5484",
+    "group-tools.ts": "da6a92b813a2eefb36b250af2beb3b83e7bfd1ee916302b1dea6189b65be9e59",
+    "group-tools.test.mjs": "8dbfa96a13725c165b762b433e13c819bfcc767b30200787b061782c726744db",
+    "package.json": "a415f8c203dd4bb52b0e8e3b00c36b1d6d9c4efe250ac0ee5a284f590237aa7a",
+    "quote-controls.ts": "f6c965db268e05ab9309641cb4674b121cceccd0e9d3bac5968bf37f074c3eb5",
+    "quote-i18n.ts": "4c85f2cbbeeaeaf5f869c61400ed41c375b3f3572a6017aa1e8d07cd6dc23fa6",
+    "quote-menu.ts": "5e56e53ce4c9efea32f8194f3e745aaac5a0ca5f90c9fac33a5f796818dbaf2c",
+    "quote-menu.test.mjs": "4f31d30eb4aab814d319a1472aef30891808b89affee357c5e2778ce15026610"
+  },
+  "buildSha256": {
+    "app.js": "a9dd737f3da89af01ac257949d39a24c1843704422f0deec6675757b50aa0c8c",
+    "app.css": "6e7d97e362befcd4d3e9183998e192ff32e6eb9295715e8a753de5ac1519c830",
+    "server.js": "d8016832804a23a41a62ac614c473cbe529b03793b2f992c765a6462cb8e7afa"
+  },
+  "tests": {
+    "cases": 148,
+    "failures": 0,
+    "errors": 0
+  },
+  "tsc": "PASS",
+  "build": "PASS",
+  "uiModes": [
+    {
+      "width": 1280,
+      "theme": "light",
+      "lang": "en",
+      "touch": false,
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "ru",
+      "touch": true,
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "lang": "en",
+      "touch": true,
+      "zoom": 2,
+      "status": "PASS"
+    }
+  ],
+  "installed": false,
+  "jitterCauseConfirmed": false,
+  "method": "isolated headless Chromium; candidate bundle in disposable native BB client; Minus RPC to official fake host/isolated SQLite; no live writes",
+  "notVerified": [
+    "original owner client oscillation root cause",
+    "installed candidate behavior"
+  ],
+  "nativeSourceAndBundleUnchanged": true,
+  "sourceBase": "5087a63b3dbd544d1f540d101b99d72a35abd2dc"
+}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { definePluginApp, experimental_usePluginId, experimental_useRpcQuery, experimental_useRpcMutation, useRpc, useSdk, useSettings } from "@get-bb/plugin-sdk/app";
+import { definePluginApp, experimental_copyToClipboard, experimental_usePluginId, experimental_useRpcQuery, experimental_useRpcMutation, useRpc, useSdk, useSettings } from "@get-bb/plugin-sdk/app";
 import { mountQueueCollapse } from "./collapse-queue";
 import { mountToolGrouping } from "./group-tools";
 import { AREAS, buildCss } from "./rules";
@@ -71,6 +71,7 @@ function HideStyles() {
         return () => { unsubscribeThread(); unsubscribeConnection(); };
       },
       controls,
+      text => experimental_copyToClipboard({ text }),
     );
   }, [collapseToolCalls, sdk, controls, dictionary?.id, dictionary?.revision]);
   const collapseQueue = values?.collapseQueue === true;
