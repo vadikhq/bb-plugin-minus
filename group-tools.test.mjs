@@ -49,10 +49,13 @@ test("observer filters unrelated mutations while preserving pane lifecycle and f
   const previous = new Map();
   let sequence = 0, passes = 0, fetches = 0, notify, dispose;
   const query = document.querySelectorAll.bind(document);
-  document.querySelectorAll = (selector) => {
-    if (selector === "[data-timeline-items]") passes++;
-    return query(selector);
-  };
+  // Grouping can now revisit one known pane without document-wide discovery.
+  // Observe actual traversal, preserving the original outside/inside assertions.
+  const children = Object.getOwnPropertyDescriptor(window.Element.prototype, "children");
+  Object.defineProperty(window.Element.prototype, "children", { configurable: true, get() {
+    if (this.hasAttribute("data-timeline-items")) passes++;
+    return children.get.call(this);
+  } });
   for (const [name, value] of Object.entries({ document, Element: window.Element, HTMLElement: window.HTMLElement,
     MutationObserver: window.MutationObserver,
     requestAnimationFrame: callback => { frames.set(++sequence, callback); return sequence; },

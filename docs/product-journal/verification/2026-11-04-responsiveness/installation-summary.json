@@ -1,0 +1,42 @@
+{
+  "bundle": "1b0e651d4fde8389",
+  "enabled": true,
+  "status": "running",
+  "errorCount": 0,
+  "served": {
+    "js": "9ce8b07ac5f282e46cffcc920617951ad072a3929b77e3e2ad60ff2210806892",
+    "css": "090cc1d729d0bcfa01af5e827a22c445ceaef669a4356b958ee37606cc19fcca"
+  },
+  "settingsKvSchedulesUnchanged": true,
+  "databaseTablesUnchanged": true,
+  "tables": {
+    "_bb_migrations": {
+      "count": 2,
+      "sha256": "200fb15f082213bd3c613441dd00e4252d3a46298ff06a9cb4d35b006db1f650"
+    },
+    "quote_dictionaries": {
+      "count": 1,
+      "sha256": "de3e3fbc420880e048352cf1945a2e4029c69eca69a29944f5a14a6c1a26bffe"
+    },
+    "quote_favorites": {
+      "count": 6,
+      "sha256": "ea429f3ec90f054446cdd26d0b9c4551fb6662021d03a83cdd293c739b736706"
+    },
+    "quote_favorites_state": {
+      "count": 1,
+      "sha256": "ad23182eda617e6bb3adab391b114c012a7bdee0305974421c4548aba64f8238"
+    }
+  },
+  "job": "7ee6f108-5cd4-4bc2-ba25-db98cc9b3484",
+  "jobState": "succeeded",
+  "cssDriftPendingReviewer": false,
+  "installedCssReviewed": true,
+  "afterProtectedUiDataUnchanged": true,
+  "installedUiWidths": [
+    1280,
+    390
+  ],
+  "installedUiMethod": "isolated headless Chromium, HTTP mutating requests and outgoing WebSocket frames blocked; source-verified read-only RPC allowlist",
+  "neighborCoverage": "Routines/Suggestion Chips/Sidebar reads active, all exact bundles loaded; GenUI card interactions not exercised; realtime write barrier limits subscriptions",
+  "physicalPhoneVerified": false
+}
