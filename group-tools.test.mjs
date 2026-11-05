@@ -493,7 +493,8 @@ for (const count of [1, 2, 3]) {
       assert.equal(source.textContent, QUOTE_SOURCES[QUOTES[0].source].byline);
       assert.equal(button.getAttribute("aria-labelledby"), null);
       assert.equal(source.tagName, "SPAN");
-      assert.equal(marker.querySelector("a").getAttribute("href"), "/settings/plugins/minus#minus-favorites");
+      assert.equal(marker.querySelector('[data-quote-actions]').getAttribute('aria-haspopup'), 'menu');
+      assert.equal(marker.querySelector('a'), null, 'settings now lives in the actions popup');
       assert.ok(source.classList.contains("text-subtle-foreground"));
       assert.equal(source.classList.contains("underline"), false);
       assert.equal(source.classList.contains("text-primary"), false);
@@ -1389,7 +1390,7 @@ test("keeps the rendered API membership when collapse happens after rejection bu
   } finally { globalThis.requestAnimationFrame = originalRaf; dom.cleanup(); }
 });
 
-for (const focusSelector of ["[data-metrics]", "[data-like]", "[data-settings]"]) {
+for (const focusSelector of ["[data-metrics]", "[data-like]", "[data-quote-actions]"]) {
   test("keeps focus on " + focusSelector + " when an expanded fallback becomes an API group", async () => {
     let resolveTimeline;
     const dom = mountDom({
@@ -2186,7 +2187,7 @@ test('a multi-call cycle keeps count-only metrics and disclosure through complet
     assert.equal(caption.control, dom.container.querySelector('[data-toggle="metrics"]'));
     assert.equal(caption.querySelector('[data-source]').tagName, 'SPAN');
     assert.equal(dom.container.querySelector('br, [data-source] a'), null);
-    assert([...dom.container.querySelectorAll('a')].every(a => a.matches('[data-settings]') && a.getAttribute('href') === '/settings/plugins/minus#minus-favorites'));
+    assert.equal(dom.container.querySelector('a'), null, 'quote text has no source/settings link; settings is in the popup');
   } finally { dom.cleanup(); }
 });
 

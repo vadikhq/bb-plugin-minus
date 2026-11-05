@@ -1,3 +1,4 @@
+import { mountQuoteMenu, MENU_CSS } from "./quote-menu.ts";
 // Collapses each run of consecutive tool rows in the top-level thread timeline
 // behind one quote toggle styled like bb's "Worked for" row. bb owns the rows (React),
 // so this only sets an attribute on them and inserts its own sibling markers.
@@ -265,6 +266,7 @@ export function mountToolGrouping(
   clock: Clock = systemClock,
   subscribeTimeline?: SubscribeTimeline,
   controls?: QuoteControls,
+  copyToClipboard: (text: string) => Promise<boolean> = async () => false,
 ): () => void {
   const expanded = new Set<string>();
   const groupKeyByRow = new Map<string, string>();
@@ -301,7 +303,7 @@ export function mountToolGrouping(
   style.textContent = `[${HIDDEN}]{display:none!important}
 [${MARKER}]{padding-bottom:calc(2 * var(--spacing))}
 [${MARKER}] [data-row]{margin-inline:calc(2 * var(--spacing));padding-inline:0;border-top:1px solid var(--border);padding-top:calc(4 * var(--spacing))}
-[${MARKER}]:has(button[aria-expanded="false"]) [data-row]{border-bottom:1px solid var(--border);padding-bottom:calc(4 * var(--spacing))}
+[${MARKER}]:has([data-metrics][aria-expanded="false"]) [data-row]{border-bottom:1px solid var(--border);padding-bottom:calc(4 * var(--spacing))}
 [${GROUP_END}]{margin-inline:calc(2 * var(--spacing));margin-block:calc(2 * var(--spacing));border-bottom:1px solid var(--border)}
 [${FLAT_TURN}] > div > [class~="group/timeline-row"]{display:none}
 [${FLAT_SUMMARY}] > div > [class~="group/timeline-row"]{display:none}
@@ -310,7 +312,8 @@ export function mountToolGrouping(
 [${FLAT_LIST}]{padding-inline:0;margin-block:0}
 [${FLAT_LIST}]::before,[${FLAT_LIST}]::after{display:none}
 [${STREAM_FOCUS}]:focus-visible{outline:1px solid var(--ring)}`;
-  style.textContent += QUOTE_CSS;
+  style.textContent += QUOTE_CSS + MENU_CSS;
+  const quoteMenu = controls ? mountQuoteMenu(controls, copyToClipboard) : undefined;
   document.head.append(style);
 
   const iconInView = new WeakMap<Element, boolean>();
@@ -841,7 +844,7 @@ export function mountToolGrouping(
     const focusedMarker = focused?.closest<HTMLElement>(`[${MARKER}]`) ?? null;
     const focusedKey = focusedMarker?.getAttribute(MARKER);
     const focusSelector = focused?.matches('[data-like]') ? '[data-like]' :
-      focused?.matches('[data-settings]') ? '[data-settings]' :
+      focused?.matches('[data-quote-actions]') ? '[data-quote-actions]' :
       focused?.matches('[data-toggle="metrics"]') ? '[data-toggle="metrics"]' :
       null;
     let migratedFocus: HTMLElement | null = null;
@@ -1083,6 +1086,7 @@ export function mountToolGrouping(
         }
         const language = controls?.language ?? "en", t = quoteStrings(language);
         controls?.render(el, quote);
+        quoteMenu?.prepare(el);
         setPresentationAttribute(icon, "title", t[activity]);
         const activityLabel = el.querySelector<HTMLElement>("[data-activity-label]")!;
         setPresentationAttribute(activityLabel, "id", quoteId + "-activity");
@@ -1148,6 +1152,7 @@ export function mountToolGrouping(
       if (used.has(focusedMarker)) focused?.focus({ preventScroll: true });
       else migratedFocus?.focus({ preventScroll: true });
     }
+    quoteMenu?.refresh();
     const focusedTurn = focused?.closest<HTMLElement>(`[${FLAT_TURN}], [${FLAT_SUMMARY}]`);
     if (focusedTurn !== null && focusedTurn !== undefined && inScope(focusedTurn) && focused === turnButton(focusedTurn)) {
       const metrics = focusedTurn.querySelector<HTMLElement>('[data-toggle="metrics"]');
@@ -1215,6 +1220,7 @@ export function mountToolGrouping(
   return () => {
     if (disposed) return;
     disposed = true;
+    quoteMenu?.dispose();
     unsubscribeControls?.();
     unsubscribe?.();
     observer.disconnect();

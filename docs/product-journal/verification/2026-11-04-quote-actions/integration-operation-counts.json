@@ -1,0 +1,70 @@
+[
+  {
+    "name": "quote-menu-integration",
+    "before": {
+      "alpha": 8,
+      "beta": 8,
+      "fullScans": 1,
+      "alphaFetches": 1,
+      "betaFetches": 1
+    },
+    "after": {
+      "alpha": 12,
+      "beta": 8,
+      "fullScans": 1,
+      "alphaFetches": 1,
+      "betaFetches": 1
+    }
+  },
+  {
+    "name": "owned-feedback",
+    "before": {
+      "alpha": 8,
+      "beta": 8,
+      "fullScans": 1,
+      "alphaFetches": 1,
+      "betaFetches": 1
+    },
+    "after": {
+      "alpha": 8,
+      "beta": 8,
+      "fullScans": 1,
+      "alphaFetches": 1,
+      "betaFetches": 1
+    }
+  },
+  {
+    "name": "stream-and-api",
+    "before": {
+      "alpha": 8,
+      "beta": 8,
+      "fullScans": 1,
+      "alphaFetches": 1,
+      "betaFetches": 1
+    },
+    "after": {
+      "alpha": 24,
+      "beta": 8,
+      "fullScans": 1,
+      "alphaFetches": 2,
+      "betaFetches": 1
+    }
+  },
+  {
+    "name": "lifecycle",
+    "before": {
+      "alpha": 8,
+      "beta": 8,
+      "fullScans": 1,
+      "alphaFetches": 1,
+      "betaFetches": 1
+    },
+    "after": {
+      "alpha": 32,
+      "beta": 24,
+      "fullScans": 6,
+      "alphaFetches": 2,
+      "betaFetches": 1
+    }
+  }
+]

@@ -1,0 +1,98 @@
+{
+  "date": "2026-11-05",
+  "base": "34aa3acc7364435e981e335828ec5456d1acb084",
+  "previousMenuHead": "6e5614423091ef35b8442c6598595655b8628fa4",
+  "acceptedPrototypeSha256": "ef974fc5ae502b2de419d5c6e419df04a834e9200acd30a422ebc000f77fc471",
+  "sourceSha256": {
+    "app.tsx": "6369b0b6af6a3a479f51473087b9e00d1b3adaeffb16cacf1f58ea944e4f5484",
+    "group-tools.ts": "30331e4119fbaebac6f4cd27a3be3205bad8434ef90e866d36ae2598bc9403e9",
+    "quote-menu.ts": "5e56e53ce4c9efea32f8194f3e745aaac5a0ca5f90c9fac33a5f796818dbaf2c",
+    "quote-controls.ts": "f6c965db268e05ab9309641cb4674b121cceccd0e9d3bac5968bf37f074c3eb5",
+    "quote-i18n.ts": "4c85f2cbbeeaeaf5f869c61400ed41c375b3f3572a6017aa1e8d07cd6dc23fa6",
+    "group-tools.test.mjs": "f1bb0460d67eff9591b5fef650e3cc6f437fcd8d9fb8ef9351776a0b2d8d66e6",
+    "quote-menu.test.mjs": "4f31d30eb4aab814d319a1472aef30891808b89affee357c5e2778ce15026610",
+    "responsiveness.test.mjs": "e8af8d5f49f3be3b195155df663d0f08ba14024a5d4b74ad042e62a56170a163",
+    "package.json": "a5e69c91269e4165eced75b90a0fe8b584adcce974d01a4adab2718587b61fed",
+    "package-lock.json": "233cb823d5097f4619b9194874ce18ebe64ac709bfd33f0d66be32102110c4a8"
+  },
+  "bundleSha256": {
+    "app.js": "72f9f91d5acc1a815b9797339818c4f5802eba034a8ac0a1c2eb25d70ed03ec0",
+    "app.css": "9caa75f91fb5d92c3d71e8996d94c7a8a52a8b8fe6cc8fc47a264ab4f90bc2d6",
+    "server.js": "d8016832804a23a41a62ac614c473cbe529b03793b2f992c765a6462cb8e7afa"
+  },
+  "tests": {
+    "cases": 152,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0
+  },
+  "tsc": "PASS",
+  "build": "PASS",
+  "method": "isolated headless Chromium; actual native BB UI, candidate source-only artifact JS/CSS in disposable client; Minus RPC to official isolated SDK fake host/SQLite; real browser clipboard; global HTTP mutation barrier and dropped outgoing WebSocket frames; no composer input or inherited owner profile",
+  "contexts": [
+    {
+      "mode": {
+        "width": 1280,
+        "theme": "light",
+        "lang": "en",
+        "touch": false
+      },
+      "status": "PASS",
+      "errors": [],
+      "copyTextExact": true,
+      "realClipboard": true,
+      "pendingDuplicateGuard": true,
+      "errorRetry": true,
+      "focus": true
+    },
+    {
+      "mode": {
+        "width": 390,
+        "theme": "dark",
+        "lang": "ru",
+        "touch": true
+      },
+      "status": "PASS",
+      "errors": [],
+      "copyTextExact": true,
+      "realClipboard": true,
+      "pendingDuplicateGuard": true,
+      "errorRetry": true,
+      "focus": true
+    },
+    {
+      "mode": {
+        "width": 320,
+        "theme": "light",
+        "lang": "en",
+        "touch": true,
+        "zoom": 2
+      },
+      "status": "PASS",
+      "errors": [],
+      "copyTextExact": true,
+      "realClipboard": true,
+      "pendingDuplicateGuard": true,
+      "errorRetry": true,
+      "focus": true
+    }
+  ],
+  "barriers": {
+    "HTTP": "Only source-verified named read-only RPC passed; other mutation methods blocked",
+    "realtime": "all outgoing WebSocket frames blocked",
+    "composerInput": false,
+    "blockedWritesExpected": true
+  },
+  "liveMinusSourceBundleStatusErrorsUnchanged": true,
+  "browserClosed": true,
+  "menuInstalled": false,
+  "limits": [
+    "No full physical-device menu verification",
+    "No unrestricted realtime or every neighboring plugin action claim",
+    "320px/200% text needs scrolling to read the entire long quote"
+  ],
+  "publicationSanitization": {
+    "JUnit": "Only absolute artifact prefix removed from file attributes; original private XML retained",
+    "rawJUnitSha256": "a42fdfe5a5209e5295069aa941add215925c940e6b64b40fdc558417d5aa76d9"
+  }
+}

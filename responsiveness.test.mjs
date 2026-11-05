@@ -4,6 +4,8 @@ import { writeFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 const { mountToolGrouping } = await import(process.env.MINUS_GROUP_SOURCE ?? './group-tools.ts');
 import { QUOTES } from './quotes.ts';
+import { createFavoritesClient } from './favorites-client.ts';
+import { createQuoteControls } from './quote-controls.ts';
 
 const measurements = [];
 test.after(() => {
@@ -12,7 +14,7 @@ test.after(() => {
   }
 });
 
-async function fixture(run) {
+async function fixture(run, copy) {
   const dom = new JSDOM('<!doctype html><html><head></head><body><aside>sidebar</aside><main></main></body></html>', { pretendToBeVisual: true });
   const { window } = dom, { document } = window;
   const previous = new Map(), frames = new Map(), panes = new Map(), fetches = new Map(), reads = new Map(), icons = new Set();
@@ -66,17 +68,31 @@ async function fixture(run) {
       alphaFetches: fetches.get('thr_alpha') ?? 0, betaFetches: fetches.get('thr_beta') ?? 0 };
   }
   try {
+    const client = copy && createFavoritesClient(async () => ({ revision: 0, items: [] }), async () => {});
+    client?.accept({ revision: 0, items: [] });
+    const controls = client && createQuoteControls(client);
     dispose = mountToolGrouping(async id => {
       fetches.set(id, (fetches.get(id) ?? 0) + 1); return panes.get(id)?.rows ?? [];
-    }, () => QUOTES[0], undefined, callback => { notify = callback; return () => {}; });
+    }, () => QUOTES[0], undefined, callback => { notify = callback; return () => {}; }, controls, copy);
+    const popup = document.querySelector('[data-minus-quote-menu]');
+    if (popup) {
+      // JSDOM supplies no native popover. Only emulate visibility; actual
+      // placement/light-dismiss/clipboard are checked in headless Chromium.
+      let open = false;
+      const matches = popup.matches.bind(popup);
+      popup.matches = selector => selector === ':popover-open' ? open : matches(selector);
+      popup.showPopover = () => { open = true; };
+      popup.hidePopover = () => { open = false; };
+    }
     await drain();
-    await run({ window, document, alpha, beta, pane, drain, snapshot, icons, notify: (...args) => notify(...args) });
+    await run({ window, document, alpha, beta, pane, drain, snapshot, icons, popup, notify: (...args) => notify(...args) });
   } finally {
     try {
       dispose?.();
       assert.equal(frames.size, 0, 'dispose cancels own frames');
       assert.equal(icons.size, 0, 'dispose disconnects all animation observations');
       assert.equal(query('[data-bb-minus-group], [data-bb-minus-hidden]').length, 0, 'dispose restores native presentation');
+      assert.equal(query('[data-minus-quote-menu]').length, 0, 'dispose removes quote actions overlay');
     } finally {
       for (const [name, descriptor] of previous) {
         if (descriptor) Object.defineProperty(globalThis, name, descriptor); else delete globalThis[name];
@@ -85,6 +101,35 @@ async function fixture(run) {
     }
   }
 }
+
+test('quote actions feedback avoids timeline scans while streaming still closes a moved anchor', async () => {
+  let release, copies = 0;
+  await fixture(async ({ window, document, alpha, beta, drain, snapshot, popup }) => {
+    const marker = alpha.items.querySelector('[data-bb-minus-group]');
+    const trigger = marker.querySelector('[data-quote-actions]');
+    const copy = popup.querySelector('[data-menu-copy]');
+    const before = snapshot();
+    trigger.click(); copy.click(); copy.click(); await drain();
+    assert.equal(copies, 1);
+    assert.equal(popup.matches(':popover-open'), true);
+    assert.deepEqual(snapshot(), before, 'opening and pending feedback do not traverse either conversation');
+    release(true); await drain();
+    assert.equal(copy.dataset.state, 'copied');
+    assert.deepEqual(snapshot(), before, 'clipboard completion does not traverse either conversation');
+    const anchor = trigger.getBoundingClientRect();
+    trigger.getBoundingClientRect = () => ({ ...anchor, x: anchor.x, y: anchor.y + anchor.height + 1 });
+    alpha.row.firstChild.data = 'streamed work title'; await drain();
+    assert.equal(popup.matches(':popover-open'), false, 'relevant native streaming refreshes the menu anchor');
+    const after = snapshot();
+    assert(after.alpha > before.alpha);
+    assert.equal(after.beta, before.beta);
+    assert.equal(after.fullScans, before.fullScans);
+    assert.equal(beta.items.querySelectorAll('[data-bb-minus-group]').length, 1);
+    assert.equal(marker.querySelector('[data-metrics]').getAttribute('aria-expanded'), 'false');
+    assert.equal(document.querySelectorAll('[data-minus-quote-menu]').length, 1);
+    measurements.push({ name: 'quote-menu-integration', before, after });
+  }, () => { copies++; return new Promise(resolve => { release = resolve; }); });
+});
 
 test('Minus-owned feedback and animation changes do not reprocess native timelines', async () => {
   await fixture(async ({ alpha, beta, drain, snapshot }) => {
