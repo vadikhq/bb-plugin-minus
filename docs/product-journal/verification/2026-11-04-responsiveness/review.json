@@ -1,0 +1,16 @@
+{
+  "runtimeSha256": "14b2a29f55c1ae27ac6f478aecb7c07a47f9b5be474bf13f701d54aad3a3794a",
+  "stage": "source-bound installation review",
+  "acceptedBlockers": 0,
+  "verdict": "approved for already owner-authorized local installation of these runtime bytes, provided final artifact/dependency read-back matches",
+  "conditions": [
+    "sole plugin executor keeps terminal jobs/source/settings/data rollback provenance",
+    "no remove, shared runtime restart, SDK changes, merge or publication",
+    "draft/autosave evidence from first native harness is not accepted as no-live-writes; final input test requires isolated local mutation/realtime barrier"
+  ],
+  "remainingVerification": [
+    "installed bundle/source/settings/data and jobs read-back",
+    "root integration test with bounded input/scroll and no shared writes",
+    "physical phone after refresh"
+  ]
+}

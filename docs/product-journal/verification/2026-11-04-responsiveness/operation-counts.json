@@ -1,0 +1,30 @@
+{
+  "unit": "native children reads, not CPU/time or physical-device latency",
+  "jsdom": [
+    {
+      "name": "owned-feedback",
+      "before": 4,
+      "after": 0
+    },
+    {
+      "name": "stream-and-api",
+      "before": 20,
+      "after": 0
+    }
+  ],
+  "chromium": [
+    {
+      "name": "unrelated pane during 3 native text deliveries",
+      "before": 12,
+      "after": 0
+    },
+    {
+      "name": "native reads caused by own feedback",
+      "before": 4,
+      "after": 0
+    }
+  ],
+  "finiteFixtureQuiescent": true,
+  "equalQuoteGeometry": true,
+  "sourceModuleComparison": "baseline main5087a63b versus exact candidate14b2a29f; type stripping only, synthetic rows, no native React virtualization"
+}

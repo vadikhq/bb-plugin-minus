@@ -1,0 +1,65 @@
+{
+  "method": "isolated headless Chromium, actual installed JS/CSS and native BB UI; HTTP mutations blocked except explicitly read-only RPC; all outgoing WebSocket frames blocked; owner profiles/cookies/storageState never loaded; no quote/like/data writes",
+  "testedInstalledBundle": "1b0e651d4fde8389",
+  "served": {
+    "js": "9ce8b07ac5f282e46cffcc920617951ad072a3929b77e3e2ad60ff2210806892",
+    "css": "090cc1d729d0bcfa01af5e827a22c445ceaef669a4356b958ee37606cc19fcca"
+  },
+  "contexts": [
+    {
+      "mode": {
+        "width": 1280,
+        "theme": "light"
+      },
+      "status": "PASS",
+      "count": "2 tools",
+      "noTime": true,
+      "noHorizontalOverflow": true,
+      "disclosureOpenCloseFocus": true,
+      "errors": [],
+      "httpBarrierActive": true,
+      "realtimeSendsBlocked": 54,
+      "neighborBundlesLoaded": true
+    },
+    {
+      "mode": {
+        "width": 390,
+        "theme": "dark",
+        "touch": true
+      },
+      "status": "PASS",
+      "count": "2 tools",
+      "noTime": true,
+      "noHorizontalOverflow": true,
+      "disclosureOpenCloseFocus": true,
+      "errors": [],
+      "httpBarrierActive": true,
+      "realtimeSendsBlocked": 40,
+      "neighborBundlesLoaded": true
+    }
+  ],
+  "inputContexts": [
+    {
+      "width": 1280,
+      "composerRestored": true,
+      "status": "PASS",
+      "errorCount": 0,
+      "httpBarrierActive": true,
+      "realtimeFramesBlocked": 49
+    },
+    {
+      "width": 390,
+      "composerRestored": true,
+      "status": "PASS",
+      "errorCount": 0,
+      "httpBarrierActive": true,
+      "realtimeFramesBlocked": 40
+    }
+  ],
+  "limitations": [
+    "headless responsive viewports are not physical Mac/Safari acceptance",
+    "first native input harness had no global write barrier; no-live-writes claim withdrawn; core draft source audited localStorage-only but historical neighbor side effects unproven",
+    "GenUI bundle loaded; interactive cards and unrestricted realtime feedback not exercised",
+    "320 at root-font 200 percent: functional/geometry only; native composer overlaps long quote"
+  ]
+}

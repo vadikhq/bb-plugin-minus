@@ -314,6 +314,7 @@ export function mountToolGrouping(
   document.head.append(style);
 
   const iconInView = new WeakMap<Element, boolean>();
+  const observedIcons = new Set<HTMLElement>();
   const updateIconMotion = (icon: HTMLElement) => {
     const animationState = document.hidden || iconInView.get(icon) === false ? "paused" : "";
     if (icon.style.animationPlayState !== animationState) icon.style.animationPlayState = animationState;
@@ -330,6 +331,16 @@ export function mountToolGrouping(
   document.addEventListener("visibilitychange", updateVisibleIcons);
 
   let frame = 0;
+  let discoverPanes = true;
+  const dirtyRoots = new Set<Element>();
+  const mountedByRoot = new Map<Element, Set<string>>();
+  const ownedNodes = new WeakSet<Element>();
+  function timelineRoot(element: Element): Element | null {
+    let root = element.closest('[data-timeline-items]');
+    for (let parent = root?.parentElement?.closest('[data-timeline-items]'); parent;
+      parent = root.parentElement?.closest('[data-timeline-items]')) root = parent;
+    return root;
+  }
 
   // Index each direct-child marker set once per synchronous pass; preserve native rows.
   let markerIndex = new WeakMap<Element, Map<string, HTMLElement>>();
@@ -348,9 +359,14 @@ export function mountToolGrouping(
     return entries.get(key);
   }
 
-  const schedule = () => {
+  const schedule = (root?: Element | null) => {
+    if (root == null) discoverPanes = true;
+    else dirtyRoots.add(root);
     if (frame === 0 && !disposed) frame = requestAnimationFrame(pass);
   };
+  function scheduleThread(threadId: string) {
+    for (const [root, ids] of mountedByRoot) if (ids.has(threadId)) schedule(root);
+  }
 
   function refresh(threadId: string, force = false) {
     const now = clock.now();
@@ -389,7 +405,7 @@ export function mountToolGrouping(
         const queued = queuedRefreshes.get(threadId);
         queuedRefreshes.delete(threadId);
         if (queued !== undefined && mountedThreads.has(threadId)) refresh(threadId, queued);
-        schedule();
+        scheduleThread(threadId);
       });
   }
 
@@ -459,6 +475,10 @@ export function mountToolGrouping(
       // Keep React's rows and virtualization measure box in place. Only remove
       // the enclosing disclosure's visual nesting: commentary is ordinary chat,
       // and each quote continues to control only its own work rows.
+      // A newly proven mixed summary supplies ownership to its outer turn.
+      // Revisit that same pane once; do not depend on our text mutations to
+      // accidentally trigger the next native presentation step.
+      if (!isTurn && !row.hasAttribute(FLAT_SUMMARY)) schedule(timelineRoot(container));
       setPresentationAttribute(row, isTurn ? FLAT_TURN : FLAT_SUMMARY, "");
       presentation.add(row);
       // The owned native list carries its own indent and pseudo divider.
@@ -716,13 +736,19 @@ export function mountToolGrouping(
 
   function marker(container: Element, key: string): HTMLElement {
     const existing = lookupOwned(container, key, MARKER, markerIndex);
-    if (existing !== undefined) return existing;
+    if (existing !== undefined) {
+      const icon = existing.querySelector<HTMLElement>('[data-minus-icon]');
+      if (icon && !observedIcons.has(icon)) { iconObserver?.observe(icon); observedIcons.add(icon); }
+      return existing;
+    }
     const el = document.createElement("div");
+    ownedNodes.add(el);
     el.setAttribute(MARKER, key);
     el.innerHTML = QUOTE_HTML;
     markerIndex.get(container)!.set(key, el);
     const icon = el.querySelector<HTMLElement>("[data-minus-icon]")!;
     iconObserver?.observe(icon);
+    observedIcons.add(icon);
     updateIconMotion(icon);
     const like = el.querySelector<HTMLButtonElement>("[data-like]")!;
     like.addEventListener("click", () => {
@@ -744,7 +770,7 @@ export function mountToolGrouping(
       // Use the membership the user actually saw. A refresh can have already
       // cleared/replaced the API index before the scheduled render runs.
       for (const id of renderedMembers.get(el) ?? []) rowDisclosureChoices.set(id, choice);
-      schedule();
+      schedule(timelineRoot(container));
     };
     for (const button of el.querySelectorAll("[data-toggle]")) button.addEventListener("click", toggle);
     return el;
@@ -754,6 +780,7 @@ export function mountToolGrouping(
     const existing = lookupOwned(container, key, GROUP_END, endIndex);
     if (existing !== undefined) return existing;
     const el = document.createElement("div");
+    ownedNodes.add(el);
     el.setAttribute(GROUP_END, key);
     el.setAttribute("aria-hidden", "true");
     endIndex.get(container)!.set(key, el);
@@ -795,9 +822,21 @@ export function mountToolGrouping(
 
   function pass() {
     frame = 0;
+    const discover = discoverPanes;
+    discoverPanes = false;
+    const roots = discover
+      ? [...document.querySelectorAll('[data-timeline-items]')].filter(el => !el.parentElement?.closest('[data-timeline-items]'))
+      : [...dirtyRoots].filter(el => el.isConnected);
+    dirtyRoots.clear();
+    if (discover) { mountedByRoot.clear(); mountedThreads.clear(); }
+    const containers = roots.flatMap(root => [root, ...root.querySelectorAll('[data-timeline-items]')]);
+    const rootThreads = new Map(roots.map(root => [root, new Set<string>()]));
+    // Only pane topology changes require a document-wide cleanup. A stream,
+    // API reply or disclosure must not traverse another conversation's rows.
+    const cleanupScopes: ParentNode[] = discover ? [document] : roots;
+    const inScope = (el: Element) => discover || roots.some(root => root.contains(el));
     markerIndex = new WeakMap();
     endIndex = new WeakMap();
-    mountedThreads.clear();
     const focused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const focusedMarker = focused?.closest<HTMLElement>(`[${MARKER}]`) ?? null;
     const focusedKey = focusedMarker?.getAttribute(MARKER);
@@ -811,13 +850,16 @@ export function mountToolGrouping(
     const previousChoices = new Map(disclosureChoices);
     const used = new Set<Element>();
     const turnPresentation = new Set<Element>();
-    for (const container of document.querySelectorAll("[data-timeline-items]")) {
+    for (const container of containers) {
       if (!isToolContainer(container)) continue;
       preserveTurnStreams(container, turnPresentation);
       for (const child of container.children) {
         if (!(child instanceof HTMLElement)) continue;
         const id = child.dataset.timelineRowId?.match(/^thr_[a-z0-9]+/)?.[0];
-        if (id !== undefined) mountedThreads.add(id);
+        if (id !== undefined) {
+          mountedThreads.add(id);
+          rootThreads.get(timelineRoot(container)!)?.add(id);
+        }
       }
       // A streaming work row can acquire message content after the API response.
       // Keep it as a boundary in the API index too, so adjacent tools do not share a marker.
@@ -1080,14 +1122,26 @@ export function mountToolGrouping(
         }
       }
     }
-    for (const el of document.querySelectorAll(`[${FLAT_TURN}], [${FLAT_SUMMARY}], [${TURN_SHELL}], [${FLAT_LIST}], [${STREAM_FOCUS}]`)) {
-      if (!turnPresentation.has(el)) clearTurnPresentation(el);
+    for (const scope of cleanupScopes) {
+      for (const el of scope.querySelectorAll(`[${FLAT_TURN}], [${FLAT_SUMMARY}], [${TURN_SHELL}], [${FLAT_LIST}], [${STREAM_FOCUS}]`)) {
+        if (!turnPresentation.has(el)) {
+          if (el.hasAttribute(FLAT_SUMMARY)) schedule(timelineRoot(el));
+          clearTurnPresentation(el);
+        }
+      }
+      for (const el of scope.querySelectorAll(`[${MARKER}], [${GROUP_END}]`)) if (!used.has(el)) {
+        const icon = el.querySelector("[data-minus-icon]");
+        if (icon !== null) iconObserver?.unobserve(icon);
+        el.remove();
+      }
     }
-    for (const el of document.querySelectorAll(`[${MARKER}], [${GROUP_END}]`)) if (!used.has(el)) {
-      const icon = el.querySelector("[data-minus-icon]");
-      if (icon !== null) iconObserver?.unobserve(icon);
-      el.remove();
+    for (const [root, ids] of rootThreads) mountedByRoot.set(root, ids);
+    for (const icon of observedIcons) if (!icon.isConnected) {
+      iconObserver?.unobserve(icon);
+      observedIcons.delete(icon);
     }
+    mountedThreads.clear();
+    for (const ids of mountedByRoot.values()) for (const id of ids) mountedThreads.add(id);
     // Replacing a fallback header with an API header must preserve keyboard
     // focus, so the next Enter/Space still acts on the same visible group.
     if (focusedMarker !== null && document.activeElement !== focused) {
@@ -1095,7 +1149,7 @@ export function mountToolGrouping(
       else migratedFocus?.focus({ preventScroll: true });
     }
     const focusedTurn = focused?.closest<HTMLElement>(`[${FLAT_TURN}], [${FLAT_SUMMARY}]`);
-    if (focusedTurn !== null && focusedTurn !== undefined && focused === turnButton(focusedTurn)) {
+    if (focusedTurn !== null && focusedTurn !== undefined && inScope(focusedTurn) && focused === turnButton(focusedTurn)) {
       const metrics = focusedTurn.querySelector<HTMLElement>('[data-toggle="metrics"]');
       if (metrics !== null) metrics.focus({ preventScroll: true });
       else {
@@ -1116,20 +1170,31 @@ export function mountToolGrouping(
   const containsTimeline = (node: Node) => node instanceof Element &&
     (node.matches(timelineScope) || node.querySelector(timelineScope) !== null);
   const observer = new MutationObserver(records => {
-    const relevant = records.some(record => {
+    for (const record of records) {
       const target = record.target instanceof Element ? record.target : record.target.parentElement;
+      const owned = (node: Node) => node instanceof Element && ownedNodes.has(node);
+      // These nodes and descendants belong exclusively to Minus. Their status
+      // text, animation style and placement do not alter native row identity.
+      const owner = target?.closest(`[${MARKER}], [${GROUP_END}]`);
+      if (owner && ownedNodes.has(owner)) continue;
+      if (record.type === 'childList' && [...record.addedNodes, ...record.removedNodes].length > 0 &&
+        [...record.addedNodes, ...record.removedNodes].every(owned)) continue;
       if (record.type === "attributes") {
-        if (target === null || record.oldValue === target.getAttribute(record.attributeName!)) return false;
-        if (record.attributeName !== "style") return true; // Native timeline identity added, removed or changed.
+        if (target === null || record.oldValue === target.getAttribute(record.attributeName!)) continue;
         // Spacer geometry is read by stableSpacerJoins. Observe it directly
         // rather than relying on an unrelated body mutation to revalidate it.
-        return target.hasAttribute("data-timeline-window-spacer") && target.closest(timelineScope) !== null;
+        if (record.attributeName === 'style' &&
+          (!target.hasAttribute('data-timeline-window-spacer') || !target.closest(timelineScope))) continue;
+        if (record.attributeName === 'data-timeline-items' || !timelineRoot(target)) schedule();
+        else schedule(timelineRoot(target));
+        continue;
       }
-      if (target?.closest(timelineScope) !== null && target !== null) return true;
-      return record.type === "childList" &&
-        ([...record.addedNodes].some(containsTimeline) || [...record.removedNodes].some(containsTimeline));
-    });
-    if (relevant) schedule();
+      if (record.type === 'childList' && [...record.addedNodes, ...record.removedNodes].some(node =>
+        node instanceof Element && (node.matches('[data-timeline-items]') || node.querySelector('[data-timeline-items]')))) {
+        schedule(); // New/replaced/removed pane or nested list: rediscover ownership.
+      } else if (target?.closest(timelineScope)) schedule(timelineRoot(target));
+      else if (record.type === 'childList' && [...record.addedNodes, ...record.removedNodes].some(containsTimeline)) schedule();
+    }
   });
   observer.observe(document.body, {
     childList: true, subtree: true, characterData: true,
@@ -1154,6 +1219,7 @@ export function mountToolGrouping(
     unsubscribe?.();
     observer.disconnect();
     iconObserver?.disconnect();
+    observedIcons.clear();
     document.removeEventListener("visibilitychange", updateVisibleIcons);
     document.removeEventListener("click", trackTurnChoice, true);
     cancelAnimationFrame(frame);
@@ -1181,6 +1247,8 @@ export function mountToolGrouping(
     knownThoughtIds.clear();
     thoughtToolOwners.clear();
     mountedThreads.clear();
+    mountedByRoot.clear();
+    dirtyRoots.clear();
     turnChoices.clear();
     autoOpenedTurns.clear();
   };
