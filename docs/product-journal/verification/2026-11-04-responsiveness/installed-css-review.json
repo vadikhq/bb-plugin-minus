@@ -1,0 +1,11 @@
+{
+  "runtimeSha256": "14b2a29f55c1ae27ac6f478aecb7c07a47f9b5be474bf13f701d54aad3a3794a",
+  "installedCssSha256": "090cc1d729d0bcfa01af5e827a22c445ceaef669a4356b958ee37606cc19fcca",
+  "unchanged": [
+    "dist/app.js",
+    "dist/server.js",
+    "runtime source"
+  ],
+  "cssDifference": "generated Tailwind utility shrink after excluding .context/history; source equality and final UI still need separate verification",
+  "verdict": "no confirmed CSS defect requiring disable; allow finite read-only installed UI verification of this exact CSS; previous UI evidence not an exact-CSS PASS"
+}
