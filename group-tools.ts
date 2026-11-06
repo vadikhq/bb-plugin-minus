@@ -279,6 +279,11 @@ export function mountToolGrouping(
   let disclosureRevision = 0;
   const quoteByGroup = new Map<string, GroupQuote>();
   const quoteByRow = new Map<string, GroupQuote>();
+  // A mounted pane keeps the quote it already showed for these rows. Shared
+  // API keys are only a fallback: another pane or a late reply may have cached
+  // a different quote for that same logical run.
+  let shownQuotes = new WeakMap<Element, Map<string, GroupQuote>>();
+  const markerQuotes = new WeakMap<HTMLElement, GroupQuote>();
   const threads = new Map<string, ThreadRuns>();
   const visibleRows = new Set<string>();
   // Identity survives virtualization; state is always read from the current
@@ -855,6 +860,17 @@ export function mountToolGrouping(
     const turnPresentation = new Set<Element>();
     for (const container of containers) {
       if (!isToolContainer(container)) continue;
+      // Snapshot what this pane actually showed before reconciling any part.
+      // Keys can change after API failure or when an earlier row remounts, so
+      // continuity follows overlapping members, not the old marker's key.
+      lookupOwned(container, "", MARKER, markerIndex);
+      const continuingQuotes = new Map<string, GroupQuote>();
+      for (const el of markerIndex.get(container)!.values()) {
+        const quote = markerQuotes.get(el);
+        if (quote !== undefined) for (const id of renderedMembers.get(el) ?? []) {
+          if (!continuingQuotes.has(id)) continuingQuotes.set(id, quote);
+        }
+      }
       preserveTurnStreams(container, turnPresentation);
       for (const child of container.children) {
         if (!(child instanceof HTMLElement)) continue;
@@ -1028,14 +1044,24 @@ export function mountToolGrouping(
         const mountedIds = rows
           .filter((row) => row.dataset.timelineRowId !== undefined)
           .map(apiId);
+        let shown = shownQuotes.get(container);
+        if (shown === undefined) {
+          shown = new Map();
+          shownQuotes.set(container, shown);
+        }
         const quote =
+          mountedIds.map((id) => continuingQuotes.get(id)).find((entry) => entry !== undefined) ??
+          mountedIds.map((id) => shown.get(id)).find((entry) => entry !== undefined) ??
           quoteByGroup.get(key) ??
           quoteByGroup.get(fallbackKey) ??
           mountedIds.map((id) => quoteByRow.get(id)).find((entry) => entry !== undefined) ??
           chooseQuote();
         quoteByGroup.set(key, quote);
         quoteByGroup.set(fallbackKey, quote);
-        for (const id of mountedIds) quoteByRow.set(id, quote);
+        for (const id of mountedIds) {
+          quoteByRow.set(id, quote);
+          shown.set(id, quote);
+        }
         const previousKeys = mountedIds.flatMap((id) => {
           const previous = previousGroupByRow.get(id);
           return previous === undefined ? [] : [previous];
@@ -1064,6 +1090,7 @@ export function mountToolGrouping(
         for (const id of mountedIds) groupKeyByRow.set(id, key);
         const open = expanded.has(key);
         const el = marker(container, key);
+        markerQuotes.set(el, quote);
         used.add(el);
         renderedMembers.set(el, api?.memberIds ?? mountedIds);
         if (
@@ -1245,6 +1272,7 @@ export function mountToolGrouping(
     }
     quoteByGroup.clear();
     quoteByRow.clear();
+    shownQuotes = new WeakMap();
     expanded.clear();
     groupKeyByRow.clear();
     disclosureChoices.clear();

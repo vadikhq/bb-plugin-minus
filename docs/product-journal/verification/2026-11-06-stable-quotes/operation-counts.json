@@ -1,0 +1,32 @@
+[
+  {
+    "name": "fetches",
+    "before": 3,
+    "after": 3,
+    "context": "Identical finite delayed-API and three native-text events in two-pane JSDOM fixture; counts, not CPU time"
+  },
+  {
+    "name": "alphaReads",
+    "before": 32,
+    "after": 32,
+    "context": "Identical finite delayed-API and three native-text events in two-pane JSDOM fixture; counts, not CPU time"
+  },
+  {
+    "name": "betaReads",
+    "before": 8,
+    "after": 8,
+    "context": "Identical finite delayed-API and three native-text events in two-pane JSDOM fixture; counts, not CPU time"
+  },
+  {
+    "name": "fullScans",
+    "before": 1,
+    "after": 1,
+    "context": "Identical finite delayed-API and three native-text events in two-pane JSDOM fixture; counts, not CPU time"
+  },
+  {
+    "name": "picks",
+    "before": 3,
+    "after": 3,
+    "context": "Identical finite delayed-API and three native-text events in two-pane JSDOM fixture; counts, not CPU time"
+  }
+]

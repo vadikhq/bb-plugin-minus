@@ -1,0 +1,84 @@
+{
+  "date": "2026-11-06",
+  "base": "1383e2777f956727122e199cd98e5c98f8217f87",
+  "runtimeSourceSha256": "5a6b948036d0a96eda0d5425f71e58bf3bef76fd75fd02b1f672ea39465b39bb",
+  "testSourceSha256": "bd52e0c514f0da89573dcd42e3ae7b293110fabcefbccf3df44c06dc50090535",
+  "tests": {
+    "count": 160,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0
+  },
+  "tsc": "PASS",
+  "baselineInitialCases": {
+    "count": 5,
+    "failures": 4
+  },
+  "earlierRemountBeforeFix": {
+    "count": 1,
+    "failures": 1
+  },
+  "failedApiRemountBeforeFix": {
+    "count": 1,
+    "failures": 1
+  },
+  "sourceChange": "Only quote continuity within mounted panes, tests and test command; visual styles/API/data/SDK unchanged",
+  "rawJUnitSha256": "3da3ad582ed9bb54dd7eb1def0a7805df793424e6f82dcb3ee69e691419fe108",
+  "publicJUnitSanitization": "Only absolute checkout prefix removed from file attributes; original retained privately",
+  "runtimeInstalled": false,
+  "limitations": [
+    "Not a computer-wide CPU/RAM profile",
+    "Not proof of every historical jitter cause",
+    "Candidate native UI and source-bound final artifact receipts are retained separately by writer"
+  ],
+  "build": {
+    "status": "PASS",
+    "appJsSha256": "6eec64282f9532ef17c969096365d185f4f802029cd2c632bf4576d0295e8e51",
+    "appCssSha256": "28a305431b485c745de32439bd6a36a0a300ac471212a124d67feb9793b52c58"
+  },
+  "nativeCandidateUi": {
+    "method": "isolated headless Chromium in native BB client; candidate assets and isolated fake Minus RPC; HTTP/realtime write barriers",
+    "widths": [
+      {
+        "width": 1280,
+        "theme": "light",
+        "lang": "en",
+        "touch": false
+      },
+      {
+        "width": 390,
+        "theme": "dark",
+        "lang": "ru",
+        "touch": true
+      },
+      {
+        "width": 320,
+        "theme": "light",
+        "lang": "en",
+        "touch": true,
+        "zoom": 2
+      }
+    ],
+    "status": "PASS",
+    "pageErrors": 0,
+    "liveSourceUnchanged": true,
+    "browserClosed": true,
+    "initialStartupAttempt": "FAIL skeleton timeout, no plugin RPC; unchanged instrumented repeat PASS; cause unproven"
+  },
+  "controlledBrowser": {
+    "method": "deterministic native-row-like DOM fixture, actual baseline/candidate modules, not native React virtualization",
+    "status": "PASS",
+    "candidateTextStable": true,
+    "baselineNarrowHeightPx": [
+      107,
+      87
+    ],
+    "candidateNarrowHeightPx": [
+      107,
+      107
+    ],
+    "additionalQuotePicksOnReply": 0,
+    "errors": [],
+    "browserClosed": true
+  }
+}
