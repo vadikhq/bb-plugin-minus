@@ -3,7 +3,7 @@
   "version": "0.2.1",
   "type": "module",
   "scripts": {
-    "test": "node --experimental-strip-types --test group-tools.test.mjs dictionaries.test.mjs favorites.test.mjs quote-menu.test.mjs responsiveness.test.mjs"
+    "test": "node --experimental-strip-types --test group-tools.test.mjs dictionaries.test.mjs favorites.test.mjs quote-menu.test.mjs responsiveness.test.mjs quote-stability.test.mjs"
   },
   "engines": {
     "bb": ">=0.47",
