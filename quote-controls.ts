@@ -20,6 +20,8 @@ export const QUOTE_HTML = `<div class="rounded-md text-subtle-foreground w-full"
 export const QUOTE_CSS = `
 [data-bb-minus-group]{--minus-leading:calc(5 * var(--spacing));--minus-gap:calc(2 * var(--spacing));--minus-control:calc(7 * var(--spacing))}
 [data-bb-minus-group] [data-row]{display:grid;grid-template-columns:var(--minus-leading) minmax(0,1fr);gap:var(--minus-gap);align-items:start}
+[data-bb-minus-group][data-rotation-empty] [data-row]{grid-template-columns:minmax(0,1fr)}
+[data-bb-minus-group][data-rotation-empty] :is([data-icon-slot],[data-gear-slot],[data-quote-control]){display:none}
 [data-bb-minus-group] [data-icon-slot]{display:flex;align-items:center;justify-content:center;height:var(--minus-leading)}
 [data-like],[data-quote-actions]{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:var(--minus-control,calc(7 * var(--spacing)));height:var(--minus-control,calc(7 * var(--spacing)));padding:0;border:0;border-radius:calc(var(--radius) - 2px);background:transparent;color:var(--subtle-foreground);cursor:pointer}
 [data-like] svg,[data-quote-actions] svg{width:calc(4 * var(--spacing));height:calc(4 * var(--spacing));fill:none}
@@ -52,7 +54,7 @@ export const QUOTE_CSS = `
 @media(prefers-reduced-motion:reduce){[data-dots] i,[data-like][data-feedback]{animation:none!important;opacity:1!important}}
 `;
 
-function snapshotFor(quote: GroupQuote): FavoriteSnapshot | undefined {
+export function snapshotFor(quote: GroupQuote): FavoriteSnapshot | undefined {
   if (!("author" in quote) || !quote.dictionaryId || !quote.dictionaryTitle) return undefined;
   return { dictionaryId: quote.dictionaryId, dictionaryTitle: quote.dictionaryTitle, citation: quote };
 }
@@ -65,6 +67,7 @@ export function createQuoteControls(client: FavoritesClient) {
   return {
     get language() { return language; },
     quote(element: HTMLElement) { return quotes.get(element); },
+    clear(element: HTMLElement) { rendered.delete(element); quotes.delete(element); },
     context(next: QuoteLanguage, failed: boolean, retry: () => unknown) {
       retryRead = retry;
       if (next === language && failed === loadError) return;
@@ -80,6 +83,7 @@ export function createQuoteControls(client: FavoritesClient) {
       quotes.set(element, quote);
       const snapshot = snapshotFor(quote), state = client.getSnapshot(), t = quoteStrings(language);
       if (snapshot) rendered.set(element, snapshot);
+      else rendered.delete(element);
       const key = snapshot && favoriteKey(snapshot), error = key && state.errors.get(key);
       const button = element.querySelector<HTMLButtonElement>("[data-like]")!;
       const liked = !!snapshot && client.has(snapshot), pending = !!key && state.pending.has(key);

@@ -6,6 +6,8 @@ import { DEFAULT_DICTIONARY_ID } from "./dictionary-builtins.ts";
 import { dictionaryId, object, parseDictionary } from "./dictionary-model.ts";
 import { favoritesContract } from "./favorites-model.ts";
 import { createFavoritesStore, FAVORITES_MIGRATIONS } from "./favorites-store.ts";
+import { feedbackContract, feedbackTag } from "./quote-feedback.ts";
+import { createFeedbackStore, FEEDBACK_MIGRATIONS } from "./quote-feedback-store.ts";
 
 // Descriptors keep `bb plugin config minus` working; the settings page shows the grouped section from app.tsx.
 export default async function plugin(bb: BbPluginApi) {
@@ -18,9 +20,18 @@ export default async function plugin(bb: BbPluginApi) {
     quoteDictionary: { type: "string", label: "Словарь цитат", default: DEFAULT_DICTIONARY_ID },
   });
   const db = bb.storage.database();
-  bb.storage.migrate(db, [...DICTIONARY_MIGRATIONS, ...FAVORITES_MIGRATIONS]);
+  bb.storage.migrate(db, [...DICTIONARY_MIGRATIONS, ...FAVORITES_MIGRATIONS, ...FEEDBACK_MIGRATIONS]);
   const store = createDictionaryStore(db);
   const favorites = createFavoritesStore(db);
+  const feedback = createFeedbackStore(db);
+  bb.rpc.register(feedbackContract, {
+    feedbackList: async () => feedback.list(),
+    feedbackSet: async ({ input, selected }) => {
+      const result = feedback.set(input, selected);
+      if (result.changed) bb.rpc.experimental_invalidate([feedbackTag]);
+      return result;
+    },
+  });
   bb.rpc.register(favoritesContract, {
     favoritesList: async () => favorites.list(),
     favoriteSet: async ({ snapshot, liked }) => {

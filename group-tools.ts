@@ -6,6 +6,7 @@ import { mountQuoteMenu, MENU_CSS } from "./quote-menu.ts";
 import { defaultQuote, quoteAttribution, type GroupQuote } from "./dictionary-builtins.ts";
 import { QUOTE_HTML, QUOTE_CSS, type QuoteControls } from "./quote-controls.ts";
 import { quoteStrings, toolCount } from "./quote-i18n.ts";
+import type { FeedbackClient } from "./quote-feedback.ts";
 
 // DOM observers receive same-value attribute writes too. Publish only a changed presentation.
 function setPresentationAttribute(element: Element, name: string, value: string) {
@@ -23,6 +24,7 @@ type TimelineRow = {
 type FetchTimeline = (threadId: string) => Promise<TimelineRow[]>;
 type SubscribeTimeline = (notify: (threadId: string | undefined, finished: boolean) => void) => () => void;
 type DisclosureChoice = { revision: number; open: boolean };
+type QuoteSelection = { quote: GroupQuote | null };
 type ToolActivity = "pending" | "completed" | "error" | "cancelled" | "unknown";
 function toolActivity(row: TimelineRow): ToolActivity {
   if (row.status === "pending" || row.status === "completed" || row.status === "error" || row.status === "cancelled") return row.status;
@@ -262,11 +264,12 @@ function indexRuns(rows: TimelineRow[], visibleRows: Set<string>): ThreadRuns {
 
 export function mountToolGrouping(
   fetchTimeline: FetchTimeline,
-  chooseQuote: () => GroupQuote = defaultQuote,
+  chooseQuote: () => GroupQuote | null = defaultQuote,
   clock: Clock = systemClock,
   subscribeTimeline?: SubscribeTimeline,
   controls?: QuoteControls,
   copyToClipboard: (text: string) => Promise<boolean> = async () => false,
+  feedback?: FeedbackClient,
 ): () => void {
   const expanded = new Set<string>();
   const groupKeyByRow = new Map<string, string>();
@@ -277,13 +280,13 @@ export function mountToolGrouping(
   // Preserve only unchanged, already-proven physical virtualization gaps.
   const stableSpacerJoins = new WeakMap<HTMLElement, { left: string; right: string; style: string | null }>();
   let disclosureRevision = 0;
-  const quoteByGroup = new Map<string, GroupQuote>();
-  const quoteByRow = new Map<string, GroupQuote>();
+  const quoteByGroup = new Map<string, QuoteSelection>();
+  const quoteByRow = new Map<string, QuoteSelection>();
   // A mounted pane keeps the quote it already showed for these rows. Shared
   // API keys are only a fallback: another pane or a late reply may have cached
   // a different quote for that same logical run.
-  let shownQuotes = new WeakMap<Element, Map<string, GroupQuote>>();
-  const markerQuotes = new WeakMap<HTMLElement, GroupQuote>();
+  let shownQuotes = new WeakMap<Element, Map<string, QuoteSelection>>();
+  const markerQuotes = new WeakMap<HTMLElement, QuoteSelection>();
   const threads = new Map<string, ThreadRuns>();
   const visibleRows = new Set<string>();
   // Identity survives virtualization; state is always read from the current
@@ -318,7 +321,7 @@ export function mountToolGrouping(
 [${FLAT_LIST}]::before,[${FLAT_LIST}]::after{display:none}
 [${STREAM_FOCUS}]:focus-visible{outline:1px solid var(--ring)}`;
   style.textContent += QUOTE_CSS + MENU_CSS;
-  const quoteMenu = controls ? mountQuoteMenu(controls, copyToClipboard) : undefined;
+  const quoteMenu = controls ? mountQuoteMenu(controls, copyToClipboard, feedback) : undefined;
   document.head.append(style);
 
   const iconInView = new WeakMap<Element, boolean>();
@@ -864,7 +867,7 @@ export function mountToolGrouping(
       // Keys can change after API failure or when an earlier row remounts, so
       // continuity follows overlapping members, not the old marker's key.
       lookupOwned(container, "", MARKER, markerIndex);
-      const continuingQuotes = new Map<string, GroupQuote>();
+      const continuingQuotes = new Map<string, QuoteSelection>();
       for (const el of markerIndex.get(container)!.values()) {
         const quote = markerQuotes.get(el);
         if (quote !== undefined) for (const id of renderedMembers.get(el) ?? []) {
@@ -1049,18 +1052,20 @@ export function mountToolGrouping(
           shown = new Map();
           shownQuotes.set(container, shown);
         }
-        const quote =
-          mountedIds.map((id) => continuingQuotes.get(id)).find((entry) => entry !== undefined) ??
+        // A metrics-only group is also a stable presentation. Undo affects
+        // future picks without inserting text into an already visible row.
+        const selection = mountedIds.map((id) => continuingQuotes.get(id)).find((entry) => entry !== undefined) ??
           mountedIds.map((id) => shown.get(id)).find((entry) => entry !== undefined) ??
           quoteByGroup.get(key) ??
           quoteByGroup.get(fallbackKey) ??
           mountedIds.map((id) => quoteByRow.get(id)).find((entry) => entry !== undefined) ??
-          chooseQuote();
-        quoteByGroup.set(key, quote);
-        quoteByGroup.set(fallbackKey, quote);
+          { quote: chooseQuote() };
+        const { quote } = selection;
+        quoteByGroup.set(key, selection);
+        quoteByGroup.set(fallbackKey, selection);
         for (const id of mountedIds) {
-          quoteByRow.set(id, quote);
-          shown.set(id, quote);
+          quoteByRow.set(id, selection);
+          shown.set(id, selection);
         }
         const previousKeys = mountedIds.flatMap((id) => {
           const previous = previousGroupByRow.get(id);
@@ -1090,17 +1095,19 @@ export function mountToolGrouping(
         for (const id of mountedIds) groupKeyByRow.set(id, key);
         const open = expanded.has(key);
         const el = marker(container, key);
-        markerQuotes.set(el, quote);
+        markerQuotes.set(el, selection);
         used.add(el);
         renderedMembers.set(el, api?.memberIds ?? mountedIds);
         if (
           migratedFocus === null && focusSelector !== null && focusedKey !== null &&
           focusedKey !== undefined && previousKeys.includes(focusedKey) &&
           focusedMarker?.parentElement === container
-        ) migratedFocus = el.querySelector<HTMLElement>(focusSelector);
+        ) migratedFocus = el.querySelector<HTMLElement>(quote === null ? '[data-metrics]' : focusSelector);
+        if (el.hasAttribute("data-rotation-empty") !== (quote === null)) el.toggleAttribute("data-rotation-empty", quote === null);
         const quoteText = el.querySelector<HTMLElement>("[data-quote]")!;
-        if (quoteText.textContent !== quote.text) quoteText.textContent = quote.text;
-        if (quoteText.title !== quote.text) quoteText.title = quote.text;
+        const text = quote?.text ?? "";
+        if (quoteText.textContent !== text) quoteText.textContent = text;
+        if (quoteText.title !== text) quoteText.title = text;
         const quoteId = "bb-minus-quote-" + encodeURIComponent(key);
         if (quoteText.id !== quoteId) quoteText.id = quoteId;
         const quoteButton = el.querySelector<HTMLButtonElement>("[data-metrics]")!;
@@ -1112,13 +1119,16 @@ export function mountToolGrouping(
           el.setAttribute("data-tool-state", activity);
         }
         const language = controls?.language ?? "en", t = quoteStrings(language);
-        controls?.render(el, quote);
-        quoteMenu?.prepare(el);
+        if (quote === null) controls?.clear(el);
+        else {
+          controls?.render(el, quote);
+          quoteMenu?.prepare(el);
+        }
         setPresentationAttribute(icon, "title", t[activity]);
         const activityLabel = el.querySelector<HTMLElement>("[data-activity-label]")!;
         setPresentationAttribute(activityLabel, "id", quoteId + "-activity");
         if (activityLabel.textContent !== t[activity]) activityLabel.textContent = t[activity];
-        const source = quoteAttribution(quote);
+        const source = quote === null ? { byline: "", detail: "" } : quoteAttribution(quote);
         const sourceLink = el.querySelector<HTMLElement>("[data-source]")!;
         setPresentationAttribute(sourceLink, "id", quoteId + "-source");
         if (sourceLink.textContent !== source.byline) sourceLink.textContent = source.byline;
@@ -1134,7 +1144,7 @@ export function mountToolGrouping(
           (open ? "Hide " : "Show ") + calls + " tool call" + (calls === 1 ? "" : "s") + ".";
         for (const button of el.querySelectorAll<HTMLButtonElement>("[data-toggle]")) {
           setPresentationAttribute(button, "aria-label", accessibleLabel);
-          setPresentationAttribute(button, "aria-describedby", quoteId + " " + activityLabel.id);
+          setPresentationAttribute(button, "aria-describedby", quote === null ? activityLabel.id : quoteId + " " + activityLabel.id);
           setPresentationAttribute(button, "aria-expanded", String(open));
         }
         const chevron = el.querySelector<SVGElement>("svg.bb-icon-stroke")!.style;

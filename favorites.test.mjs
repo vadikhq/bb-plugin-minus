@@ -9,11 +9,64 @@ import { createFavoritesClient } from "./favorites-client.ts";
 import { BUILTIN_DICTIONARIES } from "./dictionary-builtins.ts";
 import { quoteLanguage, quoteStrings, toolCount } from "./quote-i18n.ts";
 import { DICTIONARY_MIGRATIONS } from "./dictionary-store.ts";
+import { createFeedbackClient, createRotationPicker, feedbackKey } from "./quote-feedback.ts";
 
 const snapshot = (index = 1) => {
   const dictionary = BUILTIN_DICTIONARIES[index];
   return { dictionaryId: dictionary.id, dictionaryTitle: dictionary.title, citation: { ...dictionary.quotes[0] } };
 };
+
+test("flags and hides are independent, survive reload, and preserve liked snapshots and dictionaries", async () => {
+  let current = createFakePluginHost({ pluginId: "minus", settings: { collapseToolCalls: true } });
+  const rpc = (method, input = null) => current.harness.behavior.callRpc(method, input);
+  const first = snapshot(), hidden = { snapshot: first, kind: "hidden" }, flagged = { snapshot: first, kind: "flagged" };
+  try {
+    await plugin(current.bb);
+    const dictionary = await rpc("dictionaryList");
+    await rpc("favoriteSet", { snapshot: first, liked: true });
+    const likes = await rpc("favoritesList");
+    for (const input of [hidden, flagged, flagged]) await rpc("feedbackSet", { input, selected: true });
+    await assert.rejects(rpc("feedbackSet", { input: { ...flagged, kind: "other" }, selected: true }));
+    assert.equal((await rpc("feedbackList")).revision, 2);
+    current = await current.harness.lifecycle.reload(plugin);
+    const saved = await rpc("feedbackList");
+    assert.deepEqual(new Set(saved.items.map(item => item.key)), new Set([feedbackKey(hidden), feedbackKey(flagged)]));
+    assert(saved.items.every(item => item.snapshot.citation.text === first.citation.text));
+    const pick = createRotationPicker(first.dictionaryId, [first.citation], () => data);
+    let data = saved;
+    assert.equal(pick(), null);
+    await rpc("feedbackSet", { input: flagged, selected: false });
+    data = await rpc("feedbackList");
+    assert.equal(pick(), null, "clearing a flag preserves an explicit hide");
+    await rpc("feedbackSet", { input: hidden, selected: false });
+    data = await rpc("feedbackList");
+    assert.equal(pick(), first.citation);
+    assert.deepEqual(await rpc("favoritesList"), likes);
+    assert.deepEqual(await rpc("dictionaryList"), dictionary);
+  } finally { await current.harness.lifecycle.dispose(); }
+});
+
+test("rotation uses the confirmed revision, skips a marked edited quote, and isolates dictionaries", async () => {
+  const first = snapshot(), input = { snapshot: first, kind: "flagged" };
+  let data = { revision: 0, items: [] }, release;
+  const client = createFeedbackClient(async () => data, async () => {
+    await new Promise(resolve => { release = resolve; });
+    data = { revision: 1, items: [{ ...input, key: feedbackKey(input) }] };
+  });
+  const corrected = { ...first.citation, text: "Edited transcription" };
+  const next = { ...first.citation, id: "next" };
+  const pick = createRotationPicker(first.dictionaryId, [corrected, next], () => client.getSnapshot().data, () => 0);
+  const other = createRotationPicker("another", [corrected], () => client.getSnapshot().data, () => 0);
+  assert.equal(pick(), null);
+  client.accept(data);
+  const write = client.set(input, true);
+  assert.equal(pick(), corrected, "pending changes are not confirmed");
+  release();
+  await write;
+  client.accept({ revision: 0, items: [] });
+  assert.equal(pick(), next);
+  assert.equal(other(), corrected);
+});
 
 test("quote UI uses English fallback for unavailable language API even with retained Russian data", () => {
   assert.equal(quoteLanguage({ language: 'ru' }, false), 'ru');
