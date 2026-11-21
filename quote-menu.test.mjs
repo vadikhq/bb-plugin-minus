@@ -4,6 +4,7 @@ import {JSDOM} from 'jsdom';
 import {mountQuoteMenu,copyQuoteText} from './quote-menu.ts';
 import {createQuoteControls,QUOTE_HTML} from './quote-controls.ts';
 import {createFavoritesClient} from './favorites-client.ts';
+import {createFeedbackClient, feedbackKey} from './quote-feedback.ts';
 
 const quote={id:'q',text:'Exact text.\nSecond line.',author:'Author',section:'Section',sourceTitle:'Private source',locator:'/private/file',dictionaryId:'test',dictionaryTitle:'Dictionary'};
 test('copy payload keeps exact text and visible attribution, excluding private metadata and counts',()=>{
@@ -13,7 +14,7 @@ test('copy payload keeps exact text and visible attribution, excluding private m
 
 // JSDOM tests lifecycle and async policy. Native popover positioning and
 // pointer light-dismiss are verified separately in real headless Chromium.
-function fixture(write) {
+function fixture(write, feedback) {
  const dom=new JSDOM('<!doctype html><html><head></head><body></body></html>',{url:'http://127.0.0.1/',pretendToBeVisual:true});
  const {window}=dom, previous=new Map();
  for(const [key,value] of Object.entries({document:window.document,Element:window.Element})){
@@ -21,7 +22,7 @@ function fixture(write) {
  }
  const client=createFavoritesClient(async()=>({revision:0,items:[]}),async()=>{});client.accept({revision:0,items:[]});
  const controls=createQuoteControls(client),row=window.document.createElement('div');row.setAttribute('data-bb-minus-group','one');row.innerHTML=QUOTE_HTML;row.querySelector('[data-row]').style.columnGap='8px';window.document.body.append(row);controls.render(row,quote);
- const menu=mountQuoteMenu(controls,write),popup=window.document.querySelector('[data-minus-quote-menu]');
+ const menu=mountQuoteMenu(controls,write,feedback),popup=window.document.querySelector('[data-minus-quote-menu]');
  let open=false;const matches=popup.matches.bind(popup);
  popup.matches=s=>s===':popover-open'?open:matches(s);popup.showPopover=()=>{open=true};popup.hidePopover=()=>{open=false};
  menu.prepare(row);
@@ -31,6 +32,37 @@ function fixture(write) {
   close(){try{menu.dispose();assert.equal(window.document.querySelector('[data-minus-quote-menu]'),null)}finally{for(const [key,d] of previous){if(d)Object.defineProperty(globalThis,key,d);else delete globalThis[key]}window.close()}}
  };
 }
+
+test('marking and hiding keep the quote in place with guarded retry and confirmation', async () => {
+ let data = {revision:0, items:[]}, release, fail = true, writes = 0;
+ const feedback = createFeedbackClient(async () => data, async input => {
+   writes++;
+   await new Promise(resolve => { release = resolve; });
+   if (fail) throw new Error('offline');
+   data = { revision:data.revision+1, items:[...data.items,{...input,key:feedbackKey(input)}] };
+ });
+ feedback.accept(data);
+ const f = fixture(async () => true, feedback);
+ try {
+   f.trigger.click();
+   assert.deepEqual([...f.popup.querySelectorAll('[role=menuitem]')].map(e => e.getAttribute('aria-label') ?? e.textContent),
+     ['Copy quote', 'Hide from rotation', 'Bad quote', 'Minus settings']);
+   const flag = f.popup.querySelector('[data-menu-feedback="flagged"]');
+   const hide = f.popup.querySelector('[data-menu-feedback="hidden"]');
+   flag.focus(); flag.click(); flag.click();
+   assert.equal(writes, 1);
+   assert.equal(flag.getAttribute('aria-busy'), 'true');
+   release(); await f.tick();
+   assert.equal(flag.getAttribute('aria-label'), 'Retry marking');
+   assert.equal(flag.getAttribute('aria-disabled'), 'false');
+   fail = false; flag.click(); release(); await f.tick();
+   assert.equal(flag.getAttribute('aria-label'), 'Marked for review');
+   assert.equal(hide.getAttribute('aria-label'), 'Hide from rotation');
+   assert.equal(f.dom.window.document.activeElement, flag);
+   assert.equal(f.controls.quote(f.row), quote);
+   assert.equal(f.row.querySelector('[data-metrics]').getAttribute('aria-expanded'), 'false');
+ } finally { f.close(); }
+});
 test('copy duplicate guard, error retry, keyboard and focus preserve the same quote and disclosure',async()=>{
  let release,calls=0;const texts=[];
  const f=fixture(text=>{calls++;texts.push(text);return new Promise(r=>release=r)});

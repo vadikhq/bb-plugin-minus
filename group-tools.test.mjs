@@ -432,6 +432,33 @@ function timeline(rows) {
   }));
 }
 
+test("empty rotation keeps the existing tool disclosure stable and resumes quotes for new groups", async () => {
+  let quote = null, picks = 0;
+  const dom = mountDom({
+    rowIds: ["command:first"],
+    fetchTimeline: async () => timeline([["command:first"], ["user:next", "conversation"], ["command:second"]]),
+    chooseQuote: () => { picks++; return quote; },
+  });
+  try {
+    await dom.flush();
+    const previous = dom.container.querySelector("[data-bb-minus-group]");
+    assert(previous.hasAttribute("data-rotation-empty"));
+    assert.equal(previous.querySelector("[data-count]").textContent, "1 tool");
+    previous.querySelector("[data-metrics]").click();
+    await dom.flush();
+    assert(!dom.rows[0].hasAttribute("data-bb-minus-hidden"));
+    quote = QUOTES[0];
+    dom.container.append(dom.makeRow("user:next"), dom.makeRow("command:second"));
+    await dom.flush();
+    const groups = [...dom.container.querySelectorAll("[data-bb-minus-group]")];
+    assert.equal(groups.length, 2);
+    assert.equal(groups[0], previous);
+    assert(previous.hasAttribute("data-rotation-empty"));
+    assert.equal(groups[1].querySelector("[data-quote]").textContent, quote.text);
+    assert.equal(picks, 2);
+  } finally { dom.cleanup(); }
+});
+
 function makeClock(startAt) {
   let now = startAt;
   let nextId = 0;

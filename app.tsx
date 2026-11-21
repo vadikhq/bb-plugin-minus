@@ -4,7 +4,7 @@ import { mountQueueCollapse } from "./collapse-queue";
 import { mountToolGrouping } from "./group-tools";
 import { AREAS, buildCss } from "./rules";
 import { dictionaryContract } from "./dictionary-contract.ts";
-import { pickDictionaryQuote } from "./dictionary-builtins.ts";
+import { feedbackContract, feedbackKinds, createFeedbackClient, createRotationPicker, type FeedbackClient } from "./quote-feedback.ts";
 import { schema, object } from "./dictionary-model.ts";
 import { favoritesContract, type FavoriteSnapshot } from "./favorites-model.ts";
 import { createFavoritesClient, type FavoritesClient } from "./favorites-client.ts";
@@ -29,6 +29,17 @@ function useFavorites() {
   const state = useSyncExternalStore(client.subscribe, client.getSnapshot);
   return { client, state, query };
 }
+let feedbackClient: FeedbackClient | undefined;
+function useQuoteFeedback(enabled = true) {
+  const rpc = useRpc<typeof feedbackContract>();
+  const client = useMemo(() => feedbackClient ??= createFeedbackClient(
+    () => rpc.call("feedbackList", null), (input, selected) => rpc.call("feedbackSet", { input, selected }),
+  ), [rpc]);
+  const query = experimental_useRpcQuery({ contract: feedbackContract, method: "feedbackList", input: null, enabled });
+  useEffect(() => { if (query.data) client.accept(query.data); }, [client, query.data]);
+  const state = useSyncExternalStore(client.subscribe, client.getSnapshot);
+  return { client, state, query };
+}
 
 // Mounted once per window; re-renders when settings change, so toggles apply live.
 function HideStyles() {
@@ -38,6 +49,13 @@ function HideStyles() {
   const collapseToolCalls = values?.collapseToolCalls === true;
   const sdk = useSdk();
   const favorites = useFavorites();
+  const { client: feedback, state: feedbackState, query: feedbackQuery } = useQuoteFeedback(collapseToolCalls);
+  const feedbackReady = feedbackState.data !== undefined;
+  const [feedbackLoadFailed, setFeedbackLoadFailed] = useState(false);
+  useEffect(() => {
+    if (!feedbackReady && feedbackQuery.error) setFeedbackLoadFailed(true);
+  }, [feedbackReady, feedbackQuery.error]);
+  const feedbackCanGroup = feedbackReady || feedbackLoadFailed;
   const language = useQuoteLanguage();
   const controls = useMemo(() => createQuoteControls(favorites.client), [favorites.client]);
   useEffect(() => { controls.context(language, !!favorites.query.error, favorites.query.refetch); }, [controls, language, favorites.query.error, favorites.query.refetch]);
@@ -46,10 +64,17 @@ function HideStyles() {
   useEffect(() => {
     // Failed/unfinished first reads leave BB's native calls visible. Successful
     // refreshes retain the selection; only an explicit dictionary/revision change remounts.
-    if (!collapseToolCalls || !dictionary) return;
+    if (!collapseToolCalls || !dictionary || !feedbackCanGroup) return;
+    // If preferences are unavailable, preserve tool disclosure without
+    // drawing from an unfiltered pool. Once read, the next group can pick a
+    // quote while the existing group's disclosure and focus stay in place.
+    const pickQuote = createRotationPicker(dictionary.id, dictionary.quotes, () => feedback.getSnapshot().data);
     return mountToolGrouping(
       async (threadId) => (await sdk.threads.timeline({ threadId, deferContent: "true", includeNestedRows: "true" })).rows,
-      () => ({ ...pickDictionaryQuote(dictionary.quotes), dictionaryId: dictionary.id, dictionaryTitle: dictionary.title }),
+      () => {
+        const quote = pickQuote();
+        return quote && { ...quote, dictionaryId: dictionary.id, dictionaryTitle: dictionary.title };
+      },
       undefined,
       (notify) => {
         const unsubscribeThread = sdk.subscribe({
@@ -72,8 +97,9 @@ function HideStyles() {
       },
       controls,
       text => experimental_copyToClipboard({ text }),
+      feedback,
     );
-  }, [collapseToolCalls, sdk, controls, dictionary?.id, dictionary?.revision]);
+  }, [collapseToolCalls, sdk, controls, feedback, feedbackCanGroup, dictionary?.id, dictionary?.revision]);
   const collapseQueue = values?.collapseQueue === true;
   useEffect(() => (collapseQueue ? mountQueueCollapse() : undefined), [collapseQueue]);
   return <style data-bb-minus="">{css + QUOTE_CSS}</style>;
@@ -119,6 +145,65 @@ function FavoritesSettings() {
           {error ? <p role="alert" className="mt-1 text-xs text-destructive">{t.saveError}</p> : null}
         </div>
       </article>;
+    })}
+  </section>;
+}
+
+function QuoteFeedbackSettings() {
+  const { client, state, query } = useQuoteFeedback();
+  const t = quoteStrings(useQuoteLanguage());
+  const heading = useRef<HTMLHeadingElement>(null);
+  const removing = useRef(new Map<string, { button: HTMLButtonElement; ownsFocus: boolean }>());
+  const items = state.data?.items;
+  useEffect(() => {
+    if (!items) return;
+    for (const [key, removal] of removing.current) {
+      if (state.pending.has(key)) continue;
+      removing.current.delete(key);
+      if (state.errors.has(key) || items.some(item => item.key === key)) continue;
+      const active = document.activeElement;
+      if (active === removal.button || (removal.ownsFocus && !removal.button.isConnected && (active === document.body || active === null))) {
+        heading.current?.focus({ preventScroll: true });
+      }
+    }
+  }, [state, items]);
+  return <section aria-labelledby="minus-feedback" className="space-y-3">
+    <h2 id="minus-feedback" ref={heading} tabIndex={-1} className="text-sm font-medium text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring">{t.actions}</h2>
+    {!items && !query.error ? <p role="status" className="text-sm text-muted-foreground">{t.feedbackLoading}</p> : null}
+    {query.error ? <div role="alert" className="text-sm text-destructive">
+      <p>{t.feedbackLoadError}</p>
+      <button type="button" className="underline underline-offset-2 focus-visible:ring-1 focus-visible:ring-ring" onClick={() => { void query.refetch(); }}>{t.reload}</button>
+    </div> : null}
+    {items?.length === 0 ? <p className="text-sm text-muted-foreground">{t.feedbackEmpty}</p> : null}
+    {feedbackKinds.map(kind => {
+      const entries = items?.filter(item => item.kind === kind);
+      if (!entries?.length) return null;
+      return <section key={kind} aria-labelledby={`minus-${kind}`} className="space-y-2">
+        <h3 id={`minus-${kind}`} className="text-xs font-medium text-muted-foreground">{kind === "hidden" ? t.hiddenQuotes : t.flaggedQuotes}</h3>
+        {entries.map(item => {
+          const pending = state.pending.has(item.key), error = state.errors.has(item.key);
+          const { citation, dictionaryTitle } = item.snapshot;
+          return <article key={item.key} className="min-w-0 border-t border-border py-3 text-sm text-subtle-foreground" data-quote-feedback-item={kind}>
+            <p className="break-words">{citation.text} ·&nbsp;<span className="text-xs">{citation.author}{citation.section ? " → " + citation.section : ""}</span></p>
+            <p className="mt-1 break-words text-xs text-muted-foreground">{dictionaryTitle} · {citation.sourceTitle} · {citation.locator}</p>
+            <button type="button" aria-disabled={pending} aria-busy={pending}
+              className="mt-1 min-h-8 text-xs underline underline-offset-2 focus-visible:ring-1 focus-visible:ring-ring pointer-coarse:min-h-11"
+              onFocus={() => { const removal = removing.current.get(item.key); if (removal) removal.ownsFocus = true; }}
+              onBlur={event => {
+                const removal = removing.current.get(item.key);
+                if (event.relatedTarget && removal) removal.ownsFocus = false;
+              }}
+              onClick={event => {
+                if (pending) return;
+                const button = event.currentTarget;
+                removing.current.set(item.key, { button, ownsFocus: document.activeElement === button });
+                void client.set(item, false);
+              }}>{error ? t.retry : kind === "hidden" ? t.restoreQuote : t.unflagQuote}</button>
+            {pending ? <span role="status" className="sr-only">{t.feedbackSaving}</span> : null}
+            {error ? <p role="alert" className="text-xs text-destructive">{t.feedbackError}</p> : null}
+          </article>;
+        })}
+      </section>;
     })}
   </section>;
 }
@@ -208,6 +293,7 @@ function GroupedSettings() {
     <div className="space-y-6">
       <DictionarySettings />
       <FavoritesSettings />
+      <QuoteFeedbackSettings />
       {error === null ? null : (
         <p role="alert" className="text-sm text-destructive">
           {error}
